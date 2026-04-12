@@ -27,7 +27,7 @@ MCP does not replace gRPC or server internals. The boundary is:
 | Layer | Responsibility | Examples |
 |---|---|---|
 | **MCP** | Agent interaction and orchestration | Tools, resources, prompts, elicitation |
-| **gRPC** | Typed deterministic execution | CatalogService, FeatureService, ProcessService, WorkspaceService, RenderService, BuilderService |
+| **gRPC** | Typed deterministic execution | FeatureService, FormService (seeded); CatalogService, ProcessService, WorkspaceService, RenderService, BuilderService (planned) |
 | **Server internals** | Private runtime semantics | Worker routing, queue management, provider adapters, storage backends |
 
 MCP surfaces semantic operations. gRPC executes them deterministically. Server
@@ -35,7 +35,8 @@ internals are private and must not leak into either surface.
 
 ### Boundary Rules
 
-1. MCP tools call into the semantic core, not directly into gRPC services.
+1. MCP tools delegate to transport-neutral internal services, not directly
+   into gRPC wire contracts.
 2. MCP resources expose read-only context, not mutable service state.
 3. gRPC services own validation, authorization, state transitions, and
    persistence.
@@ -162,7 +163,7 @@ These transport-neutral objects form the shared vocabulary between MCP and gRPC
 surfaces. Canonical definitions are spread across three upstream documents:
 
 - [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md) -- resource families, MCP contract structure, workflow lifecycle
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md) -- discovery objects (`DatasetRef`, `LayerRef`, `ProcessDefinition`), execution and planning nouns
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md) -- discovery objects, workflow-family intents and plans, publishing and pipeline nouns
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md) -- full canonical concept model, composition objects (`RendererSpec`, `LabelSpec`, `PopupSpec`)
 
 This section lists the objects for reference; the upstream documents are
@@ -176,15 +177,19 @@ authoritative.
 | `DatasetRef` | Reference to a dataset |
 | `LayerRef` | Reference to a layer within a dataset |
 | `ProcessDefinition` | Available geoprocessing operation and its parameter contract |
+| `PipelineDefinition` | Reusable publishing logic and transformation plan |
 
 ### Intent and Planning
 
 | Object | Role |
 |---|---|
-| `AnalysisIntent` | Partially structured user goal |
+| `AnalysisIntent` | Partially structured user goal for analysis |
+| `PublishingIntent` | Partially structured user goal for data publishing |
+| `BuilderIntent` | Partially structured user goal for app creation |
 | `ClarificationRequest` | Structured questions needed to proceed safely |
 | `ClarificationResponse` | User answers or accepted defaults |
 | `AnalysisPlan` | Typed executable graph for analysis |
+| `PublishingPlan` | Typed DAG for publishing workflows |
 | `BuilderPlan` | Typed plan for app generation |
 
 ### Execution and State
@@ -214,6 +219,8 @@ authoritative.
 | `MapPackage` | Runnable map definition with source bindings, styles, and view state |
 | `AppPackage` | Runnable SDK application scaffold with map and artifact bindings |
 | `AnalysisResultPackage` | Complete result: summary, assumptions, provenance, artifacts, map |
+| `PublishingResultPackage` | Complete result from publishing: lineage, quality report, published service |
+| `PublishedService` | Published dataset or service surface with protocol endpoints and lineage |
 | `ProvenanceRecord` | Audit trail: sources, versions, assumptions, clarifications, timestamps |
 | `Deployment` | Routable runtime surface for a promoted package |
 

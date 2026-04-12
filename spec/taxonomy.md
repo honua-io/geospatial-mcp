@@ -11,6 +11,7 @@ taxonomy used by all other documents in this repository.
 Upstream references:
 
 - [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
 - [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
 
@@ -58,7 +59,8 @@ Geospatial resource families:
 
 - **Catalog resources** -- dataset listings, process registries, capability
   metadata
-- **Schema resources** -- dataset field definitions, type information
+- **Dataset resources** -- dataset references, layer references, field
+  definitions, and schema information
 - **Process definition resources** -- available geoprocessing operations and
   their parameter contracts
 - **Style resources** -- reusable style presets, renderer configurations
@@ -157,9 +159,14 @@ changes.
 ## Canonical Concept Model
 
 These transport-neutral objects form the shared vocabulary between MCP and gRPC
-surfaces. The canonical definitions live in the
-[AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md).
-This section lists them for reference; the upstream contract is authoritative.
+surfaces. Canonical definitions are spread across three upstream documents:
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md) -- resource families, MCP contract structure, workflow lifecycle
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md) -- discovery objects (`DatasetRef`, `LayerRef`, `ProcessDefinition`), execution and planning nouns
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md) -- full canonical concept model, composition objects (`RendererSpec`, `LabelSpec`, `PopupSpec`)
+
+This section lists the objects for reference; the upstream documents are
+authoritative.
 
 ### Discovery and Context
 
@@ -240,7 +247,7 @@ determine whether a capability is in scope, deferred, or excluded.
 
 | Primitive | v1 Coverage |
 |---|---|
-| Resources | Catalog, schema, process definition, style, theme, map template, app template, saved result package |
+| Resources | Catalog, dataset, process definition, style, theme, map template, app template, saved result package |
 | Tools | Intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
 | Elicitation | Missing inputs, ambiguous choices, approval-required actions, high-impact settings |

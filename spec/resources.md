@@ -71,8 +71,11 @@ Families introduced by this document:
 
 ID prefixes follow the canonical examples in
 [AI_OPERATOR_CONTRACT.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md):
-`result_`, `map_`, `app_`, `style_`, `theme_`, `maptmpl_`, `apptmpl_`,
-`svc_`, `dep_`, `ws_`, `artifact_`, `rev_`.
+`result_`, `map_`, `app_`, `style_`, `theme_`, `svc_`, `dep_`, `ws_`,
+`artifact_`, `rev_`. Template IDs are stable registry-defined identifiers
+(for example `analysis_default`, `analysis_dashboard`) surfaced through
+`templateId`; this document does not mandate an MCP-local prefix convention
+for templates.
 
 The open-core data-access surface already uses
 `honua://services/{encodedServiceId}/layers/{layerId}` for catalog-backed
@@ -294,7 +297,8 @@ The canonical source currently standardizes template role and examples
 rather than a frozen property table, so MCP describes the inspection
 projection by responsibility rather than by concrete field names.
 
-**Stable identifier:** map-template ID (prefix `maptmpl_…`).
+**Stable identifier:** map-template ID (registry-defined; for example
+`analysis_default`).
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -317,7 +321,7 @@ owned by a single honua-server type; it surfaces through
 therefore standardizes the URI and template identity only, and passes
 through builder-owned inspection metadata without renaming it.
 
-**Stable identifier:** app-template ID (prefix `apptmpl_…`, surfaced
+**Stable identifier:** app-template ID (registry-defined, surfaced
 through `AppPackage.templateId`).
 
 **Inspection responsibilities surfaced read-only:**
@@ -604,9 +608,10 @@ on and add resource-level signals where behavior changes:
   on result reads.
 - **Publication state visibility** -- emit `Deployment.publicationState`
   and `PublishedService.refreshStatus` on promotion-surface reads.
-- **Artifact lifecycle state** -- emit `ArtifactLifecycleState`
-  (and derived `promotionEligible`) on artifact reads through either
-  URI view.
+- **Artifact lifecycle state** -- emit `ArtifactLifecycleState` on
+  artifact reads through either URI view; emit derived
+  `promotionEligible` on workspace-rooted artifact reads only
+  (result-rooted reads do not resolve promotion eligibility).
 - **Workspace lifecycle state** -- emit `WorkspaceLifecycleState` on
   workspace reads.
 - **Per-family capability coverage** -- emit coverage flags aligned to

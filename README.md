@@ -9,8 +9,9 @@ publish results. MCP does not replace
 [geospatial-grpc](https://github.com/honua-io/geospatial-grpc) or server
 internals; it sits above the execution layer as the orchestration surface.
 
-**Status:** Draft -- vocabulary baseline established, implementation tickets
-pending.
+**Status:** Draft -- vocabulary baseline and planning/handoff semantics
+established; downstream consumer work tracked in `honua-server#728` and
+`honua-devops#29`.
 
 ## Spec
 

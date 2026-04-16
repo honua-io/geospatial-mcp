@@ -73,23 +73,28 @@ through a change to `spec/taxonomy.md` and this document.
 
 ### 2.2 Question Kinds and Shape
 
-Every question in a `ClarificationRequest` MUST carry at minimum:
+Field shape (`questionId`, `prompt`, `options[].id`, `options[].label`,
+etc.) is owned by the upstream `ClarificationRequest` example in the AI
+Operator Contract and is not restated here. Planners MUST use that shape.
 
-- `questionId` -- stable identifier unique within the request
-- `prompt` -- human-readable text the client agent may render
-- `kind` -- one of `SingleSelect`, `MultiSelect`, `FreeText`, `Confirmation`
-- `options` -- REQUIRED when `kind` is `SingleSelect` or `MultiSelect`; each
-  option carries an `optionId` and a `label`
-- `reasonCode` -- the `ClarificationReasonCode` that drove the question
+The planning plane constrains which question kinds are valid and how
+unresolvable ambiguity is handled:
 
-Free-form model output that cannot be rendered as one of the four question
-kinds is a contract violation. A planner that cannot express its ambiguity
-through the typed kinds MUST escalate to `LowConfidence` rather than inline a
-prose question.
+- `kind` MUST be one of the canonical `ClarificationQuestionKind` values
+  (`SingleSelect`, `MultiSelect`, `FreeText`, `Confirmation`).
+- `options` MUST be present when `kind` is `SingleSelect` or `MultiSelect`
+  and absent otherwise.
+- Free-form model output that cannot be rendered as one of the four kinds
+  is a contract violation. A planner that cannot express its ambiguity
+  through the typed kinds MUST escalate to `LowConfidence` rather than
+  inline a prose question.
 
-Multiple reason codes in a single request are allowed, but each question
-carries exactly one `reasonCode` so the client can group or prioritize
-questions by driver.
+The upstream `ClarificationRequest` carries `reasonCodes` at the request
+level. A single request MAY combine multiple reason codes. The planning
+plane does not add a per-question `reasonCode` field; if a client needs
+to attribute questions to a specific reason code for rendering or
+prioritization, it MUST derive that locally from the request's
+`reasonCodes` and the question content.
 
 ### 2.3 AssumptionPolicy Behavior
 
@@ -103,30 +108,42 @@ intent and travels with it through clarification rounds.
 | `AskWhenMaterial` | `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `MissingRequiredInput` when a safe default exists | `DestructiveAction`, `PublishAction`, `PolicyBoundary`; `MissingRequiredInput` when no safe default exists |
 | `UseDefaults` | `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `MissingRequiredInput` when a safe default exists | `DestructiveAction`, `PublishAction`, `PolicyBoundary`; `MissingRequiredInput` when no safe default exists |
 
-"Suppressible" means the planner MAY proceed by recording an assumption on the
-resulting plan. "Non-suppressible" means the planner MUST emit a
-`ClarificationRequest` regardless of policy. `DestructiveAction`,
-`PublishAction`, and `PolicyBoundary` are never suppressible in any policy.
+"Suppressible" means the planner MAY proceed by resolving the reason code
+with a default and emitting the plan with that value applied.
+"Non-suppressible" means the planner MUST emit a `ClarificationRequest`
+regardless of policy. `DestructiveAction`, `PublishAction`, and
+`PolicyBoundary` are never suppressible in any policy.
 
-A suppressed reason code MUST produce an entry in the plan's assumption record
-(field shape owned by the upstream contract's `AnalysisPlan.assumptions` /
-family equivalents) citing the `reasonCode`, the resolved value, and the
-policy that permitted suppression.
+When the planner suppresses a reason code under the active policy, it MUST
+bake the resolved value into the plan's field values so the plan remains
+self-describing. The resulting assumption (human-readable text plus the
+resolved value) is audited downstream via the upstream `assumptions` field
+on `ProvenanceRecord` and the family result package
+(`AnalysisResultPackage.assumptions`, `PublishingResultPackage`
+provenance, etc.). The MCP plane MUST NOT invent a plan-level or
+submission-level assumption carrier; no such canonical field exists today.
+If a future change needs one, it MUST be added upstream first and then
+referenced here.
 
 ### 2.4 Answer Binding
 
-A `ClarificationResponse` rebinds onto the originating intent:
+Field shape of `ClarificationResponse` (the `intentId` and the
+`answers[questionId] -> string[]` map) is owned by the upstream contract.
+Single-select, free-text, and confirmation answers use a single-element
+list; multi-select uses one entry per selected option id. Planners MUST
+accept that shape unchanged.
 
-- the response MUST carry the `intentId` of the originating intent
-- each answer carries the `questionId` it resolves and either a selected
-  `optionId[]`, a `text` value, or a `confirmed` boolean per question `kind`
-- the planner applies answers as field updates to the intent, producing a
+Rebinding rules layered on that shape:
+
+- a planner applies answers as field updates to the intent, producing a
   version that MUST be idempotent with respect to answer order
-- rebinding is additive within a round: answers resolve questions but MUST NOT
-  remove previously resolved fields
+- rebinding is additive within a round: answers resolve questions but MUST
+  NOT remove previously resolved fields
 - a single intent MAY round-trip clarification more than once; each round
-  carries the same `intentId` and advances a round counter (field shape owned
-  by the upstream contract)
+  reuses the same `intentId`. This document does not define a separate
+  round-counter field; round identity is carried by successive
+  `ClarificationRequest` / `ClarificationResponse` pairs bound to that
+  `intentId`
 
 If an answer introduces a new ambiguity (for example, a free-text answer that
 names a dataset that resolves to multiple candidates), the planner emits a new
@@ -184,8 +201,8 @@ what the planning-plane contract requires of each.
 | Process definition resources | Validate step parameter contracts | `UnknownProcess` (upstream error; surface as `AmbiguousProcess` during clarification) |
 | Style resources | Bind `RenderMap` / `compose_map` steps | `MissingRequiredInput` when style is required for `requestedOutputs` |
 | Theme resources | Token set for map and app composition | `MissingRequiredInput` when theme is required |
-| Map template resources | Scaffold `compose_map` / `bind_map_package` steps | `MissingRequiredInput` when `map_package` is in `requestedOutputs` |
-| App template resources | Scaffold `select_template` / `generate_project` steps | `MissingRequiredInput` when `app_package` is in `requestedOutputs` |
+| Map template resources | Scaffold `compose_map` / `bind_map_package` steps | `MissingRequiredInput` when `Map` is in `requestedOutputs` |
+| App template resources | Scaffold `select_template` / `generate_project` steps | `MissingRequiredInput` when `AppBundle` is in `requestedOutputs` |
 | Result package resources | Bind prior results as inputs | `AmbiguousDataset` when reference is ambiguous |
 
 ### 3.1 Resource Scoping Contract
@@ -215,7 +232,7 @@ and does not restate coverage state.
 
 | Family | Canonical plan object | Allowed step kinds | Required planning resources | Clarification codes in scope |
 |---|---|---|---|---|
-| Analyze | `AnalysisPlan` | `QueryFeatures`, `Geoprocess`, `Aggregate`, `RenderMap`, `Export` | catalog, dataset/layer, process definition, style (when rendering), map template (when `map_package` requested) | `MissingRequiredInput`, `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `PolicyBoundary`, `DestructiveAction` (when steps mutate) |
+| Analyze | `AnalysisPlan` | `QueryFeatures`, `Geoprocess`, `Aggregate`, `RenderMap`, `Export` | catalog, dataset/layer, process definition, style (when rendering), map template (when `Map` is in `requestedOutputs`) | `MissingRequiredInput`, `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `PolicyBoundary`, `DestructiveAction` (when steps mutate) |
 | Publish Data | `PublishingPlan` | `inspect_source`, `infer_schema`, `map_schema`, `normalize_crs`, `clean_records`, `dedupe`, `enrich`, `quality_check`, `publish_service`, `compose_map` | catalog, dataset/layer, process definition, quality policy reference, map template (when publishing a map) | all Analyze codes plus `PublishAction`, `DestructiveAction` |
 | Build App | `BuilderPlan` | `select_template`, `bind_map_package`, `bind_artifacts`, `compose_widget`, `compose_workflow`, `generate_project`, `preview_app` | app template, map template (when map is bound), prior result package or artifact references, theme | `MissingRequiredInput`, `AmbiguousDataset` (when binding data), `LowConfidence`, `PolicyBoundary`, `PublishAction` (when publishing the app) |
 | Automate / Deploy | `DeploymentPlan` | `register_definition`, `configure_schedule`, `configure_approvals`, `configure_runtime`, `publish`, `rollback` | target reference (process, pipeline, map, or app), approval policy reference, runtime policy reference | `MissingRequiredInput`, `PublishAction`, `DestructiveAction`, `PolicyBoundary`, `LowConfidence` |
@@ -274,9 +291,11 @@ change and a matching extension in this document.
 - **Pre-execution warnings.** The planner SHOULD warn when the plan depends
   on artifacts that are not terminal (in an unresolved `ExecutionJob`). Such
   plans remain valid; the execution host resolves the dependency ordering.
-- **Required outputs.** `app_package` MUST be in `requestedOutputs`. If the
-  app itself is to be published, `PublishAction` clarification fires before
-  handoff (see Section 2.1).
+- **Required outputs.** `AppBundle` MUST be in `requestedOutputs` (the
+  plan still produces an `AppPackage` resource object; `AppBundle` is the
+  `ArtifactKind` the intent requests). If the app itself is to be
+  published, `PublishAction` clarification fires before handoff (see
+  Section 2.1).
 - **Dry-run vs. submit.** `validate_plan` validates template binding and
   artifact references. `execute_plan` is not in scope in v1 for Build App
   execution semantics beyond `preview_app` and `generate_project`; see
@@ -312,15 +331,31 @@ Plan handoff is the protocol boundary between the MCP interaction plane and
 the execution plane (gRPC `ProcessService`, `WorkspaceService`, and the
 downstream orchestration host).
 
+**V1 scope.** `execute_plan` is v1 only for Analyze and Publish Data
+(`AnalysisPlan`, `PublishingPlan`) per the capability matrix in
+`spec/taxonomy.md`. Build App `execute_plan` and Automate / Deploy
+execution are deferred; their plan shape is specified in Sections 4.3 and
+4.4 for forward compatibility. Sections 5.1 and 5.2 below describe the
+semantics that apply in v1. Section 5.3 post-handoff state also applies to
+Build App's in-scope v1 tools (`preview_app`, `generate_project`) and to
+any future handoff of Builder and Deployment plans once those families
+cross the boundary.
+
 ### 5.1 Pre-Handoff (MCP Planning Plane)
 
-- the planner emits a canonical plan object (`AnalysisPlan`, `PublishingPlan`,
-  `BuilderPlan`, or `DeploymentPlan`) with `specVersion` set
+Applies to the v1 handoff families (Analyze, Publish Data). The same
+rules describe the handoff shape Builder and Deployment plans will follow
+when those families become v1.
+
+- the planner emits a canonical plan object (`AnalysisPlan` or
+  `PublishingPlan` in v1; `BuilderPlan` / `DeploymentPlan` for forward
+  compatibility) with `specVersion` set
 - the planner MAY call `validate_plan` to obtain structural validation, an
   authorization preview, and a cost or coverage estimate surface without
   persisting state. `validate_plan` is a dry-run adapter over gRPC
   `ProcessService.ValidatePlan` and `ProcessService.DryRunPlan`; the
-  planning plane does not redefine their semantics
+  planning plane does not redefine their semantics. `validate_plan` is v1
+  for Analyze, Publish Data, and Build App per the taxonomy matrix
 - calling `validate_plan` is RECOMMENDED, not REQUIRED, before `execute_plan`.
   Skipping `validate_plan` shifts validation cost to handoff time
 - validation warnings are planning-plane concerns; validation errors that
@@ -330,13 +365,23 @@ downstream orchestration host).
 
 ### 5.2 Handoff Operation
 
-`execute_plan` is the single MCP tool that crosses the boundary. It submits
-a validated plan to `ProcessService.SubmitPlanJob` (or the family-equivalent
-service method) and returns an `ExecutionJob` reference. After this call
-returns, the MCP plane no longer owns runtime state for that plan.
+In v1, `execute_plan` is the single MCP tool that crosses the boundary for
+Analyze and Publish Data. It submits a validated plan to
+`ProcessService.SubmitPlanJob` and returns an `ExecutionJob` reference.
+After this call returns, the MCP plane no longer owns runtime state for
+that plan.
 
-- the planner MUST attach the `intentId` and any accepted clarification
-  assumptions to the submission
+Build App `execute_plan` and Automate / Deploy plan execution are
+deferred. When those families become v1, handoff will follow the same
+submission pattern against the family-equivalent service method; this
+document does not commit to which method name that will be until the
+upstream contract adds it.
+
+- the planner MUST attach the `intentId` to the submission. Any
+  assumptions the planner resolved under policy are baked into plan field
+  values (see Section 2.3); the execution host records them as
+  provenance strings on the result package. The MCP plane MUST NOT invent
+  a separate submission-side assumption carrier
 - the MCP plane MUST NOT retry `execute_plan` on its own initiative; retry
   policy is owned by the execution host
 
@@ -372,8 +417,16 @@ state stays local to the interaction plane.
 | `specVersion` | spec version the plan was produced against |
 | `requestedOutputs` | requested `ArtifactKind` set |
 | Plan steps | `stepId`, `kind`, `inputs`, `dependsOn`, family-specific typed fields |
-| Accepted assumptions | suppressed `ClarificationReasonCode` entries and resolved values |
 | Workspace hint | recommended workspace kind (advisory) |
+
+Accepted assumptions do not cross as a standalone submission field; no
+canonical plan-level or submission-level assumption carrier exists
+upstream today. Instead, the planner bakes resolved values into the plan
+step inputs (see Section 2.3), and the execution host surfaces
+human-readable assumption strings on `AnalysisResultPackage.assumptions`
+and `ProvenanceRecord.assumptions` (field shapes owned upstream). If a
+future change needs a distinct submission-side carrier, it MUST be
+defined upstream first.
 
 `ClarificationRequest` and `ClarificationResponse` history, elicitation
 prompts, conversational context, and client-agent wording do not cross the

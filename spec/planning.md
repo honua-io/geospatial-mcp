@@ -208,7 +208,7 @@ what the planning-plane contract requires of each.
 | Style resources | Bind `RenderMap` / `compose_map` steps | `MissingRequiredInput` when style is required for `requestedOutputs` |
 | Theme resources | Token set for map and app composition | `MissingRequiredInput` when theme is required |
 | Map template resources | Scaffold `compose_map` / `bind_map_package` steps | `MissingRequiredInput` when `Map` is in `requestedOutputs` |
-| App template resources | Scaffold `select_template` / `generate_project` `BuilderPlan` steps | `MissingRequiredInput` when `requestedOutputs` asks for an app scaffold `ArtifactKind` |
+| App template resources | Scaffold `select_template` / `generate_project` `BuilderPlan` steps | `MissingRequiredInput` when the intent requests an app scaffold output |
 | Result package resources | Bind prior results as inputs | `AmbiguousDataset` when reference is ambiguous |
 
 ### 3.1 Resource Scoping Contract
@@ -297,18 +297,21 @@ change and a matching extension in this document.
 - **Pre-execution warnings.** The planner SHOULD warn when the plan depends
   on artifacts that are not terminal (in an unresolved `ExecutionJob`). Such
   plans remain valid; the execution host resolves the dependency ordering.
-- **Required outputs.** `requestedOutputs` MUST include the upstream
-  `ArtifactKind` value that denotes an app scaffold for the chosen
-  target; the plan produces an `AppPackage` resource object. Upstream
-  still carries two spellings for this output: the `ArtifactKind` enum
-  lists `AppBundle` (`AI_OPERATOR_CONTRACT.md` §AnalysisIntent, where
-  the enum is defined) while the canonical `BuilderIntent` example
-  emits `app_package` and `preview` in `requestedOutputs`
-  (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderIntent). This
-  spec does not fix a single spelling; harmonization of the Build App
-  output vocabulary is pending upstream and MUST be tracked there. If
-  the app itself is to be published, `PublishAction` clarification fires
-  before handoff (see Section 2.1).
+- **Required outputs.** `BuilderPlan.outputs` MUST declare the app
+  artifacts the plan will produce, using the current upstream Build App
+  spellings. `BuilderIntent.requestedOutputs` remains upstream-owned as
+  well. Upstream still carries two vocabularies for Build App outputs:
+  the shared `ArtifactKind` enum lists `AppBundle`
+  (`AI_OPERATOR_CONTRACT.md` §AnalysisIntent, where the enum is
+  defined) while the canonical `BuilderIntent` / `BuilderPlan` examples
+  emit `app_package` and `preview`
+  (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderIntent, §BuilderPlan). This
+  spec does not add a third repo-local synonym or make one spelling
+  canonical ahead of upstream harmonization. Downstream consumers MUST
+  follow the current upstream Builder examples verbatim until that
+  vocabulary is unified there. The plan still resolves to an
+  `AppPackage` resource object; if the app itself is to be published,
+  `PublishAction` clarification fires before handoff (see Section 2.1).
 - **Dry-run vs. submit.** `validate_plan` validates template binding and
   artifact references. `execute_plan` is not in scope in v1 for Build
   App; the v1 Build App MCP tool surface is `create_app_package` and
@@ -355,13 +358,13 @@ families. Downstream orchestration hosts consume those same contracts
 
 **V1 scope.** `execute_plan` is v1 only for Analyze and Publish Data
 (`AnalysisPlan`, `PublishingPlan`) per the capability matrix in
-`spec/taxonomy.md`. Build App `execute_plan` and Automate / Deploy
-execution are deferred; their plan shape is specified in Sections 4.3 and
-4.4 for forward compatibility. Sections 5.1 and 5.2 below describe the
-semantics that apply in v1. Section 5.3 post-handoff state also applies to
-Build App's in-scope v1 tools (`create_app_package`,
-`preview_app_package` per `spec/taxonomy.md`) and to any future handoff
-of Builder and Deployment plans once those families cross the boundary.
+`spec/taxonomy.md`. Build App keeps v1 planning and direct Builder tool
+semantics (`validate_plan`, `create_app_package`,
+`preview_app_package`), but does not enter the `ExecutionJob` handoff
+model described in Sections 5.2 and 5.3. Automate / Deploy execution is
+deferred; its plan shape is specified in Section 4.4 for forward
+compatibility. Sections 5.1 and 5.2 below therefore distinguish between
+v1 job-backed plan submission and Builder's current direct-tool path.
 
 ### 5.1 Pre-Handoff (MCP Planning Plane)
 
@@ -375,20 +378,20 @@ when those families become v1.
 - the planner MAY call `validate_plan` to obtain structural validation, an
   authorization preview, and a cost or coverage estimate surface without
   persisting state. `validate_plan` is v1 for Analyze, Publish Data, and
-  Build App per the taxonomy matrix. It is a dry-run adapter over the
-  family-owning gRPC service: Analyze `validate_plan` maps to
-  `ProcessService.ValidatePlan` and `ProcessService.DryRunPlan`; Publish
-  Data `validate_plan` maps to `PipelineService` ("validate publishing
-  plan" per `AI_OPERATOR_TECHNICAL_PLAN.md` §7.4); Build App
-  `validate_plan` maps to `BuilderService` (per
-  `AI_OPERATOR_TECHNICAL_PLAN.md` §7.7). Exact gRPC method names for the
-  `PipelineService` and `BuilderService` mappings are deferred until
-  those `geospatial-grpc` contracts land; this document does not commit
-  to method names ahead of the upstream contract. The planning plane
-  does not redefine the underlying gRPC semantics in any of the three
-  cases
-- calling `validate_plan` is RECOMMENDED, not REQUIRED, before `execute_plan`.
-  Skipping `validate_plan` shifts validation cost to handoff time
+  Build App per the taxonomy matrix. For Analyze, `validate_plan` maps to
+  `ProcessService.ValidatePlan` and `ProcessService.DryRunPlan`. For
+  Publish Data, `validate_plan` maps to `PipelineService` ("validate
+  publishing plan" per `AI_OPERATOR_TECHNICAL_PLAN.md` §7.4); the exact
+  `PipelineService` method name is deferred until the `geospatial-grpc`
+  contract lands. Build App also exposes `validate_plan` in the v1 MCP
+  surface, but upstream has not yet named a Builder validation RPC; this
+  document therefore constrains only the MCP-side semantics of that tool
+  (template binding and artifact-reference checks) and does not assign
+  it a job-producing handoff path
+- calling `validate_plan` is RECOMMENDED, not REQUIRED, before
+  `execute_plan` for Analyze and Publish Data. For Build App, it is an
+  optional preflight before the direct Builder tool calls in the v1 MCP
+  surface
 - validation warnings are planning-plane concerns; validation errors that
   indicate destructive or publish actions MUST escalate back through
   clarification (`DestructiveAction`, `PublishAction`) rather than being
@@ -412,6 +415,12 @@ for Build App, `DeploymentService` for Automate / Deploy). This
 document does not commit to exact method names until the upstream
 contracts add them.
 
+Build App's v1 boundary-crossing tools are `create_app_package` and
+`preview_app_package`. They are direct BuilderService-backed composition
+calls that return builder artifacts or previews, not `ExecutionJob`
+references, and they do not inherit the post-handoff job-state
+semantics in Section 5.3.
+
 - the planner MUST attach the `intentId`, the clarification audit, and
   the assumption audit to the submission (Section 5.4). Resolved values
   are additionally baked into plan step inputs (Section 2.3). The
@@ -423,6 +432,10 @@ contracts add them.
 
 ### 5.3 Post-Handoff (Execution / Orchestration Plane)
 
+Applies to Analyze and Publish Data `execute_plan` submissions in v1,
+and to any future workflow family that adopts the same `ExecutionJob`
+submission model.
+
 - `ExecutionJob.status` transitions (`Queued`, `Provisioning`, `Running`,
   `Succeeded`, `Failed`, `Cancelled`) are owned by the execution host
 - artifact materialization, workspace lifecycle, approval enforcement, and
@@ -430,11 +443,12 @@ contracts add them.
 - MCP tools MAY poll job status through transport-neutral resource reads but
   MUST NOT redefine status semantics, publish approval verdicts, or alter
   `ExecutionJob` fields
-- result packaging (`AnalysisResultPackage`, `PublishingResultPackage`,
-  `AppPackage`, `Deployment`) is constructed by the execution host and
-  exposed as MCP resources once the execution host marks the job terminal;
-  MCP does not construct result packages (resource exposure contract is
-  owned by future work in this repository and is out of scope here)
+- result packaging for submitted plans (`AnalysisResultPackage`,
+  `PublishingResultPackage`, and any future job-backed output packages) is
+  constructed by the execution host and exposed as MCP resources once the
+  execution host marks the job terminal; MCP does not construct result
+  packages (resource exposure contract is owned by future work in this
+  repository and is out of scope here)
 - errors surfaced at or after handoff use the upstream
   `GeoprocessingError.kind` vocabulary (`ValidationFailed`,
   `AuthorizationDenied`, `UnknownDataset`, `UnknownProcess`,
@@ -443,15 +457,17 @@ contracts add them.
 
 ### 5.4 Boundary-Crossing Fields
 
-Only the following fields cross the MCP-to-execution boundary. All other
-state stays local to the interaction plane.
+For `execute_plan` submissions, only the following fields cross the
+MCP-to-execution boundary. All other state stays local to the
+interaction plane.
 
 | Field | Carries |
 |---|---|
 | `intentId` | originating intent identity for provenance |
 | `planId` | plan identity |
 | `specVersion` | spec version the plan was produced against |
-| `requestedOutputs` | requested `ArtifactKind` set |
+| `requestedOutputs` | originating intent output request, preserved when needed for provenance or reconciliation against the plan's declared `outputs` |
+| `outputs` | canonical plan-level output declaration consumed by the execution host |
 | Plan steps | `stepId`, `kind`, `inputs`, `dependsOn`, family-specific typed fields |
 | Workspace hint | recommended workspace kind (advisory) |
 | Clarification audit | lists of `questionId`s that populate `ProvenanceRecord.clarificationsAsked` and `.clarificationsAnswered` (identifiers only, no prompt text) |
@@ -459,9 +475,13 @@ state stays local to the interaction plane.
 
 Resolved clarification values and assumption defaults are additionally
 baked into plan step `inputs` (Section 2.3) so the plan remains
-self-describing; the clarification and assumption audit fields above
-carry only the identifiers and human-readable strings the execution host
-needs to populate `ProvenanceRecord`
+self-describing. When both `requestedOutputs` and `outputs` are carried,
+the former records what the caller asked for and the latter records what
+the planner declared on the canonical plan object; execution hosts MUST
+consume `outputs` as the execution-side contract. The clarification and
+assumption audit fields above carry only the identifiers and
+human-readable strings the execution host needs to populate
+`ProvenanceRecord`
 (`AI_OPERATOR_CONTRACT.md` §ProvenanceRecord, fields `clarificationsAsked`,
 `clarificationsAnswered`, `assumptions`). No canonical submission-level
 field name for either audit exists upstream today, so this spec names
@@ -486,8 +506,9 @@ plans over the same handoff semantics:
 - orchestration hosts that need an unrepresented planning concept MUST open a
   change against this document and `spec/taxonomy.md` rather than extend
   locally
-- orchestration hosts consume the same `ExecutionJob` abstraction and do not
-  redefine its status transitions
+- orchestration hosts that submit plans through `execute_plan` consume the
+  same `ExecutionJob` abstraction and do not redefine its status
+  transitions
 
 ## 6. Non-Goals
 
@@ -558,9 +579,11 @@ frameworks are implementation choices.
 - **Handoff boundary rejections.** Attempts from the MCP plane to cross
   runtime, approval, or artifact-lifecycle surfaces that the execution host
   rejects as out of scope for interaction semantics.
-- **Planning-to-execution success ratio.** Per workflow family, the fraction
-  of handed-off plans that reach `Succeeded` `ExecutionJob.status` versus
-  those that reach `Failed` or `Cancelled`.
+- **Planning-to-execution success ratio.** For workflow families that
+  submit through `execute_plan` (Analyze and Publish Data in v1), the
+  fraction of handed-off plans that reach `Succeeded`
+  `ExecutionJob.status` versus those that reach `Failed` or
+  `Cancelled`.
 - **Full-catalog resource reads.** Frequency of full-catalog resource
   enumeration during planning (a smell per Section 3.1).
 - **LowConfidence threshold configuration.** Per deployment, the configured

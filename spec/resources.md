@@ -113,21 +113,33 @@ surfaced read-only.
 Outcome-rooted view of an
 [`ArtifactRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#artifactref).
 
+Canonical `ArtifactRef` fields:
+
 | Field | Role |
 |---|---|
 | `artifactId` | Stable identifier (`artifact_…`) |
 | `kind` | `ArtifactKind` (`Scalar`, `FeatureLayer`, `Table`, `Raster`, `File`, `Report`, `Map`, `AppBundle`) |
 | `label` | Human-readable label |
-| `uri` | Canonical content locator (often `honua://workspaces/{ws}/layers/{id}`) |
+| `uri` | Canonical content locator (workspace-scoped, for example `honua://workspaces/{ws}/layers/{id}`) |
 | `contentType` | MIME type |
 | `metadata` | Canonical metadata map |
-| `lifecycleState` | `ArtifactLifecycleState` (`Pending`, `Available`, `Promoted`, `Expired`, `Deleted`) |
+
+MCP-layer lifecycle projection (not a field of `ArtifactRef`; resolved
+through the workspace lifecycle service):
+
+| Derived signal | Source |
+|---|---|
+| `lifecycleState` | `ArtifactLifecycleState` (`Pending`, `Available`, `Promoted`, `Expired`, `Deleted`) from the workspace lifecycle service |
 
 Artifacts are addressable through two complementary URIs. Result-rooted
 reads (`honua://results/{rpid}/artifacts/{aid}`) are outcome-centric;
 workspace-rooted reads
 (`honua://workspaces/{wsid}/artifacts/{aid}`) are lifecycle- and
 promotion-centric. The two views address the same underlying `ArtifactRef`.
+Because the canonical shape carries `uri` (workspace-scoped) but the
+upstream package shapes carry plain artifact IDs, the scoped URI for an
+artifact is resolved through the `ArtifactRef` itself — see the
+§Artifact Addressing Rule.
 
 ### `honua://results/{result_package_id}/provenance`
 
@@ -156,53 +168,75 @@ family is introduced here.
 ### `honua://maps/{map_package_id}`
 
 Projection of
-[`MapPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage)
-(concrete shape finalized in `honua-server#730`).
+[`MapPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
+The canonical shape is finalizing in `honua-server#730`; the
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage)
+and
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#mappackage)
+sections still use different spellings for several properties
+(`mapSpec` vs `honuaMapSpec`, `previewArtifactId` vs `previewArtifact`,
+etc.). To avoid freezing a draft variant, MCP describes the inspection
+projection by responsibility and by the canonical objects it references
+rather than by concrete field names. Consumers read field names from
+the canonical shape when `honua-server#730` lands.
 
-| Field | Role |
-|---|---|
-| `mapPackageId` | Stable identifier (`map_…`) |
-| `format` | Package format version (e.g., `honua_map_package.v1`) |
-| `templateId` | `MapTemplate` reference |
-| `sourceBindings[]` | `SourceBinding` entries |
-| `styleRefs[]` | `StyleRef` identifiers |
-| `themeId` | `ThemeSpec` identifier |
-| `mapSpec` | `HonuaMapSpec` document (style sheet) |
-| `initialView` | Bounding box and CRS |
-| `legend[]` | Legend entries |
-| `popupBindings[]` | `PopupSpec` bindings |
-| `labelBindings[]` | `LabelSpec` bindings |
-| `previewArtifactId` | Preview image artifact |
-| `boundArtifacts[]` | Artifacts bound into the map |
+**Stable identifier:** `mapPackageId` (prefix `map_…`).
+
+**Inspection responsibilities surfaced read-only:**
+
+- package format and template binding (target identifies the canonical
+  `MapTemplate`);
+- source bindings (each binding is a canonical `SourceBinding`);
+- styling composition (style and theme selection via canonical
+  `StyleRef` and `ThemeSpec` references);
+- map-spec document (the `HonuaMapSpec` style sheet used at runtime);
+- initial view geometry (bounding box and CRS);
+- legend, popup, and label composition;
+- artifact bindings (preview artifact plus bound artifacts as canonical
+  `ArtifactRef` references).
 
 Edges: source bindings, styles, theme, template, bound artifacts, preview
-artifact, initial view, legend, popup and label bindings. `MapPackage` is
-composed from these references; MCP exposes them but does not flatten their
-definitions.
+artifact, initial view, legend, popup and label bindings. MCP exposes
+these compositions by canonical object name; upstream field renames in
+`honua-server#730` flow through by reference without invalidating this
+surface.
 
 ### `honua://apps/{app_package_id}`
 
 Projection of
-[`AppPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage)
-(concrete shape finalized in `honua-server#731`).
+[`AppPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage).
+The canonical shape is finalizing in `honua-server#731`; the
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage)
+and
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#apppackage)
+sections still use different spellings for several properties
+(`bundleArtifactId` vs `bundleArtifactRef`, `mapPackageId` vs
+`mapPackageRef`, `deliveryHints` vs `deploymentHints`). To avoid
+freezing a draft variant, MCP describes the inspection projection by
+responsibility and by the canonical objects it references rather than
+by concrete field names.
 
-| Field | Role |
-|---|---|
-| `appPackageId` | Stable identifier (`app_…`) |
-| `targetSdk` | Target runtime (`honua-sdk-js` in v1) |
-| `templateId` | App template reference |
-| `format` | Package format version (e.g., `honua_app_package.v1`) |
-| `entryPoint` | Generated entry file |
-| `generatedFiles[]` | Emitted file manifest |
-| `bundleArtifactId` | Bundle artifact reference |
-| `assetManifest[]` | Delivery assets with content types |
-| `mapPackageId` | Bound `MapPackage` reference |
-| `runtimeConfigSchema` | Config schema for the bundle |
-| `deliveryHints` | `hostingMode`, `defaultRoutePrefix` |
-| `boundArtifacts[]` | Data artifacts required at runtime |
+**Stable identifier:** `appPackageId` (prefix `app_…`).
+
+**Inspection responsibilities surfaced read-only:**
+
+- target SDK declaration (v1 targets `honua-sdk-js` with a MapLibre GL JS
+  runtime);
+- template binding (references the app-template registry; see
+  `honua://templates/apps/{id}`);
+- package format and generated file manifest;
+- bundle artifact reference (canonical `ArtifactRef`);
+- delivery asset manifest (paths with content types);
+- map binding (canonical `MapPackage` reference);
+- runtime configuration schema;
+- hosting and route hints (hosting mode and default route prefix);
+- bound data artifacts required at runtime (canonical `ArtifactRef`
+  references).
 
 Edges: map package, bundle artifact, asset manifest, delivery hints,
-runtime config schema.
+runtime config schema, bound artifacts. MCP exposes compositions by
+canonical object name; upstream field renames in `honua-server#731`
+flow through by reference.
 
 ### `honua://styles/{style_id}`
 
@@ -277,55 +311,75 @@ state. None of them expose control operations through MCP.
 ### `honua://services/{published_service_id}`
 
 Projection of
-[`PublishedService`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishedservice)
-(shape owned by `honua-server#730`, subject to finalization there).
+[`PublishedService`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishedservice).
+The canonical shape is owned by `honua-server#730`; the
+`AI_OPERATOR_CONTRACT` does not yet carry a `PublishedService` section,
+and the `AI_OPERATOR_TECHNICAL_PLAN` enumerates properties only at the
+responsibility level. MCP therefore describes the inspection projection
+by responsibility rather than by concrete field names.
 
-| Field | Role |
-|---|---|
-| `serviceId` | Stable identifier (`svc_…`) |
-| `protocolSurfaces[]` | Protocol endpoints (GeoServices, OGC API, WMS, WFS, OData, tiles) |
-| `styleRefs[]` | Style references bound to the service |
-| `sourceLineage` | Source-to-service lineage summary |
-| `refreshStatus` | Refresh state (read-only) |
+**Stable identifier:** `serviceId` (prefix `svc_…`).
 
-Edges: referenced by `PublishingResultPackage.publishedService` (deferred),
-consumed by `Deployment.targetRef`.
+**Inspection responsibilities surfaced read-only:**
+
+- protocol surface enumeration (for example GeoServices, OGC API
+  Features, WMS, WFS, OData, tile endpoints);
+- styling composition (canonical `StyleRef` references bound to the
+  service);
+- source-to-service lineage summary;
+- refresh state (read-only lifecycle signal).
+
+Edges: referenced by `PublishingResultPackage.publishedService`
+(canonical shape deferred), consumed by `Deployment.targetRef`.
+Concrete field names finalize alongside `honua-server#730`; the
+resource URI and responsibility list remain stable under reference.
 
 ### `honua://deployments/{deployment_id}`
 
 Projection of
 [`Deployment`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment).
+The canonical shape is finalizing in `honua-server#732`; the
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment)
+and
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#deployment)
+sections still disagree on several properties (`approvalPolicyRef` vs
+`approvalPolicy`; the tech plan also lists a `schedule` field not
+present in the contract). MCP describes the inspection projection by
+responsibility rather than by concrete field names.
 
-| Field | Role |
-|---|---|
-| `deploymentId` | Stable identifier (`dep_…`) |
-| `deploymentKind` | Package class (e.g., `app_package`, `published_service`) |
-| `targetRef` | Package or service reference |
-| `hostingMode` | `static_site`, `managed`, etc. |
-| `routePrefix` | Route path segment |
-| `publicUrl` | Resolved endpoint URL |
-| `revisionId` | Revision identifier (`rev_…`) |
-| `runtimeProfile` | Runtime environment (e.g., `browser_maplibre_js`) |
-| `deliveryArtifacts[]` | Artifacts served by the deployment |
-| `runtimeConfig` | Injected runtime configuration |
-| `visibility` | Access scope (e.g., `workspace_shared`, `public`) |
-| `authPolicyRef` | Auth policy binding |
-| `approvalPolicyRef` | Approval policy binding |
-| `publicationState` | Publication lifecycle state (read-only) |
+**Stable identifier:** `deploymentId` (prefix `dep_…`).
 
-Edges: `targetRef` → `MapPackage` | `AppPackage` | `PublishedService`;
-`deliveryArtifacts[]` → `ArtifactRef`. The upstream
-[`Deployment`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment)
-also operationalizes `ProcessDefinition` and `PipelineDefinition`
-targets; those target kinds are deferred for MCP surfacing alongside the
-`Automate / Deploy` workflow column in
-[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix) and
-will be added when `honua-server#732` finalizes their deployment lifecycle.
+**Inspection responsibilities surfaced read-only:**
+
+- deployment kind (package class — for example `app_package`,
+  `published_service`);
+- target binding (`targetRef` resolves to the canonical `AppPackage`,
+  `MapPackage`, or `PublishedService`; `ProcessDefinition` and
+  `PipelineDefinition` targets are deferred alongside the
+  `Automate / Deploy` workflow column in
+  [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix));
+- hosting mode (for example `static_site`, `managed`);
+- route configuration (route prefix and resolved public URL);
+- revision identifier (prefix `rev_…`);
+- runtime profile (for example `browser_maplibre_js`);
+- delivery artifact references (canonical `ArtifactRef`);
+- injected runtime configuration (content projected, not interpreted);
+- visibility scope (for example `workspace_shared`, `public`);
+- auth policy reference;
+- approval policy reference;
+- publication lifecycle state (read-only projection).
+
+Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService`;
+delivery artifact references → `ArtifactRef`. Concrete field names
+finalize alongside `honua-server#732`; the resource URI, target-kind
+set, and responsibility list stay stable under reference.
 
 ### `honua://workspaces/{workspace_id}`
 
 Projection of
 [`WorkspaceRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#workspaceref).
+
+Canonical `WorkspaceRef` fields:
 
 | Field | Role |
 |---|---|
@@ -334,16 +388,25 @@ Projection of
 | `label` | Human-readable label |
 | `uri` | Canonical URI |
 | `expiresAt?` | Expiration timestamp when applicable |
+
+MCP-layer lifecycle projection (not a field of `WorkspaceRef`; resolved
+through the workspace lifecycle service — see
+[`AI_OPERATOR_CONTRACT` §Workspace Lifecycle](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#workspace-lifecycle)):
+
+| Derived signal | Source |
+|---|---|
 | `lifecycleState` | `WorkspaceLifecycleState` (`Active`, `Expired`, `Archived`, `Deleted`) |
 
 ### `honua://workspaces/{workspace_id}/artifacts/{artifact_id}`
 
-Workspace-rooted view of an `ArtifactRef`. Fields match the result-rooted
-view above; this surface is the lifecycle- and promotion-centric read path.
+Workspace-rooted view of an `ArtifactRef`. The canonical fields match
+the result-rooted view above; this surface is the lifecycle- and
+promotion-centric read path. All cells below are MCP-layer projections
+(not fields of `ArtifactRef` itself):
 
-| Derived field | Source |
+| Derived signal | Source |
 |---|---|
-| `lifecycleState` | `ArtifactLifecycleState` |
+| `lifecycleState` | `ArtifactLifecycleState` (from the workspace lifecycle service) |
 | `promotionEligible` | Boolean derived server-side from policy evaluation |
 | `expiresAt?` | Expiration timestamp when applicable |
 | `sourceWorkspaceKind` | `WorkspaceKind` of the owning workspace |
@@ -353,56 +416,89 @@ eligibility policy is server-internal and not exposed.
 
 ## Resource Relationship Model
 
-The normative composition graph downstream consumers should code against:
+The normative composition graph downstream consumers should code against.
+Edges are expressed by canonical object name (`ArtifactRef`, `StyleRef`,
+`WorkspaceRef`, `SourceBinding`, …) rather than by the scoped URIs those
+objects happen to resolve to. Upstream package shapes carry artifact IDs
+without a result or workspace scope, so downstream consumers resolve the
+fully scoped URI through the `ArtifactRef` itself (see
+§Artifact Addressing Rule).
 
 | From | To | Relationship |
 |---|---|---|
-| `results/{id}` | `results/{id}/artifacts/{aid}` | composes (outcome-centric) |
-| `results/{id}` | `workspaces/{wsid}` | references (`workspaceRefs[]`) |
+| `results/{id}` | `ArtifactRef` | composes (`artifacts[]`, outcome-centric) |
+| `results/{id}` | `WorkspaceRef` | references (`workspaceRefs[]`) |
 | `results/{id}` | `results/{id}/provenance` | composes |
-| `results/{id}` | `maps/{map_id}` | references (`mapPackageId?`, deferred) |
-| `results/{id}` | `apps/{app_id}` | references (`appPackageId?`, deferred) |
-| `results/{id}` | `GeoprocessingError[]` | composes (`errors[]`) |
-| `maps/{id}` | `SourceBinding[]` | composes |
-| `maps/{id}` | `styles/{style_id}` | references (`styleRefs[]`) |
-| `maps/{id}` | `themes/{theme_id}` | references (`themeId`) |
-| `maps/{id}` | `templates/maps/{tmpl_id}` | references (`templateId`) |
-| `maps/{id}` | `results/{id}/artifacts/{aid}` | references (`boundArtifacts[]`, `previewArtifactId`) |
-| `apps/{id}` | `maps/{map_id}` | references (`mapPackageId`) |
-| `apps/{id}` | `results/{id}/artifacts/{aid}` | references (`bundleArtifactId`, `boundArtifacts[]`) |
-| `apps/{id}` | `templates/apps/{tmpl_id}` | references (`templateId`) |
-| `services/{id}` | `styles/{style_id}` | references (`styleRefs[]`) |
-| `deployments/{id}` | `apps/{id}` \| `maps/{id}` \| `services/{id}` | references (`targetRef`); process and pipeline targets deferred |
-| `deployments/{id}` | `workspaces/{wsid}/artifacts/{aid}` | references (`deliveryArtifacts[]`) |
-| `workspaces/{wsid}/artifacts/{aid}` | `results/{id}/artifacts/{aid}` | same underlying `ArtifactRef` |
+| `results/{id}` | `MapPackage` | references (`mapPackageId?`, deferred to `honua-server#730`) |
+| `results/{id}` | `AppPackage` | references (`appPackageId?`, deferred to `honua-server#731`) |
+| `results/{id}` | `GeoprocessingError` | composes (`errors[]`) |
+| `maps/{id}` | `SourceBinding` | composes (binding list) |
+| `maps/{id}` | `StyleRef` | references (style composition) |
+| `maps/{id}` | `ThemeSpec` | references (theme selection) |
+| `maps/{id}` | `MapTemplate` | references (template composition) |
+| `maps/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
+| `apps/{id}` | `MapPackage` | references (map binding) |
+| `apps/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
+| `apps/{id}` | app template | references (template binding; canonical `AppTemplate` shape deferred) |
+| `services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
+| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` | references (`targetRef`); `ProcessDefinition` and `PipelineDefinition` targets deferred |
+| `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
+| `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | resolves through `ArtifactRef.uri` (canonical workspace scope) |
+| `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]` context |
 
-Edges are expressed by canonical object name so field additions upstream
-do not invalidate this graph. When a canonical shape changes field names,
-the edge continues to resolve through the named relationship.
+Expressing edges by canonical object name keeps the graph stable when
+upstream field names evolve. Upstream field additions or renames in
+`MapPackage`, `AppPackage`, `Deployment`, and `PublishedService` (still
+finalizing in `honua-server#730`/`#731`/`#732`) flow through by
+reference.
+
+### Artifact Addressing Rule
+
+The canonical `ArtifactRef` (§AI_OPERATOR_CONTRACT) carries its own
+workspace-scoped `uri` (for example
+`honua://workspaces/ws_123/layers/candidate_parcels`). Package shapes
+that reference artifacts (`MapPackage.previewArtifactId`,
+`MapPackage.boundArtifacts[]`, `AppPackage.bundleArtifactId`,
+`AppPackage.boundArtifacts[]`, `Deployment.deliveryArtifacts[]`) carry
+plain artifact IDs and do not carry a result-package or workspace scope.
+Consumers therefore:
+
+1. Dereference the artifact ID to its canonical `ArtifactRef` (through
+   the owning result package's `artifacts[]` or the workspace lifecycle
+   service).
+2. Use `ArtifactRef.uri` for workspace-rooted navigation
+   (`honua://workspaces/{wsid}/artifacts/{aid}`) — this is the
+   lifecycle- and promotion-centric path.
+3. Use the result-rooted path
+   (`honua://results/{rpid}/artifacts/{aid}`) only when the owning
+   `AnalysisResultPackage` scope is already known from context.
+
+MCP does not synthesize a scoped artifact URI from an unscoped artifact
+ID. A scoped URI exists only where the scope is carried by the
+containing object.
 
 ## Capability Coverage
 
-The v1 capability matrix stays single-sourced in
+Coverage status (`v1`, `deferred`, `--`, `excluded`) is single-sourced in
 [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). This
-document does not republish coverage columns. The mapping from workflow
-family to resource family that downstream packaging and deployment
-consumers should use is:
+document does not republish coverage columns or duplicate the status
+vocabulary. The mapping below is a pure resource-family-to-workflow-family
+grouping so downstream packaging and deployment consumers can locate the
+resource families each workflow reads; coverage status for any given
+cell is read from the taxonomy matrix.
 
-| Resource family | Analyze | Publish Data | Build App | Automate / Deploy |
-|---|---|---|---|---|
-| `results` | v1 | v1 | v1 | deferred |
-| `results/{id}/artifacts` | v1 | v1 | v1 | deferred |
-| `results/{id}/provenance` | v1 | v1 | v1 | deferred |
-| `maps` | v1 | -- | v1 | -- |
-| `apps` | -- | -- | v1 | -- |
-| `styles`, `themes`, `templates/maps` | v1 | -- | v1 | -- |
-| `templates/apps` | -- | -- | v1 | -- |
-| `services` | -- | v1 | -- | deferred |
-| `deployments` | -- | -- | -- | deferred |
-| `workspaces`, `workspaces/{id}/artifacts` | v1 | v1 | v1 | deferred |
+| Resource family | Workflow families consuming it |
+|---|---|
+| `results`, `results/{id}/artifacts`, `results/{id}/provenance` | Analyze, Publish Data, Build App, Automate / Deploy |
+| `maps`, `styles`, `themes`, `templates/maps` | Analyze, Build App |
+| `apps`, `templates/apps` | Build App |
+| `services` | Publish Data, Automate / Deploy |
+| `deployments` | Automate / Deploy |
+| `workspaces`, `workspaces/{id}/artifacts` | Analyze, Publish Data, Build App, Automate / Deploy |
 
-Coverage keys (`v1`, `deferred`, `--`, `excluded`) are defined in
-[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix).
+Whether any cell is `v1`, `deferred`, `--`, or `excluded` follows the
+canonical taxonomy matrix and is not repeated here. When coverage
+changes, the taxonomy matrix is the single edit point.
 
 ## Error Model
 

@@ -40,8 +40,16 @@ The boundary table is not repeated; see
 All MCP resources use the `honua://` scheme. The grammar is:
 
 ```
-honua://{family}/{id}[/{subfamily}/{subid}]*
+honua://{family}[/{id}[/{subfamily}/{subid}]*]
 ```
+
+The `{id}` segment is omitted when addressing a family-level collection
+root. The open-core data-access surface already exposes the collection
+resource `honua://services` (see
+[MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources));
+that resource remains valid under this grammar. Families introduced by
+this document address instance resources (and their subresources) only;
+they do not redefine collection roots.
 
 Families introduced by this document:
 
@@ -248,10 +256,18 @@ Edges: referenced by `MapPackage.templateId`.
 App-template inspection view. The canonical app-template shape is not yet
 owned by a single honua-server type; it surfaces through
 `AppPackage.templateId` and builder-side template registries. MCP exposes
-the identifier and any documented template metadata read-only. The
-concrete shape will finalize alongside `honua-server#731`; until then this
-resource projects the identifier and whatever inspection metadata the
-builder contract exposes, with no MCP-side reshaping.
+the identifier and any documented template metadata read-only.
+
+| Field | Role |
+|---|---|
+| `appTemplateId` | Stable identifier (`apptmpl_…`); guaranteed by this contract |
+| `kind?` | Template class when published by the builder registry |
+| `label?` | Human-readable label when published by the builder registry |
+
+Edges: referenced by `AppPackage.templateId`. The concrete field set
+beyond `appTemplateId` finalizes alongside `honua-server#731`; until then
+this resource projects the identifier and whatever additional inspection
+metadata the builder contract exposes, with no MCP-side reshaping.
 
 ## Promotion-Surface Resources
 
@@ -298,7 +314,13 @@ Projection of
 | `publicationState` | Publication lifecycle state (read-only) |
 
 Edges: `targetRef` → `MapPackage` | `AppPackage` | `PublishedService`;
-`deliveryArtifacts[]` → `ArtifactRef`.
+`deliveryArtifacts[]` → `ArtifactRef`. The upstream
+[`Deployment`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment)
+also operationalizes `ProcessDefinition` and `PipelineDefinition`
+targets; those target kinds are deferred for MCP surfacing alongside the
+`Automate / Deploy` workflow column in
+[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix) and
+will be added when `honua-server#732` finalizes their deployment lifecycle.
 
 ### `honua://workspaces/{workspace_id}`
 
@@ -350,7 +372,7 @@ The normative composition graph downstream consumers should code against:
 | `apps/{id}` | `results/{id}/artifacts/{aid}` | references (`bundleArtifactId`, `boundArtifacts[]`) |
 | `apps/{id}` | `templates/apps/{tmpl_id}` | references (`templateId`) |
 | `services/{id}` | `styles/{style_id}` | references (`styleRefs[]`) |
-| `deployments/{id}` | `apps/{id}` \| `maps/{id}` \| `services/{id}` | references (`targetRef`) |
+| `deployments/{id}` | `apps/{id}` \| `maps/{id}` \| `services/{id}` | references (`targetRef`); process and pipeline targets deferred |
 | `deployments/{id}` | `workspaces/{wsid}/artifacts/{aid}` | references (`deliveryArtifacts[]`) |
 | `workspaces/{wsid}/artifacts/{aid}` | `results/{id}/artifacts/{aid}` | same underlying `ArtifactRef` |
 

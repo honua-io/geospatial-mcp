@@ -135,11 +135,14 @@ Artifacts are addressable through two complementary URIs. Result-rooted
 reads (`honua://results/{rpid}/artifacts/{aid}`) are outcome-centric;
 workspace-rooted reads
 (`honua://workspaces/{wsid}/artifacts/{aid}`) are lifecycle- and
-promotion-centric. The two views address the same underlying `ArtifactRef`.
-Because the canonical shape carries `uri` (workspace-scoped) but the
-upstream package shapes carry plain artifact IDs, the scoped URI for an
-artifact is resolved through the `ArtifactRef` itself — see the
-§Artifact Addressing Rule.
+promotion-centric. The two views address the same underlying `ArtifactRef`,
+but neither inspection URI is stored in `ArtifactRef` itself.
+`ArtifactRef.uri` remains the canonical content locator for the artifact
+payload (for example a workspace layer path); it is not reinterpreted as
+the `honua://workspaces/{workspace_id}/artifacts/{artifact_id}` inspection
+route. The workspace-artifact route is a separate MCP projection keyed by
+workspace and artifact identity and resolved by the workspace lifecycle
+service. See §Artifact Addressing Rule.
 
 ### `honua://results/{result_package_id}/provenance`
 
@@ -242,66 +245,90 @@ flow through by reference.
 
 Projection of
 [`StyleRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#styleref).
+The canonical source currently standardizes responsibilities and examples
+rather than a frozen property table, so MCP describes the inspection
+projection by responsibility rather than by concrete field names.
 
-| Field | Role |
-|---|---|
-| `styleId` | Stable identifier (`style_…`) |
-| `rendererSpec` | `RendererSpec` reference |
-| `labelSpec?` | Optional `LabelSpec` reference |
-| `popupSpec?` | Optional `PopupSpec` reference |
-| `legendInputs?` | Legend-generation inputs |
+**Stable identifier:** style ID (prefix `style_…`).
 
-Edges: renderer spec, label spec, popup spec. Styles are composed into
-map packages through `MapPackage.styleRefs[]`.
+**Inspection responsibilities surfaced read-only:**
+
+- thematic renderer selection;
+- style preset reuse and composition;
+- label and popup bindings;
+- legend-generation inputs.
+
+Edges: renderer, label, and popup composition owned by the canonical
+`StyleRef`; styles are consumed by `MapPackage` style composition and by
+`PublishedService` styling composition. Concrete field names finalize
+upstream; the resource URI and responsibility list stay stable under
+reference.
 
 ### `honua://themes/{theme_id}`
 
 Projection of
 [`ThemeSpec`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#themespec).
+The canonical source currently standardizes token families and examples
+rather than a frozen property table, so MCP describes the inspection
+projection by responsibility rather than by concrete field names.
 
-| Field | Role |
-|---|---|
-| `themeId` | Stable identifier (`theme_…`) |
-| `colorRamps` | Color-ramp tokens |
-| `typography` | Typographic tokens |
-| `spacing` | Spacing and panel chrome |
-| `semanticColors` | Status and semantic color tokens |
+**Stable identifier:** theme ID (prefix `theme_…`).
 
-Edges: referenced by `MapPackage.themeId` and by `AppPackage` runtime
-configuration.
+**Inspection responsibilities surfaced read-only:**
+
+- color-ramp tokens;
+- typography tokens;
+- spacing and panel chrome;
+- semantic status colors.
+
+Edges: theme composition owned by the canonical `ThemeSpec`; themes are
+referenced by `MapPackage` theme selection and by `AppPackage` runtime
+presentation configuration. Concrete field names finalize upstream; the
+resource URI and responsibility list stay stable under reference.
 
 ### `honua://templates/maps/{map_template_id}`
 
 Projection of
 [`MapTemplate`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#maptemplate).
+The canonical source currently standardizes template role and examples
+rather than a frozen property table, so MCP describes the inspection
+projection by responsibility rather than by concrete field names.
 
-| Field | Role |
-|---|---|
-| `mapTemplateId` | Stable identifier (`maptmpl_…`) |
-| `kind` | Template class (e.g., `analysis_default`, `dashboard`, `print_review`) |
-| `layerSlots` | Named slots for source bindings |
-| `defaultStyleRefs` | Default style references |
-| `defaultThemeId` | Default theme reference |
+**Stable identifier:** map-template ID (prefix `maptmpl_…`).
 
-Edges: referenced by `MapPackage.templateId`.
+**Inspection responsibilities surfaced read-only:**
+
+- cartographic composition class (for example analysis default, dashboard,
+  print-friendly review);
+- named slots for `SourceBinding` placement;
+- default style and theme composition;
+- layout and view presets that seed `MapPackage` generation.
+
+Edges: template composition owned by the canonical `MapTemplate`; map
+templates are referenced by `MapPackage.templateId`. Concrete field names
+finalize upstream; the resource URI and responsibility list stay stable
+under reference.
 
 ### `honua://templates/apps/{app_template_id}`
 
 App-template inspection view. The canonical app-template shape is not yet
 owned by a single honua-server type; it surfaces through
-`AppPackage.templateId` and builder-side template registries. MCP exposes
-the identifier and any documented template metadata read-only.
+`AppPackage.templateId` and builder-side template registries. MCP
+therefore standardizes the URI and template identity only, and passes
+through builder-owned inspection metadata without renaming it.
 
-| Field | Role |
-|---|---|
-| `appTemplateId` | Stable identifier (`apptmpl_…`); guaranteed by this contract |
-| `kind?` | Template class when published by the builder registry |
-| `label?` | Human-readable label when published by the builder registry |
+**Stable identifier:** app-template ID (prefix `apptmpl_…`, surfaced
+through `AppPackage.templateId`).
 
-Edges: referenced by `AppPackage.templateId`. The concrete field set
-beyond `appTemplateId` finalizes alongside `honua-server#731`; until then
-this resource projects the identifier and whatever additional inspection
-metadata the builder contract exposes, with no MCP-side reshaping.
+**Inspection responsibilities surfaced read-only:**
+
+- template identity carried by `AppPackage.templateId`;
+- template class and label when published by the builder registry;
+- additional builder-owned inspection metadata, passed through verbatim.
+
+Edges: referenced by `AppPackage.templateId`. Concrete field names beyond
+the template identity finalize alongside `honua-server#731`; until then
+this resource does not create an MCP-local app-template field table.
 
 ## Promotion-Surface Resources
 
@@ -401,8 +428,10 @@ through the workspace lifecycle service — see
 
 Workspace-rooted view of an `ArtifactRef`. The canonical fields match
 the result-rooted view above; this surface is the lifecycle- and
-promotion-centric read path. All cells below are MCP-layer projections
-(not fields of `ArtifactRef` itself):
+promotion-centric read path. It is keyed by workspace and artifact
+identity through lifecycle ownership context; it does not reuse
+`ArtifactRef.uri` as its inspection address. All cells below are MCP-layer
+projections (not fields of `ArtifactRef` itself):
 
 | Derived signal | Source |
 |---|---|
@@ -420,8 +449,10 @@ The normative composition graph downstream consumers should code against.
 Edges are expressed by canonical object name (`ArtifactRef`, `StyleRef`,
 `WorkspaceRef`, `SourceBinding`, …) rather than by the scoped URIs those
 objects happen to resolve to. Upstream package shapes carry artifact IDs
-without a result or workspace scope, so downstream consumers resolve the
-fully scoped URI through the `ArtifactRef` itself (see
+without a result or workspace inspection scope, so downstream consumers
+resolve result-rooted artifact reads from the owning
+`AnalysisResultPackage.artifacts[]` context and workspace-rooted artifact
+reads from workspace ownership and lifecycle context (see
 §Artifact Addressing Rule).
 
 | From | To | Relationship |
@@ -443,7 +474,7 @@ fully scoped URI through the `ArtifactRef` itself (see
 | `services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
 | `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` | references (`targetRef`); `ProcessDefinition` and `PipelineDefinition` targets deferred |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
-| `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | resolves through `ArtifactRef.uri` (canonical workspace scope) |
+| `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
 | `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]` context |
 
 Expressing edges by canonical object name keeps the graph stable when
@@ -455,27 +486,32 @@ reference.
 ### Artifact Addressing Rule
 
 The canonical `ArtifactRef` (§AI_OPERATOR_CONTRACT) carries its own
-workspace-scoped `uri` (for example
-`honua://workspaces/ws_123/layers/candidate_parcels`). Package shapes
+content `uri` (for example
+`honua://workspaces/ws_123/layers/candidate_parcels`). That locator points
+to the artifact payload within the workspace namespace; it is not the MCP
+inspection URI `honua://workspaces/{wsid}/artifacts/{aid}`. Package shapes
 that reference artifacts (`MapPackage.previewArtifactId`,
 `MapPackage.boundArtifacts[]`, `AppPackage.bundleArtifactId`,
 `AppPackage.boundArtifacts[]`, `Deployment.deliveryArtifacts[]`) carry
-plain artifact IDs and do not carry a result-package or workspace scope.
-Consumers therefore:
+plain artifact IDs and do not carry a result-package or workspace
+inspection URI. Consumers therefore:
 
-1. Dereference the artifact ID to its canonical `ArtifactRef` (through
-   the owning result package's `artifacts[]` or the workspace lifecycle
-   service).
-2. Use `ArtifactRef.uri` for workspace-rooted navigation
-   (`honua://workspaces/{wsid}/artifacts/{aid}`) — this is the
-   lifecycle- and promotion-centric path.
-3. Use the result-rooted path
+1. Dereference the artifact ID to its canonical `ArtifactRef` when they
+   need payload information such as `kind`, `contentType`, `metadata`, or
+   the content locator `uri`.
+2. Use the result-rooted path
    (`honua://results/{rpid}/artifacts/{aid}`) only when the owning
    `AnalysisResultPackage` scope is already known from context.
+3. Use the workspace-rooted path
+   (`honua://workspaces/{wsid}/artifacts/{aid}`) only when the owning
+   workspace identity is already known from context or resolved through
+   the workspace lifecycle service.
 
-MCP does not synthesize a scoped artifact URI from an unscoped artifact
-ID. A scoped URI exists only where the scope is carried by the
-containing object.
+MCP does not synthesize a scoped inspection URI from `ArtifactRef.uri`, and
+it does not infer result or workspace scope from an unscoped artifact ID
+alone. Scoped inspection routes exist only where result ownership or
+workspace ownership is carried by the containing object or resolved by the
+workspace lifecycle service.
 
 ## Capability Coverage
 

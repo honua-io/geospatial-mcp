@@ -17,6 +17,7 @@ pending.
 | Document | Contents |
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
+| [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification loop, per-family planning behavior, plan handoff to execution hosts |
 
 ## Workflow Families
 

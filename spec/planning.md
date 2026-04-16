@@ -121,15 +121,16 @@ plus the resolved value) is audited downstream via the upstream
 `assumptions` field on `ProvenanceRecord` and the family result package
 (`AnalysisResultPackage.assumptions`, `PublishingResultPackage`
 provenance, etc.). The execution host does not re-derive those strings;
-the planner MUST therefore hand the compact assumption audit (one string
-per suppressed reason code) across the boundary alongside the plan so
-the execution host can record it on `ProvenanceRecord`. Section 5.4
-specifies the carrier. Because no named upstream submission-level field
-exists today, this spec names the carrier by role rather than by
-upstream field path; a future upstream change MAY add a concrete field
-name, and when it does Section 5.4 MUST be updated to reference it. The
-MCP plane MUST NOT invent a plan-level assumption field beyond this
-compact audit and the resolved values baked into step inputs.
+the planner SHOULD hand the compact assumption audit (one string per
+suppressed reason code) across the boundary alongside the plan so the
+execution host can record it on `ProvenanceRecord`, when the
+submission envelope supports the carrier field (see Section 5.4 for
+the expected carrier role and its upstream dependency). Until an
+upstream submission-level field exists, resolved values baked into
+plan step inputs (Section 2.3, first sentence) remain the
+authoritative record of what the planner assumed. The MCP plane MUST
+NOT invent a plan-level assumption field beyond this compact audit
+and the resolved values baked into step inputs.
 
 ### 2.4 Answer Binding
 
@@ -294,9 +295,15 @@ change and a matching extension in this document.
   the Build App step kinds. A plan MUST begin with `select_template` and MUST
   NOT emit `generate_project` before all `bind_*` and `compose_*` steps
   required by the chosen template are present.
-- **Pre-execution warnings.** The planner SHOULD warn when the plan depends
-  on artifacts that are not terminal (in an unresolved `ExecutionJob`). Such
-  plans remain valid; the execution host resolves the dependency ordering.
+- **Pre-execution warnings.** The planner SHOULD warn when the plan
+  references artifacts that are not yet available (for example, a map
+  package from an in-progress analysis). Build App v1 uses direct
+  BuilderService-backed calls (`create_app_package`,
+  `preview_app_package`) that require all bound artifacts to be
+  resolved at call time; deferred dependency ordering is not available
+  in the v1 path. If a future upstream contract adds job-backed
+  Builder execution, dependency ordering semantics will follow the
+  `ExecutionJob` model described in Section 5.3.
 - **Required outputs.** `BuilderPlan.outputs` MUST declare the app
   artifacts the plan will produce, using the current upstream Build App
   spellings. `BuilderIntent.requestedOutputs` remains upstream-owned as
@@ -421,12 +428,15 @@ calls that return builder artifacts or previews, not `ExecutionJob`
 references, and they do not inherit the post-handoff job-state
 semantics in Section 5.3.
 
-- the planner MUST attach the `intentId`, the clarification audit, and
-  the assumption audit to the submission (Section 5.4). Resolved values
-  are additionally baked into plan step inputs (Section 2.3). The
-  execution host uses the submitted audit fields, not the plan inputs,
-  to populate `ProvenanceRecord.clarificationsAsked`,
-  `.clarificationsAnswered`, and `.assumptions`
+- the planner MUST attach the `intentId` to the submission. The planner
+  SHOULD attach the clarification audit and the assumption audit when
+  the submission envelope supports the carrier fields (see Section 5.4
+  for expected carrier roles and their upstream dependency). Resolved
+  values are additionally baked into plan step inputs (Section 2.3).
+  When the audit carriers are present, the execution host uses them,
+  not the plan inputs, to populate
+  `ProvenanceRecord.clarificationsAsked`, `.clarificationsAnswered`,
+  and `.assumptions`
 - the MCP plane MUST NOT retry `execute_plan` on its own initiative; retry
   policy is owned by the execution host
 
@@ -469,24 +479,34 @@ interaction plane.
 | `requestedOutputs` | originating intent output request, preserved when needed for provenance or reconciliation against the plan's declared `outputs` |
 | `outputs` | canonical plan-level output declaration consumed by the execution host |
 | Plan steps | `stepId`, `kind`, `inputs`, `dependsOn`, family-specific typed fields |
-| Workspace hint | recommended workspace kind (advisory) |
-| Clarification audit | lists of `questionId`s that populate `ProvenanceRecord.clarificationsAsked` and `.clarificationsAnswered` (identifiers only, no prompt text) |
-| Assumption audit | one human-readable string per suppressed reason code, to populate `ProvenanceRecord.assumptions` and the family result package `assumptions` field |
 
 Resolved clarification values and assumption defaults are additionally
 baked into plan step `inputs` (Section 2.3) so the plan remains
 self-describing. When both `requestedOutputs` and `outputs` are carried,
 the former records what the caller asked for and the latter records what
 the planner declared on the canonical plan object; execution hosts MUST
-consume `outputs` as the execution-side contract. The clarification and
-assumption audit fields above carry only the identifiers and
-human-readable strings the execution host needs to populate
-`ProvenanceRecord`
-(`AI_OPERATOR_CONTRACT.md` §ProvenanceRecord, fields `clarificationsAsked`,
-`clarificationsAnswered`, `assumptions`). No canonical submission-level
-field name for either audit exists upstream today, so this spec names
-the carriers by role; a future upstream change MAY add concrete field
-names and this table MUST be updated when it does.
+consume `outputs` as the execution-side contract.
+
+**Future boundary carriers (not yet upstream-canonical).** Three
+additional data roles are expected to cross the boundary once upstream
+defines submission-level field paths:
+
+- **Workspace hint** — recommended workspace kind (advisory); see
+  Section 3.2.
+- **Clarification audit** — lists of `questionId`s to populate
+  `ProvenanceRecord.clarificationsAsked` and
+  `.clarificationsAnswered` (identifiers only, no prompt text).
+- **Assumption audit** — one human-readable string per suppressed
+  reason code, to populate `ProvenanceRecord.assumptions` and the
+  family result package `assumptions` field.
+
+No canonical submission-level field name for any of these carriers
+exists upstream today (`AI_OPERATOR_CONTRACT.md` §ProvenanceRecord,
+fields `clarificationsAsked`, `clarificationsAnswered`,
+`assumptions`). This spec names them by role; downstream consumers
+MUST NOT invent private submission-envelope fields for these
+carriers. A future upstream change MAY add concrete field names, and
+this section MUST be updated to reference them when it does.
 
 `ClarificationRequest` and `ClarificationResponse` prompt wording,
 option labels, `FreeText` response text beyond the resolved value,
@@ -540,11 +560,18 @@ workspace hints (Section 3.2) but do not manage lifecycle.
 
 ### 4. Result Package Construction
 
-`AnalysisResultPackage`, `PublishingResultPackage`, `AppPackage`, and
-`Deployment` are constructed by execution hosts. MCP surfaces these as
-resources once the execution host marks the backing job terminal. Result
-resource schemas and caching semantics are owned by future work in this
-repository.
+Result packages are constructed by execution hosts, not by MCP planners.
+
+For Analyze and Publish Data, `AnalysisResultPackage` and
+`PublishingResultPackage` are surfaced as MCP resources once the
+execution host marks the backing `ExecutionJob` terminal. For Build
+App v1, `AppPackage` is produced directly by `create_app_package` and
+returned to the MCP plane without an intermediate job; when a future
+upstream contract adds job-backed Builder execution, result packaging
+will follow the same terminal-job model. `Deployment` output
+semantics are deferred with the Automate / Deploy family. Result
+resource schemas and caching semantics are owned by future work in
+this repository.
 
 ### 5. Natural-Language Prompt Authoring and Model Selection
 

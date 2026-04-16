@@ -114,16 +114,22 @@ with a default and emitting the plan with that value applied.
 regardless of policy. `DestructiveAction`, `PublishAction`, and
 `PolicyBoundary` are never suppressible in any policy.
 
-When the planner suppresses a reason code under the active policy, it MUST
-bake the resolved value into the plan's field values so the plan remains
-self-describing. The resulting assumption (human-readable text plus the
-resolved value) is audited downstream via the upstream `assumptions` field
-on `ProvenanceRecord` and the family result package
+When the planner suppresses a reason code under the active policy, it
+MUST bake the resolved value into the plan's field values so the plan
+remains self-describing. The resulting assumption (human-readable text
+plus the resolved value) is audited downstream via the upstream
+`assumptions` field on `ProvenanceRecord` and the family result package
 (`AnalysisResultPackage.assumptions`, `PublishingResultPackage`
-provenance, etc.). The MCP plane MUST NOT invent a plan-level or
-submission-level assumption carrier; no such canonical field exists today.
-If a future change needs one, it MUST be added upstream first and then
-referenced here.
+provenance, etc.). The execution host does not re-derive those strings;
+the planner MUST therefore hand the compact assumption audit (one string
+per suppressed reason code) across the boundary alongside the plan so
+the execution host can record it on `ProvenanceRecord`. Section 5.4
+specifies the carrier. Because no named upstream submission-level field
+exists today, this spec names the carrier by role rather than by
+upstream field path; a future upstream change MAY add a concrete field
+name, and when it does Section 5.4 MUST be updated to reference it. The
+MCP plane MUST NOT invent a plan-level assumption field beyond this
+compact audit and the resolved values baked into step inputs.
 
 ### 2.4 Answer Binding
 
@@ -202,7 +208,7 @@ what the planning-plane contract requires of each.
 | Style resources | Bind `RenderMap` / `compose_map` steps | `MissingRequiredInput` when style is required for `requestedOutputs` |
 | Theme resources | Token set for map and app composition | `MissingRequiredInput` when theme is required |
 | Map template resources | Scaffold `compose_map` / `bind_map_package` steps | `MissingRequiredInput` when `Map` is in `requestedOutputs` |
-| App template resources | Scaffold `select_template` / `generate_project` steps | `MissingRequiredInput` when `AppBundle` is in `requestedOutputs` |
+| App template resources | Scaffold `select_template` / `generate_project` `BuilderPlan` steps | `MissingRequiredInput` when `requestedOutputs` asks for an app scaffold `ArtifactKind` |
 | Result package resources | Bind prior results as inputs | `AmbiguousDataset` when reference is ambiguous |
 
 ### 3.1 Resource Scoping Contract
@@ -291,15 +297,25 @@ change and a matching extension in this document.
 - **Pre-execution warnings.** The planner SHOULD warn when the plan depends
   on artifacts that are not terminal (in an unresolved `ExecutionJob`). Such
   plans remain valid; the execution host resolves the dependency ordering.
-- **Required outputs.** `AppBundle` MUST be in `requestedOutputs` (the
-  plan still produces an `AppPackage` resource object; `AppBundle` is the
-  `ArtifactKind` the intent requests). If the app itself is to be
-  published, `PublishAction` clarification fires before handoff (see
-  Section 2.1).
+- **Required outputs.** `requestedOutputs` MUST include the upstream
+  `ArtifactKind` value that denotes an app scaffold for the chosen
+  target; the plan produces an `AppPackage` resource object. Upstream
+  still carries two spellings for this output: the `ArtifactKind` enum
+  lists `AppBundle` (`AI_OPERATOR_CONTRACT.md` §AnalysisIntent, where
+  the enum is defined) while the canonical `BuilderIntent` example
+  emits `app_package` and `preview` in `requestedOutputs`
+  (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderIntent). This
+  spec does not fix a single spelling; harmonization of the Build App
+  output vocabulary is pending upstream and MUST be tracked there. If
+  the app itself is to be published, `PublishAction` clarification fires
+  before handoff (see Section 2.1).
 - **Dry-run vs. submit.** `validate_plan` validates template binding and
-  artifact references. `execute_plan` is not in scope in v1 for Build App
-  execution semantics beyond `preview_app` and `generate_project`; see
-  `spec/taxonomy.md` v1 capability matrix.
+  artifact references. `execute_plan` is not in scope in v1 for Build
+  App; the v1 Build App MCP tool surface is `create_app_package` and
+  `preview_app_package` (`spec/taxonomy.md` §MCP Tools to Workflow
+  Family Mapping). `generate_project` and `preview_app` are
+  `BuilderPlan` step kinds (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderPlan),
+  not MCP tools, and MUST NOT be referenced as MCP tool names.
 
 ### 4.4 Automate / Deploy
 
@@ -327,9 +343,15 @@ coverage.
 
 ## 5. Plan Handoff Semantics
 
-Plan handoff is the protocol boundary between the MCP interaction plane and
-the execution plane (gRPC `ProcessService`, `WorkspaceService`, and the
-downstream orchestration host).
+Plan handoff is the protocol boundary between the MCP interaction plane
+and the execution plane. The execution plane is split across the
+family-owning gRPC services: `ProcessService` (Analyze execution),
+`PipelineService` (Publish Data execution), `BuilderService` (Build App
+execution), and `DeploymentService` (Automate / Deploy execution), with
+`WorkspaceService` owning artifact and workspace lifecycle across
+families. Downstream orchestration hosts consume those same contracts
+(see `AI_OPERATOR_AGENT_HANDOFF.md` §Repo Ownership and
+`AI_OPERATOR_TECHNICAL_PLAN.md` §7 for service assignments).
 
 **V1 scope.** `execute_plan` is v1 only for Analyze and Publish Data
 (`AnalysisPlan`, `PublishingPlan`) per the capability matrix in
@@ -337,9 +359,9 @@ downstream orchestration host).
 execution are deferred; their plan shape is specified in Sections 4.3 and
 4.4 for forward compatibility. Sections 5.1 and 5.2 below describe the
 semantics that apply in v1. Section 5.3 post-handoff state also applies to
-Build App's in-scope v1 tools (`preview_app`, `generate_project`) and to
-any future handoff of Builder and Deployment plans once those families
-cross the boundary.
+Build App's in-scope v1 tools (`create_app_package`,
+`preview_app_package` per `spec/taxonomy.md`) and to any future handoff
+of Builder and Deployment plans once those families cross the boundary.
 
 ### 5.1 Pre-Handoff (MCP Planning Plane)
 
@@ -352,10 +374,19 @@ when those families become v1.
   compatibility) with `specVersion` set
 - the planner MAY call `validate_plan` to obtain structural validation, an
   authorization preview, and a cost or coverage estimate surface without
-  persisting state. `validate_plan` is a dry-run adapter over gRPC
-  `ProcessService.ValidatePlan` and `ProcessService.DryRunPlan`; the
-  planning plane does not redefine their semantics. `validate_plan` is v1
-  for Analyze, Publish Data, and Build App per the taxonomy matrix
+  persisting state. `validate_plan` is v1 for Analyze, Publish Data, and
+  Build App per the taxonomy matrix. It is a dry-run adapter over the
+  family-owning gRPC service: Analyze `validate_plan` maps to
+  `ProcessService.ValidatePlan` and `ProcessService.DryRunPlan`; Publish
+  Data `validate_plan` maps to `PipelineService` ("validate publishing
+  plan" per `AI_OPERATOR_TECHNICAL_PLAN.md` §7.4); Build App
+  `validate_plan` maps to `BuilderService` (per
+  `AI_OPERATOR_TECHNICAL_PLAN.md` §7.7). Exact gRPC method names for the
+  `PipelineService` and `BuilderService` mappings are deferred until
+  those `geospatial-grpc` contracts land; this document does not commit
+  to method names ahead of the upstream contract. The planning plane
+  does not redefine the underlying gRPC semantics in any of the three
+  cases
 - calling `validate_plan` is RECOMMENDED, not REQUIRED, before `execute_plan`.
   Skipping `validate_plan` shifts validation cost to handoff time
 - validation warnings are planning-plane concerns; validation errors that
@@ -365,23 +396,28 @@ when those families become v1.
 
 ### 5.2 Handoff Operation
 
-In v1, `execute_plan` is the single MCP tool that crosses the boundary for
-Analyze and Publish Data. It submits a validated plan to
-`ProcessService.SubmitPlanJob` and returns an `ExecutionJob` reference.
-After this call returns, the MCP plane no longer owns runtime state for
-that plan.
+In v1, `execute_plan` is the single MCP tool that crosses the boundary
+for Analyze and Publish Data. It returns an `ExecutionJob` reference;
+after the call returns, the MCP plane no longer owns runtime state for
+that plan. Analyze `execute_plan` submits to
+`ProcessService.SubmitPlanJob`. Publish Data `execute_plan` submits to
+`PipelineService` ("execute ingest/transform/publish" per
+`AI_OPERATOR_TECHNICAL_PLAN.md` §7.4); the exact `PipelineService`
+method name is deferred until the `geospatial-grpc` contract lands.
 
 Build App `execute_plan` and Automate / Deploy plan execution are
 deferred. When those families become v1, handoff will follow the same
-submission pattern against the family-equivalent service method; this
-document does not commit to which method name that will be until the
-upstream contract adds it.
+submission pattern against the family-owning service (`BuilderService`
+for Build App, `DeploymentService` for Automate / Deploy). This
+document does not commit to exact method names until the upstream
+contracts add them.
 
-- the planner MUST attach the `intentId` to the submission. Any
-  assumptions the planner resolved under policy are baked into plan field
-  values (see Section 2.3); the execution host records them as
-  provenance strings on the result package. The MCP plane MUST NOT invent
-  a separate submission-side assumption carrier
+- the planner MUST attach the `intentId`, the clarification audit, and
+  the assumption audit to the submission (Section 5.4). Resolved values
+  are additionally baked into plan step inputs (Section 2.3). The
+  execution host uses the submitted audit fields, not the plan inputs,
+  to populate `ProvenanceRecord.clarificationsAsked`,
+  `.clarificationsAnswered`, and `.assumptions`
 - the MCP plane MUST NOT retry `execute_plan` on its own initiative; retry
   policy is owned by the execution host
 
@@ -418,20 +454,27 @@ state stays local to the interaction plane.
 | `requestedOutputs` | requested `ArtifactKind` set |
 | Plan steps | `stepId`, `kind`, `inputs`, `dependsOn`, family-specific typed fields |
 | Workspace hint | recommended workspace kind (advisory) |
+| Clarification audit | lists of `questionId`s that populate `ProvenanceRecord.clarificationsAsked` and `.clarificationsAnswered` (identifiers only, no prompt text) |
+| Assumption audit | one human-readable string per suppressed reason code, to populate `ProvenanceRecord.assumptions` and the family result package `assumptions` field |
 
-Accepted assumptions do not cross as a standalone submission field; no
-canonical plan-level or submission-level assumption carrier exists
-upstream today. Instead, the planner bakes resolved values into the plan
-step inputs (see Section 2.3), and the execution host surfaces
-human-readable assumption strings on `AnalysisResultPackage.assumptions`
-and `ProvenanceRecord.assumptions` (field shapes owned upstream). If a
-future change needs a distinct submission-side carrier, it MUST be
-defined upstream first.
+Resolved clarification values and assumption defaults are additionally
+baked into plan step `inputs` (Section 2.3) so the plan remains
+self-describing; the clarification and assumption audit fields above
+carry only the identifiers and human-readable strings the execution host
+needs to populate `ProvenanceRecord`
+(`AI_OPERATOR_CONTRACT.md` §ProvenanceRecord, fields `clarificationsAsked`,
+`clarificationsAnswered`, `assumptions`). No canonical submission-level
+field name for either audit exists upstream today, so this spec names
+the carriers by role; a future upstream change MAY add concrete field
+names and this table MUST be updated when it does.
 
-`ClarificationRequest` and `ClarificationResponse` history, elicitation
-prompts, conversational context, and client-agent wording do not cross the
-boundary. They remain MCP-side for audit through `ProvenanceRecord` on the
-result package.
+`ClarificationRequest` and `ClarificationResponse` prompt wording,
+option labels, `FreeText` response text beyond the resolved value,
+elicitation prompts, conversational context, and client-agent phrasing
+do not cross the boundary. They remain MCP-side. Only the typed
+identifiers (question IDs) and the compact assumption audit strings
+cross, so that the execution host can record the audit fields without
+receiving any natural-language client-agent content.
 
 ### 5.5 Orchestration Host Coordination
 
@@ -460,11 +503,13 @@ back-pressure behavior.
 
 ### 2. Approval Enforcement and Policy Evaluation
 
-Approval evaluation, policy gates, and authorization verdicts are owned by
-server-internal policy evaluators behind gRPC `ProcessService` and
-`WorkspaceService`. This document surfaces `DestructiveAction`,
-`PublishAction`, and `PolicyBoundary` as clarification reason codes only; it
-does not define how a host decides whether to grant or deny approval.
+Approval evaluation, policy gates, and authorization verdicts are owned
+by server-internal policy evaluators behind the family-owning gRPC
+services (`ProcessService`, `PipelineService`, `BuilderService`,
+`DeploymentService`) and `WorkspaceService`. This document surfaces
+`DestructiveAction`, `PublishAction`, and `PolicyBoundary` as
+clarification reason codes only; it does not define how a host decides
+whether to grant or deny approval.
 
 ### 3. Artifact Persistence and Workspace Lifecycle
 
@@ -489,9 +534,10 @@ owned by the client agent. MCP defines the typed protocol only.
 ### 6. gRPC Execution Transport Semantics
 
 Wire encoding, streaming modes, connection management, and service-level
-retry behavior for `ProcessService`, `WorkspaceService`, and related services
-are owned by `geospatial-grpc`. This document references the gRPC method
-names (for example, `ProcessService.ValidatePlan`) but does not specify their
+retry behavior for `ProcessService`, `PipelineService`, `BuilderService`,
+`DeploymentService`, `WorkspaceService`, and related services are owned
+by `geospatial-grpc`. This document references the gRPC method names
+(for example, `ProcessService.ValidatePlan`) but does not specify their
 transport behavior.
 
 ## 7. Observable Signals
@@ -519,6 +565,12 @@ frameworks are implementation choices.
   enumeration during planning (a smell per Section 3.1).
 - **LowConfidence threshold configuration.** Per deployment, the configured
   threshold value and the rate at which `LowConfidence` clarifications fire.
+- **Clarification and assumption audit coverage.** Per handoff, whether
+  the clarification audit (question IDs) and assumption audit (one
+  string per suppressed reason code) were attached to the submission,
+  and the reconciliation rate between audit counts and the populated
+  `ProvenanceRecord.clarificationsAsked`, `.clarificationsAnswered`,
+  and `.assumptions` fields.
 
 Adding a new clarification reason code, step kind, or planning resource in
 future changes to this document MUST include a corresponding signal category

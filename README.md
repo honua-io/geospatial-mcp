@@ -17,6 +17,7 @@ pending.
 | Document | Contents |
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
+| [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
 
 ## Workflow Families
 

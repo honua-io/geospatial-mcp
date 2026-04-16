@@ -8,6 +8,9 @@ This document defines the standard vocabulary, capability coverage, and explicit
 non-goals for the geospatial MCP standard. It is the canonical source for
 taxonomy used by all other documents in this repository.
 
+Per-family resource contracts (URI grammar, inspection fields, lifecycle
+visibility, and relationship graph) are in [MCP Resource Contracts](resources.md).
+
 Upstream references:
 
 - [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)

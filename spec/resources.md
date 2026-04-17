@@ -556,9 +556,11 @@ finalizing in `honua-server#731`/`#732`. Regardless of final spelling,
 these references identify artifacts without embedding a result-package or
 workspace inspection URI. Consumers therefore:
 
-1. Dereference the artifact ID to its canonical `ArtifactRef` when they
-   need payload information such as `kind`, `contentType`, `metadata`, or
-   the content locator `uri`.
+1. Resolve the artifact ID to its canonical `ArtifactRef` through a
+   known ownership scope — the owning result package's artifact fields
+   or the workspace lifecycle service (`ListArtifacts`) — when they
+   need payload information such as `kind`, `contentType`, `metadata`,
+   or the content locator `uri`.
 2. Use the result-rooted path
    (`honua://results/{rpid}/artifacts/{aid}`) when the owning result
    package scope is already known from context. This applies to any
@@ -578,13 +580,19 @@ workspace lifecycle service.
 
 **Resolution path for package-embedded artifact references.** Package
 resources (`MapPackage`, `AppPackage`, `Deployment`) carry artifact
-identifiers through canonical fields. Consumers resolve these
-identifiers to full `ArtifactRef` objects through the server. The
+identifiers through canonical fields. No unscoped artifact lookup
+exists in the public contract (`WorkspaceService` exposes
+`ListArtifacts` scoped by workspace; there is no `GetArtifact`
+by ID alone). Consumers resolve these identifiers to full
+`ArtifactRef` objects through a known ownership context. The
 target resolution sequence is: read the package resource → extract
-the artifact identifier → fetch the canonical `ArtifactRef` from the
-server → use workspace ownership to construct the workspace-rooted
-inspection URI (`honua://workspaces/{wsid}/artifacts/{aid}`) for
-lifecycle state.
+the artifact identifier → match the identifier against `ArtifactRef`
+objects obtained from the owning result package's artifact fields
+(`AnalysisResultPackage.artifacts[]`,
+`BuilderResultPackage.previewArtifacts`) or from the workspace
+lifecycle service (`ListArtifacts` on the owning workspace) → use
+workspace ownership to construct the workspace-rooted inspection URI
+(`honua://workspaces/{wsid}/artifacts/{aid}`) for lifecycle state.
 
 Workspace ownership is resolvable through two mechanisms, neither of
 which is unconditionally available today:
@@ -608,8 +616,8 @@ inspection for a package-embedded artifact is available only when the
 artifact's content URI is populated or `workspaceRef` is present.
 Consumers should treat the absence of both as a deferred-resolution
 case and fall back to the `ArtifactRef` payload fields (`kind`,
-`contentType`, `metadata`) which are always available from the
-unscoped fetch.
+`contentType`, `metadata`) available from any scoped read that
+returned the `ArtifactRef`.
 
 ## Capability Coverage
 
@@ -624,10 +632,10 @@ cell is read from the taxonomy matrix.
 | Resource family | Workflow families consuming it |
 |---|---|
 | `results`, `results/{id}/artifacts`, `results/{id}/provenance` | Analyze, Publish Data, Build App, Automate / Deploy |
-| `maps`, `styles`, `themes`, `templates/maps` | Analyze, Build App |
-| `apps`, `templates/apps` | Build App |
+| `maps`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
+| `apps`, `templates/apps` | Analyze, Build App, Automate / Deploy |
 | `services` | Publish Data, Automate / Deploy |
-| `deployments` | Automate / Deploy |
+| `deployments` | Publish Data, Build App, Automate / Deploy |
 | `workspaces`, `workspaces/{id}/artifacts` | Analyze, Publish Data, Build App, Automate / Deploy |
 
 Whether any cell is `v1`, `deferred`, `--`, or `excluded` follows the

@@ -79,11 +79,12 @@ Families introduced by this document:
 
 ID prefixes follow the canonical examples in
 [AI_OPERATOR_CONTRACT.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md):
-`result_`, `map_`, `app_`, `style_`, `theme_`, `svc_`, `dep_`, `ws_`,
-`artifact_`, `rev_`. Template IDs are stable registry-defined identifiers
-(for example `analysis_default`, `analysis_dashboard`) surfaced through
-`templateId`; this document does not mandate an MCP-local prefix convention
-for templates.
+`result_`, `map_`, `app_`, `style_`, `theme_`, `dep_`, `ws_`, `artifact_`,
+`rev_`. Published-service identifiers follow the upstream `serviceId`
+vocabulary; this document does not impose an MCP-local prefix convention for
+them. Template IDs are stable registry-defined identifiers (for example
+`analysis_default`, `analysis_dashboard`) surfaced through `templateId`; this
+document does not mandate an MCP-local prefix convention for templates.
 
 The open-core data-access surface already uses
 `honua://services/{encodedServiceId}/layers/{layerId}` for catalog-backed
@@ -174,24 +175,26 @@ Projection of
 [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
 is deferred alongside the `Automate / Deploy` workflow column in
 [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). It
-reuses the same URI grammar (`honua://results/{id}`) once its canonical
-shape finalizes in `honua-server#732`.
+reuses the same reserved URI grammar (`honua://results/{id}`) once upstream
+defines a shared stable identifier and its canonical shape finalizes in
+`honua-server#732`.
 
-### `honua://results/{id}` — Publishing Result
+### Reserved `honua://results/{id}` — Publishing Result
 
-Projection of `PublishingResultPackage` (specified in the
+Reserved inspection-route grammar for `PublishingResultPackage` (specified in the
 [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
 The canonical shape is finalizing in `honua-server#730`; the Technical
 Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
 than by concrete field names, consistent with the approach used for
-`MapPackage` and `AppPackage` below.
+`MapPackage` and `AppPackage` below. Upstream does not yet define a stable
+identifier shared with `AnalysisResultPackage`, so this section is a
+reserved subtype note rather than a constructible MCP resource contract.
 
-**Stable identifier:** result-package ID (prefix `result_…`). The URI
-grammar is shared with `AnalysisResultPackage` by convention; the
-upstream `PublishingResultPackage` shape does not yet own a
-`resultPackageId` field. The shared identity applies once
-`honua-server#730` finalizes the canonical shape.
+**Identifier status:** deferred upstream. Once `honua-server#730` defines a
+stable result identifier compatible with the shared `honua://results/{id}`
+grammar, this reserved route will surface the following responsibilities
+read-only.
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -203,25 +206,27 @@ upstream `PublishingResultPackage` shape does not yet own a
 - map package when spatially relevant (canonical `MapPackage` reference);
 - provenance (canonical `ProvenanceRecord`).
 
-Edges: published service or service-definition output branch, quality
-report, map package, provenance. MCP exposes compositions by canonical
-object name or upstream field reference; field names finalize alongside
-`honua-server#730`.
+Reserved edges once the shared identifier lands: published service or
+service-definition output branch, quality report, map package, provenance.
+MCP exposes compositions by canonical object name or upstream field
+reference; field names finalize alongside `honua-server#730`.
 
-### `honua://results/{id}` — Builder Result
+### Reserved `honua://results/{id}` — Builder Result
 
-Projection of `BuilderResultPackage` (specified in the
+Reserved inspection-route grammar for `BuilderResultPackage` (specified in the
 [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
 The canonical shape is finalizing in the packaging lifecycle; the Technical
 Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
-than by concrete field names.
+than by concrete field names. Upstream does not yet define a stable
+identifier compatible with the shared `honua://results/{id}` grammar, so
+this section is a reserved subtype note rather than a constructible MCP
+resource contract.
 
-**Stable identifier:** result-package ID (prefix `result_…`). The URI
-grammar is shared with `AnalysisResultPackage` by convention; the
-upstream `BuilderResultPackage` shape does not yet own a
-`resultPackageId` field. The shared identity applies once the
-packaging lifecycle finalizes the canonical shape.
+**Identifier status:** deferred upstream. Once the packaging lifecycle
+defines a stable result identifier compatible with the shared
+`honua://results/{id}` grammar, this reserved route will surface the
+following responsibilities read-only.
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -230,9 +235,10 @@ packaging lifecycle finalizes the canonical shape.
 - preview artifacts (canonical `ArtifactRef` references);
 - provenance (canonical `ProvenanceRecord`).
 
-Edges: app package, map package, preview artifacts, provenance. MCP
-exposes compositions by canonical object name; upstream field names
-finalize alongside the packaging lifecycle (see §Downstream Coordination).
+Reserved edges once the shared identifier lands: app package, map package,
+preview artifacts, provenance. MCP exposes compositions by canonical object
+name; upstream field names finalize alongside the packaging lifecycle (see
+§Downstream Coordination).
 
 ## Asset Resources
 
@@ -414,7 +420,8 @@ and the `AI_OPERATOR_TECHNICAL_PLAN` enumerates properties only at the
 responsibility level. MCP therefore describes the inspection projection
 by responsibility rather than by concrete field names.
 
-**Stable identifier:** `serviceId` (prefix `svc_…`).
+**Stable identifier:** upstream `serviceId` (no MCP-local prefix convention
+defined in this document).
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -530,21 +537,21 @@ Edges are expressed by canonical object name (`ArtifactRef`, `StyleRef`,
 `WorkspaceRef`, `SourceBinding`, …) rather than by the scoped URIs those
 objects happen to resolve to. Upstream package shapes carry artifact IDs
 without a result or workspace inspection scope, so downstream consumers
-resolve result-rooted artifact reads from the owning result package's
-artifact fields (`AnalysisResultPackage.artifacts[]`,
-`BuilderResultPackage.previewArtifacts`) and workspace-rooted artifact
-reads from workspace ownership and lifecycle context (see
+resolve result-rooted artifact reads from the owning analysis result
+package's artifact fields (`AnalysisResultPackage.artifacts[]`) today.
+Reserved non-analysis result routes extend the same pattern once upstream
+lands a constructible shared result identifier. Workspace-rooted artifact
+reads come from workspace ownership and lifecycle context (see
 §Artifact Addressing Rule).
 
 | From | To | Relationship |
 |---|---|---|
-| `results/{id}` | `ArtifactRef` | composes (analysis: `artifacts[]`; builder: `previewArtifacts`) |
-| `results/{id}` | `WorkspaceRef` | references (analysis: `workspaceRefs[]`) |
-| `results/{id}` | `results/{id}/provenance` | composes (all subtypes) |
-| `results/{id}` | `MapPackage` | references (analysis: `mapPackageId?`; publishing/builder: `mapPackage`; deferred to packaging lifecycle) |
-| `results/{id}` | `AppPackage` | references (analysis: `appPackageId?`; builder: `appPackage`; deferred to packaging lifecycle) |
-| `results/{id}` | `PublishedService` or service-definition output branch | references (publishing only; output branch determined upstream per the Technical Plan; shapes deferred to `honua-server#730`) |
-| `results/{id}` | `GeoprocessingError` | composes (analysis: `errors[]`) |
+| `results/{result_package_id}` | `ArtifactRef` | composes (`AnalysisResultPackage.artifacts[]`) |
+| `results/{result_package_id}` | `WorkspaceRef` | references (`AnalysisResultPackage.workspaceRefs[]`) |
+| `results/{result_package_id}` | `results/{result_package_id}/provenance` | composes (`AnalysisResultPackage.provenance`) |
+| `results/{result_package_id}` | `MapPackage` | references (`AnalysisResultPackage.mapPackageId?`) |
+| `results/{result_package_id}` | `AppPackage` | references (`AnalysisResultPackage.appPackageId?`) |
+| `results/{result_package_id}` | `GeoprocessingError` | composes (`AnalysisResultPackage.errors[]`) |
 | `maps/{id}` | `SourceBinding` | composes (binding list) |
 | `maps/{id}` | `StyleRef` | references (style composition) |
 | `maps/{id}` | `ThemeSpec` | references (theme selection) |
@@ -557,7 +564,15 @@ reads from workspace ownership and lifecycle context (see
 | `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` \| `PipelineDefinition` | references (`targetRef`); all five upstream target kinds surfaced read-only |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
-| `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning result package's artifact fields (`AnalysisResultPackage.artifacts[]`, `BuilderResultPackage.previewArtifacts`) |
+| `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]`; reserved builder-result routing extends this once upstream lands a stable shared result identifier |
+
+Reserved non-analysis result extensions follow the same graph once
+upstream lands a constructible shared result identifier: publishing
+results reference `PublishedService` or the `serviceDefinition` output
+branch, `MapPackage`, and `ProvenanceRecord`; builder results reference
+`AppPackage`, `MapPackage`, preview `ArtifactRef` values, and
+`ProvenanceRecord`; deployment-result routing stays deferred with the
+`Automate / Deploy` workflow family.
 
 Expressing edges by canonical object name keeps the graph stable when
 upstream field names evolve. Upstream field additions or renames in
@@ -579,16 +594,16 @@ these references identify artifacts without embedding a result-package or
 workspace inspection URI. Consumers therefore:
 
 1. Resolve the artifact ID to its canonical `ArtifactRef` through a
-   known ownership scope — the owning result package's artifact fields
-   or the workspace lifecycle service (`ListArtifacts`) — when they
-   need payload information such as `kind`, `contentType`, `metadata`,
-   or the content locator `uri`.
+   known ownership scope — the owning `AnalysisResultPackage`
+   artifact fields or the workspace lifecycle service
+   (`ListArtifacts`) — when they need payload information such as
+   `kind`, `contentType`, `metadata`, or the content locator `uri`.
 2. Use the result-rooted path
    (`honua://results/{rpid}/artifacts/{aid}`) when the owning result
-   package scope is already known from context. This applies to any
-   result package that carries `ArtifactRef` fields:
-   `AnalysisResultPackage.artifacts[]` and
-   `BuilderResultPackage.previewArtifacts`.
+   package scope is already known from context. Today this applies to
+   `AnalysisResultPackage.artifacts[]`. Reserved builder-result
+   routing extends the same rule once upstream defines a stable
+   non-analysis result identifier.
 3. Use the workspace-rooted path
    (`honua://workspaces/{wsid}/artifacts/{aid}`) only when the owning
    workspace identity is already known from context or resolved through
@@ -609,12 +624,15 @@ by ID alone). Consumers resolve these identifiers to full
 `ArtifactRef` objects through a known ownership context. The
 target resolution sequence is: read the package resource → extract
 the artifact identifier → match the identifier against `ArtifactRef`
-objects obtained from the owning result package's artifact fields
-(`AnalysisResultPackage.artifacts[]`,
-`BuilderResultPackage.previewArtifacts`) or from the workspace
-lifecycle service (`ListArtifacts` on the owning workspace) → use
-workspace ownership to construct the workspace-rooted inspection URI
+objects obtained from the owning
+`AnalysisResultPackage.artifacts[]` or from the workspace lifecycle
+service (`ListArtifacts` on the owning workspace) → use workspace
+ownership to construct the workspace-rooted inspection URI
 (`honua://workspaces/{wsid}/artifacts/{aid}`) for lifecycle state.
+
+Reserved builder-result artifact routing follows the same lookup shape
+once upstream defines a stable non-analysis result identifier and makes
+the `honua://results/{id}` builder route constructible.
 
 Workspace ownership is resolvable through two mechanisms, neither of
 which is unconditionally available today:
@@ -663,6 +681,12 @@ cell is read from the taxonomy matrix.
 Whether any cell is `v1`, `deferred`, `--`, or `excluded` follows the
 canonical taxonomy matrix and is not repeated here. When coverage
 changes, the taxonomy matrix is the single edit point.
+
+Current normative `results/{result_package_id}` resources are
+analysis-owned. Publish Data, Build App, and Automate / Deploy consume
+the result family through reserved subtype extensions that become
+constructible once upstream defines stable non-analysis result
+identifiers.
 
 ## Error Model
 

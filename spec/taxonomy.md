@@ -9,7 +9,8 @@ non-goals for the geospatial MCP standard. It is the canonical source for
 taxonomy used by all other documents in this repository.
 
 Per-family resource contracts (URI grammar, inspection fields, lifecycle
-visibility, and relationship graph) are in [MCP Resource Contracts](resources.md).
+visibility, and relationship graph) for result, asset, promotion-surface,
+and workspace families are in [MCP Resource Contracts](resources.md).
 
 Upstream references:
 
@@ -82,8 +83,12 @@ Geospatial resource families:
 - **Workspace resources** -- managed working state and artifact lifecycle views
 
 Per-family resource contracts (URI grammar, inspection fields, lifecycle
-visibility, and relationship graph) are in
-[MCP Resource Contracts](resources.md).
+visibility, and relationship graph) for result, asset, promotion-surface,
+and workspace families are in
+[MCP Resource Contracts](resources.md). Catalog, dataset, and
+process-definition families use the existing open-core data-access and gRPC
+service contracts; per-family MCP resource contracts for those families are
+not defined in this version of the standard.
 
 ### Tools
 
@@ -269,7 +274,7 @@ determine whether a capability is in scope, deferred, or excluded.
 
 | Primitive | v1 Coverage |
 |---|---|
-| Resources | Catalog, dataset, process definition, style, theme, map template, app template, result package, map, app, published service, deployment, workspace ([per-family contracts](resources.md)) |
+| Resources | Catalog, dataset, process definition, style, theme, map template, app template, result package, map, app, published service, deployment, workspace ([per-family contracts](resources.md) for result through workspace families) |
 | Tools | Intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
 | Elicitation | Missing inputs, ambiguous choices, approval-required actions, high-impact settings |

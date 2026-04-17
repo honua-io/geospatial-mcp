@@ -63,7 +63,7 @@ Families introduced by this document:
 
 | Family | URI form | Canonical source |
 |---|---|---|
-| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result Deferment) |
+| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result) |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
 | Map package | `honua://maps/{map_package_id}` | `MapPackage` |
@@ -171,14 +171,6 @@ Projection of
 | `executedAt` | Execution timestamp |
 | `generatedArtifactIds[]` | Artifacts produced by this execution |
 
-`DeploymentResultPackage` (specified in the
-[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
-is deferred alongside the `Automate / Deploy` workflow column in
-[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). It
-reuses the same reserved URI grammar (`honua://results/{id}`) once upstream
-defines a shared stable identifier and its canonical shape finalizes in
-`honua-server#732`.
-
 ### Reserved `honua://results/{id}` — Publishing Result
 
 Reserved inspection-route grammar for `PublishingResultPackage` (specified in the
@@ -239,6 +231,16 @@ Reserved edges once the shared identifier lands: app package, map package,
 preview artifacts, provenance. MCP exposes compositions by canonical object
 name; upstream field names finalize alongside the packaging lifecycle (see
 §Downstream Coordination).
+
+### Reserved `honua://results/{id}` — Deployment Result
+
+`DeploymentResultPackage` (specified in the
+[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
+is deferred alongside the `Automate / Deploy` workflow column in
+[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). It
+reuses the same reserved URI grammar (`honua://results/{id}`) once upstream
+defines a shared stable identifier and its canonical shape finalizes in
+`honua-server#732`.
 
 ## Asset Resources
 

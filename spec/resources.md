@@ -101,7 +101,7 @@ The canonical shape is authoritative; MCP surfaces a read-only view.
 | `assumptions[]` | Assumptions recorded during planning or execution |
 | `artifacts[]` | `ArtifactRef` entries (see artifact resources) |
 | `workspaceRefs[]` | `WorkspaceRef` entries produced or consumed |
-| `mapPackageId?` | Deferred reference resolved in `honua-server#730` |
+| `mapPackageId?` | Deferred reference resolved in `honua-server#731` |
 | `appPackageId?` | Deferred reference resolved in `honua-server#731` |
 | `provenance` | `ProvenanceRecord` (see provenance resource) |
 | `errors[]` | `GeoprocessingError` entries, canonical envelope |
@@ -166,8 +166,9 @@ Projection of
 `DeploymentResultPackage` (specified in the
 [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
 are deferred. They reuse the same URI grammar (`honua://results/{id}`) once
-their canonical shapes finalize in `honua-server#730` / `#732`; no parallel
-family is introduced here.
+their canonical shapes finalize in `honua-server#730` (publishing),
+`#731` (builder), and `#732` (deployment); no parallel family is
+introduced here.
 
 ## Asset Resources
 
@@ -175,7 +176,7 @@ family is introduced here.
 
 Projection of
 [`MapPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
-The canonical shape is finalizing in `honua-server#730`; the
+The canonical shape is finalizing in `honua-server#731`; the
 [`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage)
 and
 [`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#mappackage)
@@ -184,7 +185,7 @@ sections still use different spellings for several properties
 etc.). To avoid freezing a draft variant, MCP describes the inspection
 projection by responsibility and by the canonical objects it references
 rather than by concrete field names. Consumers read field names from
-the canonical shape when `honua-server#730` lands.
+the canonical shape when `honua-server#731` lands.
 
 **Stable identifier:** `mapPackageId` (prefix `map_…`).
 
@@ -204,7 +205,7 @@ the canonical shape when `honua-server#730` lands.
 Edges: source bindings, styles, theme, template, bound artifacts, preview
 artifact, initial view, legend, popup and label bindings. MCP exposes
 these compositions by canonical object name; upstream field renames in
-`honua-server#730` flow through by reference without invalidating this
+`honua-server#731` flow through by reference without invalidating this
 surface.
 
 ### `honua://apps/{app_package_id}`
@@ -464,7 +465,7 @@ reads from workspace ownership and lifecycle context (see
 | `results/{id}` | `ArtifactRef` | composes (`artifacts[]`, outcome-centric) |
 | `results/{id}` | `WorkspaceRef` | references (`workspaceRefs[]`) |
 | `results/{id}` | `results/{id}/provenance` | composes |
-| `results/{id}` | `MapPackage` | references (`mapPackageId?`, deferred to `honua-server#730`) |
+| `results/{id}` | `MapPackage` | references (`mapPackageId?`, deferred to `honua-server#731`) |
 | `results/{id}` | `AppPackage` | references (`appPackageId?`, deferred to `honua-server#731`) |
 | `results/{id}` | `GeoprocessingError` | composes (`errors[]`) |
 | `maps/{id}` | `SourceBinding` | composes (binding list) |
@@ -596,7 +597,7 @@ Canonical shapes (`AnalysisResultPackage`, `MapPackage`, `AppPackage`,
 `StyleRef`, `ThemeSpec`, `MapTemplate`, `SourceBinding`, `Deployment`,
 `PublishedService`, `ProvenanceRecord`, `ArtifactRef`, `WorkspaceRef`,
 `GeoprocessingError`) are referenced, not reproduced. When an upstream
-shape finalizes (e.g., `MapPackage` in `honua-server#730`), the resource
+shape finalizes (e.g., `MapPackage` in `honua-server#731`), the resource
 contract absorbs the change by reference without local redefinition.
 
 ## Observable Signals

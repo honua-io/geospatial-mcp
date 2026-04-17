@@ -72,6 +72,18 @@ Geospatial resource families:
 - **Map template resources** -- cartographic composition templates
 - **App template resources** -- application scaffold templates
 - **Result package resources** -- saved analysis results and their provenance
+- **Map package resources** -- composed map definitions with source bindings,
+  styles, and view state
+- **App package resources** -- SDK application scaffolds with map and artifact
+  bindings
+- **Published service resources** -- published dataset or service surfaces with
+  protocol endpoints
+- **Deployment resources** -- routable runtime surfaces for promoted packages
+- **Workspace resources** -- managed working state and artifact lifecycle views
+
+Per-family resource contracts (URI grammar, inspection fields, lifecycle
+visibility, and relationship graph) are in
+[MCP Resource Contracts](resources.md).
 
 ### Tools
 
@@ -257,7 +269,7 @@ determine whether a capability is in scope, deferred, or excluded.
 
 | Primitive | v1 Coverage |
 |---|---|
-| Resources | Catalog, dataset, process definition, style, theme, map template, app template, saved result package |
+| Resources | Catalog, dataset, process definition, style, theme, map template, app template, result package, map, app, published service, deployment, workspace ([per-family contracts](resources.md)) |
 | Tools | Intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
 | Elicitation | Missing inputs, ambiguous choices, approval-required actions, high-impact settings |

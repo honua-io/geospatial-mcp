@@ -138,7 +138,7 @@ quality assessment, and pipeline definition. AI does not mutate source data
 directly.
 
 Lifecycle: `PublishingIntent` -> `ClarificationRequest` /
-`ClarificationResponse` -> `PublishingPlan` -> `ExecutionJob` ->
+`ClarificationResponse` -> `PublishingPlan` -> publishing execution ->
 `PublishingResultPackage` (with `PublishedService`)
 
 ### Build App
@@ -206,7 +206,7 @@ authoritative.
 
 | Object | Role |
 |---|---|
-| `ExecutionJob` | Durable execution state for a submitted plan |
+| `ExecutionJob` | Durable execution state for a job-backed submitted plan |
 | `WorkspaceRef` | Reference to managed working state (scratch, persistent, temp) |
 | `ArtifactRef` | Reference to a concrete output (layer, table, raster, file, report, map, app) |
 

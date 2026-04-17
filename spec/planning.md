@@ -373,6 +373,11 @@ coverage.
   the resulting `Deployment` object, not on the intent; the planner derives
   those from available configuration or defers selection to the execution
   host.
+- **Deployment field-name authority.** `AI_OPERATOR_CONTRACT.md` §Deployment
+  is authoritative for concrete `Deployment` field names until upstream
+  harmonizes. `AI_OPERATOR_TECHNICAL_PLAN.md` still lists `approvalPolicy`
+  in its `Deployment` field list; this spec therefore treats
+  `approvalPolicyRef` as the concrete field name when one must be cited.
 - **Plan construction.** Emit a `DeploymentPlan` whose steps are drawn from
   the Automate / Deploy step kinds. `register_definition` precedes every other
   step; `rollback` is a terminal step allowed only in recovery plans.
@@ -400,19 +405,25 @@ families. Downstream orchestration hosts consume those same contracts
 
 **V1 scope.** `execute_plan` is v1 only for Analyze and Publish Data
 (`AnalysisPlan`, `PublishingPlan`) per the capability matrix in
-`spec/taxonomy.md`. Build App keeps v1 planning and direct Builder tool
-semantics (`validate_plan`, `create_app_package`,
-`preview_app_package`), but does not enter the `ExecutionJob` handoff
-model described in Sections 5.2 and 5.3. Automate / Deploy execution is
-deferred; its plan shape is specified in Section 4.4 for forward
-compatibility. Sections 5.1 and 5.2 below therefore distinguish between
-v1 job-backed plan submission and Builder's current direct-tool path.
+`spec/taxonomy.md`. Analyze is the only family with an upstream-standardized
+`ExecutionJob` handoff model today (`ProcessService.SubmitPlanJob` in
+`AI_OPERATOR_CONTRACT.md`). Publish Data crosses the same MCP boundary via
+`PipelineService`, but upstream does not yet standardize a shared job object,
+job-status vocabulary, or terminal-state contract for that family. Build App
+keeps v1 planning and direct Builder tool semantics (`validate_plan`,
+`create_app_package`, `preview_app_package`), but does not enter the
+`ExecutionJob` handoff model described in Sections 5.2 and 5.3. Automate /
+Deploy execution is deferred; its plan shape is specified in Section 4.4 for
+forward compatibility. Sections 5.1 and 5.2 below therefore distinguish
+between the common submission boundary and the family-specific post-handoff
+state models.
 
 ### 5.1 Pre-Handoff (MCP Planning Plane)
 
-Applies to the v1 handoff families (Analyze, Publish Data). The same
-rules describe the handoff shape Builder and Deployment plans will follow
-when those families become v1.
+Applies to the v1 handoff families (Analyze, Publish Data) at the submission
+boundary. The same rules describe the handoff shape Builder and Deployment
+plans will follow when those families become v1; post-handoff state handling
+remains family-specific as described in Section 5.3.
 
 - the planner emits a canonical plan object (`AnalysisPlan` or
   `PublishingPlan` in v1; `BuilderPlan` / `DeploymentPlan` for forward
@@ -442,13 +453,17 @@ when those families become v1.
 ### 5.2 Handoff Operation
 
 In v1, `execute_plan` is the single MCP tool that crosses the boundary
-for Analyze and Publish Data. It returns an `ExecutionJob` reference;
-after the call returns, the MCP plane no longer owns runtime state for
-that plan. Analyze `execute_plan` submits to
-`ProcessService.SubmitPlanJob`. Publish Data `execute_plan` submits to
-`PipelineService` ("execute ingest/transform/publish" per
-`AI_OPERATOR_TECHNICAL_PLAN.md` §7.4); the exact `PipelineService`
-method name is deferred until the `geospatial-grpc` contract lands.
+for Analyze and Publish Data. After the call returns, the MCP plane no
+longer owns runtime or publication state for that plan.
+
+- Analyze `execute_plan` submits to `ProcessService.SubmitPlanJob` and
+  returns an `ExecutionJob` reference.
+- Publish Data `execute_plan` submits to `PipelineService` ("execute
+  ingest/transform/publish" per `AI_OPERATOR_TECHNICAL_PLAN.md` §7.4).
+  The submission result, refresh-run identity, and follow-up inspection
+  contract remain `PipelineService`-owned; this document does not assign
+  Publish Data a shared `ExecutionJob` return shape, status vocabulary,
+  or terminal-state rule until upstream does so.
 
 Build App `execute_plan` and Automate / Deploy plan execution are
 deferred. When those families become v1, handoff will follow the same
@@ -477,28 +492,40 @@ semantics in Section 5.3.
 
 ### 5.3 Post-Handoff (Execution / Orchestration Plane)
 
-Applies to Analyze and Publish Data `execute_plan` submissions in v1,
-and to any future workflow family that adopts the same `ExecutionJob`
-submission model.
+Post-handoff ownership is family-specific in v1.
+
+**Analyze (`ProcessService` / `ExecutionJob`).**
 
 - `ExecutionJob.status` transitions (`Queued`, `Provisioning`, `Running`,
-  `Succeeded`, `Failed`, `Cancelled`) are owned by the execution host
+  `Succeeded`, `Failed`, `Cancelled`) are owned by `ProcessService`
 - artifact materialization, workspace lifecycle, approval enforcement, and
   provenance recording are owned by the execution host
 - MCP tools MAY poll job status through transport-neutral resource reads but
   MUST NOT redefine status semantics, publish approval verdicts, or alter
   `ExecutionJob` fields
-- result packaging for submitted plans (`AnalysisResultPackage`,
-  `PublishingResultPackage`, and any future job-backed output packages) is
-  constructed by the execution host and exposed as MCP resources once the
-  execution host marks the job terminal; MCP does not construct result
-  packages (resource exposure contract is owned by future work in this
-  repository and is out of scope here)
+- `AnalysisResultPackage` is constructed by the execution host and exposed as
+  an MCP resource once the execution host marks the job terminal; MCP does not
+  construct result packages (resource exposure contract is owned by future
+  work in this repository and is out of scope here)
 - errors surfaced at or after handoff use the upstream
   `GeoprocessingError.kind` vocabulary (`ValidationFailed`,
   `AuthorizationDenied`, `UnknownDataset`, `UnknownProcess`,
   `ExecutionFailed`, `Timeout`, `Cancelled`, `OutputBindingFailed`); MCP does
   not define local error codes
+
+**Publish Data (`PipelineService`).**
+
+- execution, refresh, retry, cancellation, and final-publication state are
+  owned by `PipelineService` after handoff
+- MCP MAY inspect Publish Data execution state only through the publishing
+  contract surfaces exposed by `PipelineService`; it MUST NOT invent a shared
+  `ExecutionJob`-style status set or terminal-state rule for that family
+- `PublishingResultPackage` is constructed by the publishing execution host
+  and exposed through the publishing contract once `PipelineService` reports
+  final publication state; MCP does not construct result packages
+- this document does not define a repo-local Publish Data error or run-state
+  enum; downstream consumers follow the upstream publishing contract as it
+  evolves
 
 ### 5.4 Boundary-Crossing Fields
 
@@ -561,9 +588,10 @@ plans over the same handoff semantics:
 - orchestration hosts that need an unrepresented planning concept MUST open a
   change against this document and `spec/taxonomy.md` rather than extend
   locally
-- orchestration hosts that submit plans through `execute_plan` consume the
-  same `ExecutionJob` abstraction and do not redefine its status
-  transitions
+- orchestration hosts that submit plans through `execute_plan` MUST preserve
+  the family-owned post-handoff state model: `ExecutionJob` for Analyze and
+  `PipelineService`-owned execution state for Publish Data until upstream
+  standardizes a shared publishing run object
 
 ## 6. Non-Goals
 
@@ -574,8 +602,9 @@ architectural boundaries established in `spec/taxonomy.md`.
 
 Queueing, worker routing, provisioning strategy, and execution-time resource
 allocation are owned by execution hosts. This document names `ExecutionJob`
-and its status set but does not define state machines, retry policy, or
-back-pressure behavior.
+only where upstream standardizes it (Analyze via `ProcessService`) and does
+not define state machines, retry policy, or back-pressure behavior for any
+family-owned execution surface.
 
 ### 2. Approval Enforcement and Policy Evaluation
 
@@ -597,16 +626,17 @@ workspace hints (Section 3.2) but do not manage lifecycle.
 
 Result packages are constructed by execution hosts, not by MCP planners.
 
-For Analyze and Publish Data, `AnalysisResultPackage` and
-`PublishingResultPackage` are surfaced as MCP resources once the
-execution host marks the backing `ExecutionJob` terminal. For Build
-App v1, `AppPackage` is produced directly by `create_app_package` and
-returned to the MCP plane without an intermediate job; when a future
-upstream contract adds job-backed Builder execution, result packaging
-will follow the same terminal-job model. `Deployment` output
-semantics are deferred with the Automate / Deploy family. Result
-resource schemas and caching semantics are owned by future work in
-this repository.
+For Analyze, `AnalysisResultPackage` is surfaced as an MCP resource once the
+execution host marks the backing `ExecutionJob` terminal. For Publish Data,
+`PublishingResultPackage` is surfaced through the publishing contract once
+`PipelineService` reports final publication state; this document does not
+assign Publish Data a shared `ExecutionJob` terminal-state dependency. For
+Build App v1, `AppPackage` is produced directly by `create_app_package` and
+returned to the MCP plane without an intermediate job; when a future upstream
+contract adds job-backed Builder execution, result packaging will follow the
+same family-specific execution model. `Deployment` output semantics are
+deferred with the Automate / Deploy family. Result resource schemas and
+caching semantics are owned by future work in this repository.
 
 ### 5. Natural-Language Prompt Authoring and Model Selection
 
@@ -641,11 +671,11 @@ frameworks are implementation choices.
 - **Handoff boundary rejections.** Attempts from the MCP plane to cross
   runtime, approval, or artifact-lifecycle surfaces that the execution host
   rejects as out of scope for interaction semantics.
-- **Planning-to-execution success ratio.** For workflow families that
-  submit through `execute_plan` (Analyze and Publish Data in v1), the
-  fraction of handed-off plans that reach `Succeeded`
-  `ExecutionJob.status` versus those that reach `Failed` or
-  `Cancelled`.
+- **Planning-to-execution success ratio.** For Analyze, the fraction of
+  handed-off plans that reach `Succeeded` `ExecutionJob.status` versus those
+  that reach `Failed` or `Cancelled`. For Publish Data, the fraction of
+  handed-off plans that `PipelineService` reports as successful publication
+  versus non-successful final outcomes under the publishing contract.
 - **Full-catalog resource reads.** Frequency of full-catalog resource
   enumeration during planning (a smell per Section 3.1).
 - **LowConfidence threshold configuration.** Per deployment, the configured

@@ -111,6 +111,9 @@ Elicitation triggers:
 - Actions require approval (publish, destructive operations)
 - Output settings have high impact on results
 
+See `spec/planning.md` §2 for the full clarification protocol: reason codes,
+question kinds, assumption policies, and answer binding semantics.
+
 ## Workflow Families
 
 The geospatial MCP standard covers four operator workflow families. A fifth

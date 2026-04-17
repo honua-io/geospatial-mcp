@@ -105,7 +105,7 @@ intent and travels with it through clarification rounds.
 | Policy | Suppressible reason codes | Non-suppressible reason codes |
 |---|---|---|
 | `AskAlways` | (none) | all seven |
-| `AskWhenMaterial` | `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `MissingRequiredInput` when a safe default exists | `DestructiveAction`, `PublishAction`, `PolicyBoundary`; `MissingRequiredInput` when no safe default exists |
+| `AskWhenMaterial` | `LowConfidence`; `AmbiguousDataset`, `AmbiguousProcess`, `MissingRequiredInput` only when immaterial (see below) and a safe default exists | `DestructiveAction`, `PublishAction`, `PolicyBoundary`; `AmbiguousDataset`, `AmbiguousProcess`, `MissingRequiredInput` when material or when no safe default exists |
 | `UseDefaults` | `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `MissingRequiredInput` when a safe default exists | `DestructiveAction`, `PublishAction`, `PolicyBoundary`; `MissingRequiredInput` when no safe default exists |
 
 "Suppressible" means the planner MAY proceed by resolving the reason code
@@ -113,6 +113,17 @@ with a default and emitting the plan with that value applied.
 "Non-suppressible" means the planner MUST emit a `ClarificationRequest`
 regardless of policy. `DestructiveAction`, `PublishAction`, and
 `PolicyBoundary` are never suppressible in any policy.
+
+**Materiality criterion (`AskWhenMaterial` only).** A suppressible reason code
+is **material** when the choice among available defaults would change the plan's
+step kinds, declared `outputs`, or resource bindings. A choice is **immaterial**
+when every plausible default produces an equivalent plan structure. Under
+`AskWhenMaterial`, only immaterial suppressible codes may be resolved by
+default; material ones MUST still surface a `ClarificationRequest`. Under
+`UseDefaults`, the planner suppresses whenever a safe default exists regardless
+of materiality. This makes `AskWhenMaterial` strictly more likely to ask than
+`UseDefaults` for ambiguity and missing-input codes, while both policies agree
+on the non-suppressible set.
 
 When the planner suppresses a reason code under the active policy, it
 MUST bake the resolved value into the plan's field values so the plan
@@ -182,6 +193,12 @@ here and reused from the upstream contract.
 
 A transport MAY batch multiple `ClarificationRequest`s before returning to the
 planner, but MUST preserve `questionId` identity so answers remain bindable.
+`questionId` values MUST be unique across the entire intent lifecycle (all
+clarification rounds for a given `intentId`). Implementations MUST NOT reuse
+a `questionId` in a later round or a batched request; reuse would cause one
+answer to overwrite another in the `answers[questionId] -> string[]` map. If
+a response contains a `questionId` that the planner did not emit for that
+intent, the planner MUST reject the response.
 
 ### 2.7 LowConfidence Threshold
 

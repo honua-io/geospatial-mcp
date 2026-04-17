@@ -18,7 +18,7 @@ established; downstream consumer work tracked in `honua-server#728` and
 | Document | Contents |
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
-| [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification loop, per-family planning behavior, plan handoff to execution hosts |
+| [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification and elicitation semantics, assumption policies, per-family planning step kinds, boundary-crossing handoff contract |
 
 ## Workflow Families
 
@@ -35,6 +35,8 @@ explicitly excluded per
 | Edit Data | excluded |
 
 See `spec/taxonomy.md` for the full capability matrix and per-tool breakdown.
+See `spec/planning.md` for per-family planning behavior, clarification
+semantics, and handoff contracts.
 
 ## Related Repositories
 

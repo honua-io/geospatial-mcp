@@ -632,13 +632,15 @@ implementation details.
 
 | Consumer | Dependency |
 |---|---|
-| [`honua-server#731`](https://github.com/honua-io/honua-server/issues/731) | Result, map, app, and artifact packaging |
+| [`honua-server#730`](https://github.com/honua-io/honua-server/issues/730) | Publishing lifecycle surfaces |
+| [`honua-server#731`](https://github.com/honua-io/honua-server/issues/731) | Map, app, and artifact packaging |
 | [`honua-server#732`](https://github.com/honua-io/honua-server/issues/732) | Deployment lifecycle surfaces |
 | [`honua-sdk-js#21`](https://github.com/honua-io/honua-sdk-js/issues/21) | JS SDK resource consumption |
 | [`honua-sdk-js#29`](https://github.com/honua-io/honua-sdk-js/issues/29) | Map and app packaging in the JS runtime |
 
 Sequencing: the resource grammar, inspection fields, lifecycle visibility,
 and relationship graph above are the stable interface. Downstream tickets
-finalize the concrete canonical shapes (`MapPackage`, `AppPackage`,
-`PublishedService`, `PublishingResultPackage`) in `honua-server`;
-resource URIs remain valid because they reference those shapes by name.
+finalize the concrete canonical shapes: `PublishedService` and
+`PublishingResultPackage` in `honua-server#730`; `MapPackage` and
+`AppPackage` in `honua-server#731`.
+Resource URIs remain valid because they reference those shapes by name.

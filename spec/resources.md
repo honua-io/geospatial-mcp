@@ -55,7 +55,7 @@ Families introduced by this document:
 
 | Family | URI form | Canonical source |
 |---|---|---|
-| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` |
+| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage`, `PublishingResultPackage`, `BuilderResultPackage` |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
 | Map package | `honua://maps/{map_package_id}` | `MapPackage` |
@@ -162,13 +162,61 @@ Projection of
 | `executedAt` | Execution timestamp |
 | `generatedArtifactIds[]` | Artifacts produced by this execution |
 
-`PublishingResultPackage`, `BuilderResultPackage`, and
 `DeploymentResultPackage` (specified in the
 [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
-are deferred. They reuse the same URI grammar (`honua://results/{id}`) once
-their canonical shapes finalize in `honua-server#730` (publishing),
-`#731` (builder), and `#732` (deployment); no parallel family is
-introduced here.
+is deferred alongside the `Automate / Deploy` workflow column in
+[taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). It
+reuses the same URI grammar (`honua://results/{id}`) once its canonical
+shape finalizes in `honua-server#732`.
+
+### `honua://results/{id}` — Publishing Result
+
+Projection of `PublishingResultPackage` (specified in the
+[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
+The canonical shape is finalizing in `honua-server#730`; the Technical
+Plan enumerates required fields at the responsibility level only. MCP
+therefore describes the inspection projection by responsibility rather
+than by concrete field names, consistent with the approach used for
+`MapPackage` and `AppPackage` below.
+
+**Stable identifier:** result-package ID (prefix `result_…`), shared
+URI family with `AnalysisResultPackage`.
+
+**Inspection responsibilities surfaced read-only:**
+
+- source lineage;
+- quality report;
+- published service or service definition reference (canonical
+  `PublishedService` reference);
+- map package when spatially relevant (canonical `MapPackage` reference);
+- provenance (canonical `ProvenanceRecord`).
+
+Edges: published service, quality report, map package, provenance. MCP
+exposes compositions by canonical object name; upstream field names
+finalize alongside `honua-server#730`.
+
+### `honua://results/{id}` — Builder Result
+
+Projection of `BuilderResultPackage` (specified in the
+[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
+The canonical shape is finalizing in `honua-server#731`; the Technical
+Plan enumerates required fields at the responsibility level only. MCP
+therefore describes the inspection projection by responsibility rather
+than by concrete field names.
+
+**Stable identifier:** result-package ID (prefix `result_…`), shared
+URI family with `AnalysisResultPackage`.
+
+**Inspection responsibilities surfaced read-only:**
+
+- app package (canonical `AppPackage` reference);
+- map package when applicable (canonical `MapPackage` reference);
+- preview artifacts (canonical `ArtifactRef` references);
+- provenance (canonical `ProvenanceRecord`).
+
+Edges: app package, map package, preview artifacts, provenance. MCP
+exposes compositions by canonical object name; upstream field names
+finalize alongside `honua-server#731`.
 
 ## Asset Resources
 
@@ -401,10 +449,12 @@ responsibility rather than by concrete field names.
 - approval policy reference;
 - publication lifecycle state (read-only projection).
 
-Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService`;
-delivery artifact references → `ArtifactRef`. Concrete field names
-finalize alongside `honua-server#732`; the resource URI, target-kind
-set, and responsibility list stay stable under reference.
+Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService`
+(v1); `ProcessDefinition` | `PipelineDefinition` (deferred alongside
+`Automate / Deploy`); delivery artifact references → `ArtifactRef`.
+Concrete field names finalize alongside `honua-server#732`; the
+resource URI, responsibility list, and the full target-kind set
+(including deferred kinds) stay stable under reference.
 
 ### `honua://workspaces/{workspace_id}`
 
@@ -470,6 +520,7 @@ reads from workspace ownership and lifecycle context (see
 | `results/{id}` | `results/{id}/provenance` | composes |
 | `results/{id}` | `MapPackage` | references (`mapPackageId?`, deferred to `honua-server#731`) |
 | `results/{id}` | `AppPackage` | references (`appPackageId?`, deferred to `honua-server#731`) |
+| `results/{id}` | `PublishedService` | references (publishing result; canonical shape deferred to `honua-server#730`) |
 | `results/{id}` | `GeoprocessingError` | composes (`errors[]`) |
 | `maps/{id}` | `SourceBinding` | composes (binding list) |
 | `maps/{id}` | `StyleRef` | references (style composition) |
@@ -520,6 +571,25 @@ it does not infer result or workspace scope from an unscoped artifact ID
 alone. Scoped inspection routes exist only where result ownership or
 workspace ownership is carried by the containing object or resolved by the
 workspace lifecycle service.
+
+**Resolution path for package-embedded artifact references.** Package
+resources (`MapPackage`, `AppPackage`, `Deployment`) carry artifact
+identifiers through canonical fields. Consumers resolve these
+identifiers to full `ArtifactRef` objects through the server: the
+canonical `ArtifactRef` includes a workspace-scoped content `uri`
+(for example `honua://workspaces/ws_123/layers/candidate_parcels`)
+that identifies the owning workspace by convention, and the
+[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+specifies `workspaceRef` as a planned `ArtifactRef` field that will
+provide explicit workspace ownership when finalized. The workspace
+lifecycle service maintains the artifact-to-workspace ownership
+mapping and resolves workspace-rooted inspection reads
+(`honua://workspaces/{wsid}/artifacts/{aid}`). The deterministic
+resolution sequence is therefore: read the package resource → extract
+the artifact identifier → fetch the canonical `ArtifactRef` from the
+server → use workspace ownership (from `ArtifactRef` content URI
+convention or, when finalized, `workspaceRef`) to construct the
+workspace-rooted inspection URI for lifecycle state.
 
 ## Capability Coverage
 

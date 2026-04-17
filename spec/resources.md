@@ -190,14 +190,15 @@ upstream `PublishingResultPackage` shape does not yet own a
 - source lineage;
 - quality report;
 - published service reference (canonical `PublishedService` reference)
-  or service-definition reference (canonical `ServiceDefinition` from
-  the catalog domain); the output branch is determined upstream;
+  or service-definition output branch (`serviceDefinition` field
+  per the Technical Plan); the output branch is determined upstream;
 - map package when spatially relevant (canonical `MapPackage` reference);
 - provenance (canonical `ProvenanceRecord`).
 
-Edges: published service or service definition, quality report, map
-package, provenance. MCP exposes compositions by canonical object name;
-upstream field names finalize alongside `honua-server#730`.
+Edges: published service or service-definition output branch, quality
+report, map package, provenance. MCP exposes compositions by canonical
+object name or upstream field reference; field names finalize alongside
+`honua-server#730`.
 
 ### `honua://results/{id}` — Builder Result
 
@@ -441,11 +442,13 @@ responsibility rather than by concrete field names.
 **Inspection responsibilities surfaced read-only:**
 
 - deployment kind (package class — for example `app_package`,
-  `published_service`);
+  `published_service`, `process`, `pipeline`);
 - target binding (`targetRef` resolves to the canonical `AppPackage`,
-  `MapPackage`, or `PublishedService`; `ProcessDefinition` and
-  `PipelineDefinition` targets are deferred alongside the
-  `Automate / Deploy` workflow column in
+  `MapPackage`, `PublishedService`, `ProcessDefinition`, or
+  `PipelineDefinition`; the full target set matches the upstream
+  `Deployment` shape — MCP surfaces all five target kinds read-only;
+  deployment creation tooling for process and pipeline targets is
+  deferred alongside the `Automate / Deploy` workflow column in
   [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix));
 - hosting mode (for example `static_site`, `managed`);
 - route configuration (route prefix and resolved public URL);
@@ -458,12 +461,14 @@ responsibility rather than by concrete field names.
 - approval policy reference;
 - publication lifecycle state (read-only projection).
 
-Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService`
-(v1); `ProcessDefinition` | `PipelineDefinition` (deferred alongside
-`Automate / Deploy`); delivery artifact references → `ArtifactRef`.
+Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService` |
+`ProcessDefinition` | `PipelineDefinition`; delivery artifact
+references → `ArtifactRef`. The full target-kind set matches the
+upstream `Deployment` shape; deployment creation tooling for
+process and pipeline targets is deferred alongside the
+`Automate / Deploy` workflow column.
 Concrete field names finalize alongside `honua-server#732`; the
-resource URI, responsibility list, and the full target-kind set
-(including deferred kinds) stay stable under reference.
+resource URI and responsibility list stay stable under reference.
 
 ### `honua://workspaces/{workspace_id}`
 
@@ -530,7 +535,7 @@ reads from workspace ownership and lifecycle context (see
 | `results/{id}` | `results/{id}/provenance` | composes (all subtypes) |
 | `results/{id}` | `MapPackage` | references (analysis: `mapPackageId?`; publishing/builder: `mapPackage`; deferred to packaging lifecycle) |
 | `results/{id}` | `AppPackage` | references (analysis: `appPackageId?`; builder: `appPackage`; deferred to packaging lifecycle) |
-| `results/{id}` | `PublishedService` or `ServiceDefinition` | references (publishing only; output branch determined upstream; canonical shapes deferred to `honua-server#730`) |
+| `results/{id}` | `PublishedService` or service-definition output branch | references (publishing only; output branch determined upstream per the Technical Plan; shapes deferred to `honua-server#730`) |
 | `results/{id}` | `GeoprocessingError` | composes (analysis: `errors[]`) |
 | `maps/{id}` | `SourceBinding` | composes (binding list) |
 | `maps/{id}` | `StyleRef` | references (style composition) |
@@ -539,9 +544,9 @@ reads from workspace ownership and lifecycle context (see
 | `maps/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
 | `apps/{id}` | `MapPackage` | references (map binding) |
 | `apps/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
-| `apps/{id}` | app template | references (template binding; canonical `AppTemplate` shape deferred) |
+| `apps/{id}` | app-template registry entry | references (template binding via `AppPackage.templateId`; standalone shape deferred) |
 | `services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
-| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` | references (`targetRef`); `ProcessDefinition` and `PipelineDefinition` targets deferred |
+| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` \| `PipelineDefinition` | references (`targetRef`); all five upstream target kinds surfaced read-only |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
 | `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning result package's artifact fields (`AnalysisResultPackage.artifacts[]`, `BuilderResultPackage.previewArtifacts`) |

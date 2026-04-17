@@ -66,10 +66,14 @@ upstream contract; this table defines which families each code is in scope for.
 | `PolicyBoundary` | yes | yes | yes | yes |
 | `LowConfidence` | yes | yes | yes | yes |
 
-A reason code MUST NOT be invented locally. If a planner detects a condition
-that does not map to an existing reason code, it MUST fall back to
-`PolicyBoundary` or `LowConfidence` and propose adding a new reason code
-through a change to `spec/taxonomy.md` and this document.
+A reason code MUST NOT be invented locally. If a planner detects a
+user-resolvable condition that does not map to an existing reason code, it
+MUST fall back to `PolicyBoundary` or `LowConfidence` and propose adding a
+new reason code through a change to `spec/taxonomy.md` and this document.
+Non-user-fixable failures (transport errors, backend unavailability,
+authorization denial) are not clarification candidates; they MUST surface
+as blocked or failed planning results using upstream error semantics
+(`GeoprocessingError.kind`).
 
 ### 2.2 Question Kinds and Shape
 
@@ -222,7 +226,7 @@ what the planning-plane contract requires of each.
 |---|---|---|
 | Catalog resources | Scope dataset and process discovery | `MissingRequiredInput` |
 | Dataset / Layer resources | Ground `DatasetRef` / `LayerRef` bindings | `AmbiguousDataset` or `MissingRequiredInput` |
-| Process definition resources | Validate step parameter contracts | `UnknownProcess` (upstream error; surface as `AmbiguousProcess` during clarification) |
+| Process definition resources | Validate step parameter contracts | `AmbiguousProcess` when user input can narrow the reference; `UnknownProcess` upstream error when no candidate exists (blocked planning result, not clarification) |
 | Style resources | Bind `RenderMap` / `compose_map` steps | `MissingRequiredInput` when style is required for `requestedOutputs` |
 | Theme resources | Token set for map and app composition | `MissingRequiredInput` when theme is required |
 | Map template resources | Scaffold `compose_map` / `bind_map_package` steps | `MissingRequiredInput` when `Map` is in `requestedOutputs` |
@@ -236,8 +240,12 @@ what the planning-plane contract requires of each.
   telemetered against (Section 7)
 - planners MAY cache resource reads within a single intent lifecycle but MUST
   NOT treat cached reads as authoritative across intents
-- planners MUST surface resource-read errors as `ClarificationRequest`s driven
-  by the mapped reason code, not as inline plan warnings
+- when a resource-read reveals a user-resolvable gap (missing input,
+  ambiguous reference), the planner surfaces a `ClarificationRequest`
+  with the mapped reason code. Transport errors, unavailable backends,
+  and other non-user-fixable resource failures MUST NOT be coerced into
+  `ClarificationRequest`s; they surface as blocked or failed planning
+  results using upstream error semantics (`GeoprocessingError.kind`)
 
 ### 3.2 Workspace Hints
 
@@ -257,9 +265,9 @@ and does not restate coverage state.
 | Family | Canonical plan object | Allowed step kinds | Required planning resources | Clarification codes in scope |
 |---|---|---|---|---|
 | Analyze | `AnalysisPlan` | `QueryFeatures`, `Geoprocess`, `Aggregate`, `RenderMap`, `Export` | catalog, dataset/layer, process definition, style (when rendering), map template (when `Map` is in `requestedOutputs`) | `MissingRequiredInput`, `AmbiguousDataset`, `AmbiguousProcess`, `LowConfidence`, `PolicyBoundary`, `DestructiveAction` (when steps mutate) |
-| Publish Data | `PublishingPlan` | `inspect_source`, `infer_schema`, `map_schema`, `normalize_crs`, `clean_records`, `dedupe`, `enrich`, `quality_check`, `publish_service`, `compose_map` | catalog, dataset/layer, process definition, quality policy reference, map template (when publishing a map) | all Analyze codes plus `PublishAction`, `DestructiveAction` |
+| Publish Data | `PublishingPlan` | `inspect_source`, `infer_schema`, `map_schema`, `normalize_crs`, `clean_records`, `dedupe`, `enrich`, `quality_check`, `publish_service`, `compose_map` | catalog, dataset/layer, process definition, map template (when publishing a map) | all Analyze codes plus `PublishAction`, `DestructiveAction` |
 | Build App | `BuilderPlan` | `select_template`, `bind_map_package`, `bind_artifacts`, `compose_widget`, `compose_workflow`, `generate_project`, `preview_app` | app template, map template (when map is bound), prior result package or artifact references, theme | `MissingRequiredInput`, `AmbiguousDataset` (when binding data), `LowConfidence`, `PolicyBoundary`, `PublishAction` (when publishing the app) |
-| Automate / Deploy | `DeploymentPlan` | `register_definition`, `configure_schedule`, `configure_approvals`, `configure_runtime`, `publish`, `rollback` | target reference (process, pipeline, map, or app), approval policy reference, runtime policy reference | `MissingRequiredInput`, `PublishAction`, `DestructiveAction`, `PolicyBoundary`, `LowConfidence` |
+| Automate / Deploy | `DeploymentPlan` | `register_definition`, `configure_schedule`, `configure_approvals`, `configure_runtime`, `publish`, `rollback` | target reference (via intent `targetRefs`), schedule and publication scope (on intent) | `MissingRequiredInput`, `PublishAction`, `DestructiveAction`, `PolicyBoundary`, `LowConfidence` |
 
 Step kind spellings match the upstream contract exactly. Planners MUST NOT
 introduce step kinds outside this set; a new step kind requires a taxonomy
@@ -288,6 +296,8 @@ change and a matching extension in this document.
 
 - **Inputs.** A `PublishingIntent` that references a source (existing dataset,
   uploaded file reference, or external service) and a publishing target.
+  Quality constraints are carried inline on the intent via `qualityPolicy`
+  (not a separate resource); the planner reads that field directly.
 - **Plan construction.** Emit a `PublishingPlan` whose steps are drawn from
   the Publish Data step kinds. Pipelines are expected to begin with
   `inspect_source` and progress through schema and quality steps before
@@ -352,9 +362,12 @@ planning so downstream consumers (`honua-server#728`, `honua-devops#29`) do
 not diverge on private conventions; it does not commit v1 implementation
 coverage.
 
-- **Inputs.** A deployment intent referencing a target object (process,
-  pipeline, map, or app), an approval policy reference, and a runtime policy
-  reference.
+- **Inputs.** A deployment intent carrying `targetRefs` (process, pipeline,
+  map, or app), `schedule`, and `publicationScope`. Approval configuration
+  (`approvalPolicyRef`) and runtime profile (`runtimeProfile`) appear on
+  the resulting `Deployment` object, not on the intent; the planner derives
+  those from available configuration or defers selection to the execution
+  host.
 - **Plan construction.** Emit a `DeploymentPlan` whose steps are drawn from
   the Automate / Deploy step kinds. `register_definition` precedes every other
   step; `rollback` is a terminal step allowed only in recovery plans.

@@ -109,7 +109,8 @@ Elicitation triggers:
 - Required inputs are missing
 - Dataset or process choices are ambiguous
 - Actions require approval (publish, destructive operations)
-- Output settings have high impact on results
+- Request exceeds a policy boundary
+- Planner confidence is below threshold
 
 See `spec/planning.md` §2 for the full clarification protocol: reason codes,
 question kinds, assumption policies, and answer binding semantics.
@@ -117,7 +118,9 @@ question kinds, assumption policies, and answer binding semantics.
 ## Workflow Families
 
 The geospatial MCP standard covers four operator workflow families. A fifth
-family, Edit Data, is explicitly excluded.
+family, Edit Data, is explicitly excluded. See `spec/planning.md` §4 for
+per-family planning behavior: step kinds, required planning resources, and
+clarification codes in scope.
 
 ### Analyze
 
@@ -336,4 +339,6 @@ taxonomy:
   internals)
 
 These signals support operational telemetry without prescribing a specific
-instrumentation framework.
+instrumentation framework. See `spec/planning.md` §7 for planning-plane signals
+(clarification reason-code coverage, assumption-policy distribution, plan
+validation outcomes, handoff boundary rejections) that extend this set.

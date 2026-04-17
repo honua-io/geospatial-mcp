@@ -508,14 +508,15 @@ Edges are expressed by canonical object name (`ArtifactRef`, `StyleRef`,
 `WorkspaceRef`, `SourceBinding`, …) rather than by the scoped URIs those
 objects happen to resolve to. Upstream package shapes carry artifact IDs
 without a result or workspace inspection scope, so downstream consumers
-resolve result-rooted artifact reads from the owning
-`AnalysisResultPackage.artifacts[]` context and workspace-rooted artifact
+resolve result-rooted artifact reads from the owning result package's
+artifact fields (`AnalysisResultPackage.artifacts[]`,
+`BuilderResultPackage.previewArtifacts`) and workspace-rooted artifact
 reads from workspace ownership and lifecycle context (see
 §Artifact Addressing Rule).
 
 | From | To | Relationship |
 |---|---|---|
-| `results/{id}` | `ArtifactRef` | composes (`artifacts[]`, outcome-centric) |
+| `results/{id}` | `ArtifactRef` | composes (`artifacts[]` / `previewArtifacts`, outcome-centric) |
 | `results/{id}` | `WorkspaceRef` | references (`workspaceRefs[]`) |
 | `results/{id}` | `results/{id}/provenance` | composes |
 | `results/{id}` | `MapPackage` | references (`mapPackageId?`, deferred to `honua-server#731`) |
@@ -534,7 +535,7 @@ reads from workspace ownership and lifecycle context (see
 | `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` | references (`targetRef`); `ProcessDefinition` and `PipelineDefinition` targets deferred |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
-| `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]` context |
+| `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning result package's artifact fields (`AnalysisResultPackage.artifacts[]`, `BuilderResultPackage.previewArtifacts`) |
 
 Expressing edges by canonical object name keeps the graph stable when
 upstream field names evolve. Upstream field additions or renames in
@@ -559,8 +560,11 @@ workspace inspection URI. Consumers therefore:
    need payload information such as `kind`, `contentType`, `metadata`, or
    the content locator `uri`.
 2. Use the result-rooted path
-   (`honua://results/{rpid}/artifacts/{aid}`) only when the owning
-   `AnalysisResultPackage` scope is already known from context.
+   (`honua://results/{rpid}/artifacts/{aid}`) when the owning result
+   package scope is already known from context. This applies to any
+   result package that carries `ArtifactRef` fields:
+   `AnalysisResultPackage.artifacts[]` and
+   `BuilderResultPackage.previewArtifacts`.
 3. Use the workspace-rooted path
    (`honua://workspaces/{wsid}/artifacts/{aid}`) only when the owning
    workspace identity is already known from context or resolved through
@@ -575,21 +579,37 @@ workspace lifecycle service.
 **Resolution path for package-embedded artifact references.** Package
 resources (`MapPackage`, `AppPackage`, `Deployment`) carry artifact
 identifiers through canonical fields. Consumers resolve these
-identifiers to full `ArtifactRef` objects through the server: the
-canonical `ArtifactRef` includes a workspace-scoped content `uri`
-(for example `honua://workspaces/ws_123/layers/candidate_parcels`)
-that identifies the owning workspace by convention, and the
-[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
-specifies `workspaceRef` as a planned `ArtifactRef` field that will
-provide explicit workspace ownership when finalized. The workspace
-lifecycle service maintains the artifact-to-workspace ownership
-mapping and resolves workspace-rooted inspection reads
-(`honua://workspaces/{wsid}/artifacts/{aid}`). The deterministic
-resolution sequence is therefore: read the package resource → extract
+identifiers to full `ArtifactRef` objects through the server. The
+target resolution sequence is: read the package resource → extract
 the artifact identifier → fetch the canonical `ArtifactRef` from the
-server → use workspace ownership (from `ArtifactRef` content URI
-convention or, when finalized, `workspaceRef`) to construct the
-workspace-rooted inspection URI for lifecycle state.
+server → use workspace ownership to construct the workspace-rooted
+inspection URI (`honua://workspaces/{wsid}/artifacts/{aid}`) for
+lifecycle state.
+
+Workspace ownership is resolvable through two mechanisms, neither of
+which is unconditionally available today:
+
+1. **Content URI convention** — `ArtifactRef.uri` (when populated)
+   carries a workspace-scoped path (for example
+   `honua://workspaces/ws_123/layers/candidate_parcels`) from which
+   the owning workspace identity can be derived by convention.
+   However, `ArtifactRef.Uri` is nullable in the canonical shape and
+   `AddArtifactAsync` permits omitting it, so this path is available
+   only when the producing workflow populates the content locator.
+2. **Planned `workspaceRef` field** — the
+   [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+   specifies `workspaceRef` as a planned `ArtifactRef` field that
+   will provide explicit workspace ownership. This field has not
+   finalized upstream.
+
+Until at least one mechanism is unconditionally present on every
+`ArtifactRef` returned by the server, workspace-rooted lifecycle
+inspection for a package-embedded artifact is available only when the
+artifact's content URI is populated or `workspaceRef` is present.
+Consumers should treat the absence of both as a deferred-resolution
+case and fall back to the `ArtifactRef` payload fields (`kind`,
+`contentType`, `metadata`) which are always available from the
+unscoped fetch.
 
 ## Capability Coverage
 

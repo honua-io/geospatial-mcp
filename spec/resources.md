@@ -55,7 +55,7 @@ Families introduced by this document:
 
 | Family | URI form | Canonical source |
 |---|---|---|
-| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1); `PublishingResultPackage`, `BuilderResultPackage` reuse grammar once upstream finalizes shared identity |
+| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result Deferment) |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
 | Map package | `honua://maps/{map_package_id}` | `MapPackage` |
@@ -724,7 +724,9 @@ on and add resource-level signals where behavior changes:
 - **Workflow status visibility** -- emit `GeoprocessingWorkflowStatus`
   on result reads.
 - **Publication state visibility** -- emit `Deployment.publicationState`
-  and `PublishedService.refreshStatus` on promotion-surface reads.
+  and published service refresh state on promotion-surface reads (concrete
+  field name deferred until `honua-server#730` finalizes the
+  `PublishedService` shape).
 - **Artifact lifecycle state** -- emit `ArtifactLifecycleState` on
   artifact reads through either URI view; emit derived
   `promotionSourceReady` on workspace-rooted artifact reads only

@@ -137,23 +137,25 @@ Ingest, validate, and publish data products. AI participates in profiling,
 quality assessment, and pipeline definition. AI does not mutate source data
 directly.
 
-Lifecycle: intent capture -> validation and profiling -> pipeline definition ->
-execution -> publication
+Lifecycle: `PublishingIntent` -> `ClarificationRequest` /
+`ClarificationResponse` -> `PublishingPlan` -> `ExecutionJob` ->
+`PublishingResultPackage` (with `PublishedService`)
 
 ### Build App
 
 Compose SDK-native applications from analysis results, map packages, and
 templates. V1 targets `honua-sdk-js` with MapLibre GL JS.
 
-Lifecycle: intent capture -> template selection -> artifact binding -> scaffold
-generation -> `AppPackage`
+Lifecycle: `BuilderIntent` -> `ClarificationRequest` /
+`ClarificationResponse` -> `BuilderPlan` -> `AppPackage`
 
 ### Automate / Deploy
 
 Operationalize a process, pipeline, map, or application into a routable runtime
 surface. Covers promotion from one-off results into persistent deployments.
 
-Lifecycle: intent capture -> deployment planning -> provisioning -> `Deployment`
+Lifecycle: `DeploymentIntent` -> `DeploymentPlan` -> provisioning ->
+`Deployment`
 
 ### Edit Data (Excluded)
 
@@ -192,11 +194,13 @@ authoritative.
 | `AnalysisIntent` | Partially structured user goal for analysis |
 | `PublishingIntent` | Partially structured user goal for data publishing |
 | `BuilderIntent` | Partially structured user goal for app creation |
+| `DeploymentIntent` | Partially structured user goal for deployment (normative shape; v1 deferred) |
 | `ClarificationRequest` | Structured questions needed to proceed safely |
 | `ClarificationResponse` | User answers or accepted defaults |
 | `AnalysisPlan` | Typed executable graph for analysis |
 | `PublishingPlan` | Typed DAG for publishing workflows |
 | `BuilderPlan` | Typed plan for app generation |
+| `DeploymentPlan` | Typed plan for deployment (normative shape; v1 deferred) |
 
 ### Execution and State
 
@@ -263,7 +267,7 @@ determine whether a capability is in scope, deferred, or excluded.
 | Resources | Catalog, dataset, process definition, style, theme, map template, app template, saved result package |
 | Tools | Intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
-| Elicitation | Missing inputs, ambiguous choices, approval-required actions, high-impact settings |
+| Elicitation | Clarification reason codes defined in `spec/planning.md` §2.1 (seven codes across all workflow families) |
 
 ### MCP Tools to Workflow Family Mapping
 

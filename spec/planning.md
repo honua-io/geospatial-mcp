@@ -269,9 +269,14 @@ and does not restate coverage state.
 | Build App | `BuilderPlan` | `select_template`, `bind_map_package`, `bind_artifacts`, `compose_widget`, `compose_workflow`, `generate_project`, `preview_app` | app template, map template (when map is bound), prior result package or artifact references, theme | `MissingRequiredInput`, `AmbiguousDataset` (when binding data), `LowConfidence`, `PolicyBoundary`, `PublishAction` (when publishing the app) |
 | Automate / Deploy | `DeploymentPlan` | `register_definition`, `configure_schedule`, `configure_approvals`, `configure_runtime`, `publish`, `rollback` | target reference (via intent `targetRefs`), schedule and publication scope (on intent) | `MissingRequiredInput`, `PublishAction`, `DestructiveAction`, `PolicyBoundary`, `LowConfidence` |
 
-Step kind spellings match the upstream contract exactly. Planners MUST NOT
-introduce step kinds outside this set; a new step kind requires a taxonomy
-change and a matching extension in this document.
+Analyze step kind spellings follow the `AI_OPERATOR_CONTRACT.md` §AnalysisPlan
+examples (PascalCase: `QueryFeatures`, `Geoprocess`, `Aggregate`, `RenderMap`,
+`Export`). `AI_OPERATOR_TECHNICAL_PLAN.md` §AnalysisPlan uses snake_case
+equivalents in its examples; this spec treats the Contract document as
+authoritative for Analyze step-kind casing until upstream harmonizes the two.
+Other family step kinds already use snake_case consistently in both upstream
+documents. Planners MUST NOT introduce step kinds outside this set; a new step
+kind requires a taxonomy change and a matching extension in this document.
 
 ### 4.1 Analyze
 
@@ -362,7 +367,7 @@ planning so downstream consumers (`honua-server#728`, `honua-devops#29`) do
 not diverge on private conventions; it does not commit v1 implementation
 coverage.
 
-- **Inputs.** A deployment intent carrying `targetRefs` (process, pipeline,
+- **Inputs.** A `DeploymentIntent` carrying `targetRefs` (process, pipeline,
   map, or app), `schedule`, and `publicationScope`. Approval configuration
   (`approvalPolicyRef`) and runtime profile (`runtimeProfile`) appear on
   the resulting `Deployment` object, not on the intent; the planner derives

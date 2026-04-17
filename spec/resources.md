@@ -55,7 +55,7 @@ Families introduced by this document:
 
 | Family | URI form | Canonical source |
 |---|---|---|
-| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage`, `PublishingResultPackage`, `BuilderResultPackage` |
+| Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1); `PublishingResultPackage`, `BuilderResultPackage` reuse grammar once upstream finalizes shared identity |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
 | Map package | `honua://maps/{map_package_id}` | `MapPackage` |
@@ -179,21 +179,25 @@ therefore describes the inspection projection by responsibility rather
 than by concrete field names, consistent with the approach used for
 `MapPackage` and `AppPackage` below.
 
-**Stable identifier:** result-package ID (prefix `result_…`), shared
-URI family with `AnalysisResultPackage`.
+**Stable identifier:** result-package ID (prefix `result_…`). The URI
+grammar is shared with `AnalysisResultPackage` by convention; the
+upstream `PublishingResultPackage` shape does not yet own a
+`resultPackageId` field. The shared identity applies once
+`honua-server#730` finalizes the canonical shape.
 
 **Inspection responsibilities surfaced read-only:**
 
 - source lineage;
 - quality report;
-- published service or service definition reference (canonical
-  `PublishedService` reference);
+- published service reference (canonical `PublishedService` reference)
+  or service-definition reference (canonical `ServiceDefinition` from
+  the catalog domain); the output branch is determined upstream;
 - map package when spatially relevant (canonical `MapPackage` reference);
 - provenance (canonical `ProvenanceRecord`).
 
-Edges: published service, quality report, map package, provenance. MCP
-exposes compositions by canonical object name; upstream field names
-finalize alongside `honua-server#730`.
+Edges: published service or service definition, quality report, map
+package, provenance. MCP exposes compositions by canonical object name;
+upstream field names finalize alongside `honua-server#730`.
 
 ### `honua://results/{id}` — Builder Result
 
@@ -204,8 +208,11 @@ Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
 than by concrete field names.
 
-**Stable identifier:** result-package ID (prefix `result_…`), shared
-URI family with `AnalysisResultPackage`.
+**Stable identifier:** result-package ID (prefix `result_…`). The URI
+grammar is shared with `AnalysisResultPackage` by convention; the
+upstream `BuilderResultPackage` shape does not yet own a
+`resultPackageId` field. The shared identity applies once the
+packaging lifecycle finalizes the canonical shape.
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -410,7 +417,9 @@ by responsibility rather than by concrete field names.
 - refresh state (read-only lifecycle signal).
 
 Edges: referenced by `PublishingResultPackage.publishedService`
-(canonical shape deferred), consumed by `Deployment.targetRef`.
+(canonical shape deferred; see §Publishing Result for the
+`serviceDefinition` output branch), consumed by
+`Deployment.targetRef`.
 Concrete field names finalize alongside `honua-server#730`; the
 resource URI and responsibility list remain stable under reference.
 
@@ -521,7 +530,7 @@ reads from workspace ownership and lifecycle context (see
 | `results/{id}` | `results/{id}/provenance` | composes (all subtypes) |
 | `results/{id}` | `MapPackage` | references (analysis: `mapPackageId?`; publishing/builder: `mapPackage`; deferred to packaging lifecycle) |
 | `results/{id}` | `AppPackage` | references (analysis: `appPackageId?`; builder: `appPackage`; deferred to packaging lifecycle) |
-| `results/{id}` | `PublishedService` | references (publishing only; canonical shape deferred to `honua-server#730`) |
+| `results/{id}` | `PublishedService` or `ServiceDefinition` | references (publishing only; output branch determined upstream; canonical shapes deferred to `honua-server#730`) |
 | `results/{id}` | `GeoprocessingError` | composes (analysis: `errors[]`) |
 | `maps/{id}` | `SourceBinding` | composes (binding list) |
 | `maps/{id}` | `StyleRef` | references (style composition) |

@@ -190,8 +190,10 @@ read-only.
 
 **Inspection responsibilities surfaced read-only:**
 
-- source lineage;
-- quality report;
+- source-data lineage (upstream responsibility; concrete fields finalize
+  with `honua-server#730`);
+- quality-assessment outcome (upstream responsibility; concrete fields
+  finalize with `honua-server#730`);
 - published service reference (canonical `PublishedService` reference)
   or service-definition output branch (`serviceDefinition` field
   per the Technical Plan); the output branch is determined upstream;
@@ -199,7 +201,8 @@ read-only.
 - provenance (canonical `ProvenanceRecord`).
 
 Reserved edges once the shared identifier lands: published service or
-service-definition output branch, quality report, map package, provenance.
+service-definition output branch, quality-assessment outcome, map package,
+provenance.
 MCP exposes compositions by canonical object name or upstream field
 reference; field names finalize alongside `honua-server#730`.
 
@@ -460,12 +463,15 @@ responsibility rather than by concrete field names.
 
 - deployment kind (package class — for example `app_package`,
   `published_service`, `process`, `pipeline`);
-- target binding (`targetRef` resolves to the canonical `AppPackage`,
-  `MapPackage`, `PublishedService`, `ProcessDefinition`, or
-  `PipelineDefinition`; the full target set matches the upstream
-  `Deployment` shape — MCP surfaces all five target kinds read-only;
-  deployment creation tooling for process and pipeline targets is
-  deferred alongside the `Automate / Deploy` workflow column in
+- target binding (`targetRef` resolves to `AppPackage`, `MapPackage`,
+  or `PublishedService` when the target has a defined MCP resource
+  contract; `ProcessDefinition` and `PipelineDefinition` targets are
+  surfaced as **opaque identifiers** — no MCP resource URI or inspection
+  contract is defined for those families in this version (see
+  [taxonomy.md §Resources](taxonomy.md#resources)); the full target set
+  matches the upstream `Deployment` shape; deployment creation tooling
+  for process and pipeline targets is deferred alongside the
+  `Automate / Deploy` workflow column in
   [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix));
 - hosting mode (for example `static_site`, `managed`);
 - route configuration (route prefix and resolved public URL);
@@ -563,7 +569,7 @@ reads come from workspace ownership and lifecycle context (see
 | `apps/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
 | `apps/{id}` | app-template registry entry | references (template binding via `AppPackage.templateId`; standalone shape deferred) |
 | `services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
-| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` \| `PipelineDefinition` | references (`targetRef`); all five upstream target kinds surfaced read-only |
+| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` (opaque) \| `PipelineDefinition` (opaque) | references (`targetRef`); navigable for families with MCP resource contracts; `ProcessDefinition` and `PipelineDefinition` targets are opaque identifiers in this version |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
 | `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]`; reserved builder-result routing extends this once upstream lands a stable shared result identifier |

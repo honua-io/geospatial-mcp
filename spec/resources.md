@@ -40,11 +40,19 @@ The boundary table is not repeated; see
 All MCP resources use the `honua://` scheme. The grammar is:
 
 ```
-honua://{family}[/{id}[/{subfamily}/{subid}]*]
+honua://{family_key}[/{instance_id}[/{subresource}[/{subresource_id}]]]
 ```
 
-The `{id}` segment is omitted when addressing a family-level collection
-root. The open-core data-access surface already exposes the collection
+`{family_key}` is one or more path segments identifying the resource
+family (for example `results`, `templates/maps`); the registered keys
+appear in the family table below. `{instance_id}` identifies a specific
+resource within the family; it is omitted for collection roots.
+`{subresource}` names a child collection or singleton;
+`{subresource_id}` is present for collection children (for example
+`/artifacts/{aid}`) and absent for singletons (for example
+`/provenance`).
+
+The open-core data-access surface already exposes the collection
 resource `honua://services` (see
 [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources));
 that resource remains valid under this grammar. Families introduced by

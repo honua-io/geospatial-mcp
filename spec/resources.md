@@ -441,12 +441,15 @@ projections (not fields of `ArtifactRef` itself):
 | Derived signal | Source |
 |---|---|
 | `lifecycleState` | `ArtifactLifecycleState` (from the workspace lifecycle service) |
-| `promotionEligible` | Boolean derived server-side from policy evaluation |
+| `promotionSourceReady` | Boolean: source-side preconditions met (artifact state is `Available`, owning workspace kind is temporary, owning workspace state permits promotion). Target-side checks are evaluated at promotion time and are not projected here. |
 | `expiresAt?` | Expiration timestamp when applicable |
 | `sourceWorkspaceKind` | `WorkspaceKind` of the owning workspace |
 
-MCP surfaces only the derived `promotionEligible` flag; the underlying
-eligibility policy is server-internal and not exposed.
+MCP surfaces only the source-side `promotionSourceReady` flag. Full
+promotion eligibility depends on a target workspace (kind must be durable,
+state must be `Active`) and is evaluated server-side when a promotion
+request supplies a `targetWorkspaceId`. The underlying eligibility policy
+is server-internal and not exposed through the read surface.
 
 ## Resource Relationship Model
 
@@ -495,11 +498,11 @@ content `uri` (for example
 `honua://workspaces/ws_123/layers/candidate_parcels`). That locator points
 to the artifact payload within the workspace namespace; it is not the MCP
 inspection URI `honua://workspaces/{wsid}/artifacts/{aid}`. Package shapes
-that reference artifacts (`MapPackage.previewArtifactId`,
-`MapPackage.boundArtifacts[]`, `AppPackage.bundleArtifactId`,
-`AppPackage.boundArtifacts[]`, `Deployment.deliveryArtifacts[]`) carry
-plain artifact IDs and do not carry a result-package or workspace
-inspection URI. Consumers therefore:
+that reference artifacts (`MapPackage`, `AppPackage`, `Deployment`) carry
+artifact references through canonical fields whose concrete names are
+finalizing in `honua-server#731`/`#732`. Regardless of final spelling,
+these references identify artifacts without embedding a result-package or
+workspace inspection URI. Consumers therefore:
 
 1. Dereference the artifact ID to its canonical `ArtifactRef` when they
    need payload information such as `kind`, `contentType`, `metadata`, or
@@ -611,8 +614,9 @@ on and add resource-level signals where behavior changes:
   and `PublishedService.refreshStatus` on promotion-surface reads.
 - **Artifact lifecycle state** -- emit `ArtifactLifecycleState` on
   artifact reads through either URI view; emit derived
-  `promotionEligible` on workspace-rooted artifact reads only
-  (result-rooted reads do not resolve promotion eligibility).
+  `promotionSourceReady` on workspace-rooted artifact reads only
+  (source-side preconditions; result-rooted reads do not resolve
+  promotion readiness).
 - **Workspace lifecycle state** -- emit `WorkspaceLifecycleState` on
   workspace reads.
 - **Per-family capability coverage** -- emit coverage flags aligned to

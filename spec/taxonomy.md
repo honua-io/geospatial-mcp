@@ -129,12 +129,18 @@ Elicitation triggers:
 - Required inputs are missing
 - Dataset or process choices are ambiguous
 - Actions require approval (publish, destructive operations)
-- Output settings have high impact on results
+- Request exceeds a policy boundary
+- Planner confidence is below threshold
+
+See `spec/planning.md` §2 for the full clarification protocol: reason codes,
+question kinds, assumption policies, and answer binding semantics.
 
 ## Workflow Families
 
 The geospatial MCP standard covers four operator workflow families. A fifth
-family, Edit Data, is explicitly excluded.
+family, Edit Data, is explicitly excluded. See `spec/planning.md` §4 for
+per-family planning behavior: step kinds, required planning resources, and
+clarification codes in scope.
 
 ### Analyze
 
@@ -151,23 +157,25 @@ Ingest, validate, and publish data products. AI participates in profiling,
 quality assessment, and pipeline definition. AI does not mutate source data
 directly.
 
-Lifecycle: intent capture -> validation and profiling -> pipeline definition ->
-execution -> publication
+Lifecycle: `PublishingIntent` -> `ClarificationRequest` /
+`ClarificationResponse` -> `PublishingPlan` -> publishing execution ->
+`PublishingResultPackage` (with `PublishedService`)
 
 ### Build App
 
 Compose SDK-native applications from analysis results, map packages, and
 templates. V1 targets `honua-sdk-js` with MapLibre GL JS.
 
-Lifecycle: intent capture -> template selection -> artifact binding -> scaffold
-generation -> `AppPackage`
+Lifecycle: `BuilderIntent` -> `ClarificationRequest` /
+`ClarificationResponse` -> `BuilderPlan` -> `AppPackage`
 
 ### Automate / Deploy
 
 Operationalize a process, pipeline, map, or application into a routable runtime
 surface. Covers promotion from one-off results into persistent deployments.
 
-Lifecycle: intent capture -> deployment planning -> provisioning -> `Deployment`
+Lifecycle: `DeploymentIntent` -> `DeploymentPlan` -> provisioning ->
+`Deployment`
 
 ### Edit Data (Excluded)
 
@@ -206,17 +214,19 @@ authoritative.
 | `AnalysisIntent` | Partially structured user goal for analysis |
 | `PublishingIntent` | Partially structured user goal for data publishing |
 | `BuilderIntent` | Partially structured user goal for app creation |
+| `DeploymentIntent` | Partially structured user goal for deployment (normative shape; v1 deferred) |
 | `ClarificationRequest` | Structured questions needed to proceed safely |
 | `ClarificationResponse` | User answers or accepted defaults |
 | `AnalysisPlan` | Typed executable graph for analysis |
 | `PublishingPlan` | Typed DAG for publishing workflows |
 | `BuilderPlan` | Typed plan for app generation |
+| `DeploymentPlan` | Typed plan for deployment (normative shape; v1 deferred) |
 
 ### Execution and State
 
 | Object | Role |
 |---|---|
-| `ExecutionJob` | Durable execution state for a submitted plan |
+| `ExecutionJob` | Durable execution state for a job-backed submitted plan |
 | `WorkspaceRef` | Reference to managed working state (scratch, persistent, temp) |
 | `ArtifactRef` | Reference to a concrete output (layer, table, raster, file, report, map, app) |
 
@@ -277,7 +287,7 @@ determine whether a capability is in scope, deferred, or excluded.
 | Resources | Catalog, dataset, process definition, style, theme, map template, app template, result package, map, app, published service, deployment, workspace ([per-family contracts](resources.md) for result through workspace families) |
 | Tools | Intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
-| Elicitation | Missing inputs, ambiguous choices, approval-required actions, high-impact settings |
+| Elicitation | Clarification reason codes defined in `spec/planning.md` §2.1 (seven codes across all workflow families) |
 
 ### MCP Tools to Workflow Family Mapping
 
@@ -353,4 +363,6 @@ taxonomy:
   internals)
 
 These signals support operational telemetry without prescribing a specific
-instrumentation framework.
+instrumentation framework. See `spec/planning.md` §7 for planning-plane signals
+(clarification reason-code coverage, assumption-policy distribution, plan
+validation outcomes, handoff boundary rejections) that extend this set.

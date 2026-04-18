@@ -9,14 +9,16 @@ publish results. MCP does not replace
 [geospatial-grpc](https://github.com/honua-io/geospatial-grpc) or server
 internals; it sits above the execution layer as the orchestration surface.
 
-**Status:** Draft -- vocabulary baseline established, implementation tickets
-pending.
+**Status:** Draft -- vocabulary baseline and per-family resource contracts for
+result, asset, promotion-surface, and workspace families established,
+implementation tickets pending.
 
 ## Spec
 
 | Document | Contents |
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
+| [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
 
 ## Workflow Families
 

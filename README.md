@@ -9,15 +9,16 @@ publish results. MCP does not replace
 [geospatial-grpc](https://github.com/honua-io/geospatial-grpc) or server
 internals; it sits above the execution layer as the orchestration surface.
 
-**Status:** Draft -- vocabulary baseline and planning/handoff semantics
-established; downstream consumer work tracked in `honua-server#728` and
-`honua-devops#29`.
+**Status:** Draft -- vocabulary baseline, per-family resource contracts, and
+planning/handoff semantics established; downstream consumer work tracked in
+`honua-server#728` and `honua-devops#29`.
 
 ## Spec
 
 | Document | Contents |
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
+| [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
 | [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification and elicitation semantics, assumption policies, per-family planning step kinds, boundary-crossing handoff contract |
 
 ## Workflow Families

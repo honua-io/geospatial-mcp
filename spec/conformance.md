@@ -117,7 +117,7 @@ A fixture's `expected` value is exactly one of:
 |---|---|---|
 | `emit_plan` | Tool fixtures for the named plan-emitting MCP tool: `plan_analysis` (Analyze). Publish Data, Build App, and Automate / Deploy do not define a plan-emitting MCP tool in [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping); their plans surface to MCP through `validate_plan` and `execute_plan` consumers only. A harness MUST NOT fixture an `emit_plan` shape under a tool name the taxonomy does not define; if upstream later names per-family plan-emitting tools, this row and the taxonomy tool matrix update together | Canonical `AnalysisPlan`, expected `outputs` declaration per [planning.md §5.4](planning.md#54-boundary-crossing-fields); no validation verdict is asserted |
 | `plan_validation` | Tool fixtures for `validate_plan` (Analyze, Publish Data, Build App per [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping)) | Canonical `PlanValidationResult` (upstream: [`DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md` §Stage Model](https://github.com/honua-io/honua-server/blob/main/docs/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md#stage-model) and [`AI_OPERATOR_CONTRACT.md` §ValidatePlan](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)) asserted over a supplied canonical plan; the fixture asserts structural validation, capability preview, authorization preview, and policy preview outcomes without emitting a new plan |
-| `tool_result` | Tool fixtures that return a canonical resource object or handoff reference rather than a plan (`execute_plan` → `ExecutionJob` reference for Analyze, or the `PipelineService`-owned submission surface for Publish Data; `create_app_package` → `AppPackage`; `preview_app_package` → preview `ArtifactRef` (canonical per [resources.md §`honua://apps/{app_package_id}`](resources.md#honuaappsapp_package_id) and the Reserved `honua://results/{id}` — Builder Result section in the same document); `create_map_package`, `refine_map_package`, `apply_style_preset`, `compose_mixed_protocol_map` → `MapPackage`; `preview_map_package` → preview `ArtifactRef`; `publish_result` → canonical promotion-surface target per family: `PublishedService` for Publish Data (deferred shape until `honua-server#730`) and `Deployment` for Analyze and Build App (deferred shape until `honua-server#732`)) | The returned canonical object by name and, where defined in [resources.md](resources.md), the `honua://` URI under which it is addressable; deferred shapes follow §2.4 |
+| `tool_result` | Tool fixtures that return a canonical resource object or assert a boundary-crossing handoff rather than a plan (`execute_plan` → `ExecutionJob` reference for Analyze; Publish Data `execute_plan` asserts submission into `PipelineService` with **no MCP-owned return object**, and follow-up state expectations are expressed through subsequent `resource_projection` fixtures in the enclosing scenario; `create_app_package` → `AppPackage`; `preview_app_package` → preview `ArtifactRef` (canonical per [resources.md §`honua://apps/{app_package_id}`](resources.md#honuaappsapp_package_id) and the Reserved `honua://results/{id}` — Builder Result section in the same document); `create_map_package`, `refine_map_package`, `apply_style_preset`, `compose_mixed_protocol_map` → `MapPackage`; `preview_map_package` → preview `ArtifactRef`; `publish_result` → canonical promotion-surface target per family: `PublishedService` for Publish Data (deferred shape until `honua-server#730`) and `Deployment` for Analyze and Build App (deferred shape until `honua-server#732`)) | For canonical-return tools, the returned object by name and, where defined in [resources.md](resources.md), the `honua://` URI under which it is addressable. For Publish Data `execute_plan`, the fixture binds the handoff boundary only: it MUST NOT invent a local job/result noun, and the enclosing scenario MUST pair the handoff with `PipelineService`-owned post-handoff reads. Deferred shapes follow §2.4 |
 | `emit_clarification` | Tool fixtures for `clarify_intent` and any planning or validation tool when reason codes apply | `ClarificationRequest` with `reasonCodes[]` (subset of [planning.md §2.1](planning.md#21-trigger-conditions)) and per-question `kind` drawn from `ClarificationQuestionKind` |
 | `resource_projection` | Resource fixtures | `honua://` URI matching [resources.md §Resource URI Conventions](resources.md#resource-uri-conventions) and the per-family responsibilities enumerated in the same document |
 | `geoprocessing_error` | Tool or resource fixtures that drive failure paths | Canonical [`GeoprocessingError`](resources.md#error-model) envelope with `kind` drawn from the upstream `GeoprocessingErrorKind` set |
@@ -128,13 +128,18 @@ output. "Emit no plan and no clarification" is not a legal expected shape
 for `plan_analysis` (see
 [planning.md §2.5](planning.md#25-planning-readiness-termination));
 `plan_validation` and `tool_result` fixtures instead assert their
-respective canonical returns.
+respective canonical returns or handoff assertions.
 
 ### 2.4 Deferred-Shape Fixtures
 
 A fixture MAY bind a canonical object whose concrete field shape is still
-finalizing upstream (for example `PublishingResultPackage`, `MapPackage`,
-`AppPackage`, `Deployment`, `PublishedService`). Such a fixture:
+finalizing upstream and whose MCP surface is not yet constructible end to
+end (for example `PublishingResultPackage`, `PublishedService`, or
+deferred `Deployment` promotion surfaces). `MapPackage` and
+`AppPackage` remain scoreable on the stable identifier and
+responsibility-level projections already defined in [resources.md](resources.md);
+only their unsettled concrete field spellings stay deferred. Such a
+fixture:
 
 - MUST reference the canonical object by name only, in the pattern used
   by [resources.md](resources.md) for reserved routes;
@@ -142,9 +147,13 @@ finalizing upstream (for example `PublishingResultPackage`, `MapPackage`,
   finalize the shape (for example `honua-server#730`);
 - MUST NOT freeze a draft field spelling or add an MCP-local synonym.
 
-A scenario MAY include deferred-shape fixtures; the scenario coverage
-matrix (§6) records the affected family as `deferred` so harnesses can
-exclude it from pass/fail scoring until upstream lands the shape.
+A scenario MAY include deferred-shape fixtures. Harnesses mark only the
+rubric axes that depend on the unsettled field set as `not_applicable`;
+axes that can be evaluated from stable identifiers, ownership rules,
+URI grammar, or responsibility-level projections remain scoreable. The
+scenario coverage matrix (§6) records a family or scenario as
+`deferred` only when the upstream surface itself is non-v1 or
+non-constructible.
 
 ## 3. Scenario Model
 
@@ -160,7 +169,7 @@ against the rubric in §4.
 | `family` | One of `Analyze`, `Publish Data`, `Build App`, `Automate / Deploy` | [taxonomy.md §Workflow Families](taxonomy.md#workflow-families) |
 | `intentSeed` | Partially specified canonical intent of the family (`AnalysisIntent`, `PublishingIntent`, `BuilderIntent`, `DeploymentIntent`) | upstream contract |
 | `assumptionPolicy` | `AskAlways`, `AskWhenMaterial`, or `UseDefaults` | [planning.md §2.3](planning.md#23-assumptionpolicy-behavior) |
-| `expectedTurns[]` | Ordered protocol turns, family-specific. Every family permits zero or more `clarify_intent` rounds. `validate_plan` is OPTIONAL: RECOMMENDED for Analyze and Publish Data per [planning.md §5.1](planning.md#51-pre-handoff-mcp-planning-plane), and an optional preflight for Build App per [planning.md §4.3](planning.md#43-build-app). The terminal turn is chosen from the family's v1 handoff model — Analyze: `execute_plan` returning an `ExecutionJob` reference, with a post-execution `AnalysisResultPackage` projection read permitted when the scenario exercises promotion or provenance inspection; Publish Data: `execute_plan` into `PipelineService` followed by post-handoff state read only through `PipelineService`-owned surfaces (publication-state read or `PublishedService` read, the latter flagged `deferred: true` per §2.4 until `honua-server#730`); Build App: a direct Builder tool (`create_app_package` returning `AppPackage`, or `preview_app_package` returning a preview `ArtifactRef`), with no `execute_plan` turn per [planning.md §4.3](planning.md#43-build-app); Automate / Deploy: deferred, shape-only scenarios per §3.2 | [planning.md §5](planning.md#5-plan-handoff-semantics), [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping) |
+| `expectedTurns[]` | Ordered protocol turns, family-specific. Every family permits zero or more `clarify_intent` rounds. `validate_plan` is OPTIONAL: RECOMMENDED for Analyze and Publish Data per [planning.md §5.1](planning.md#51-pre-handoff-mcp-planning-plane), and an optional preflight for Build App per [planning.md §4.3](planning.md#43-build-app). The terminal turn is chosen from the family's v1 handoff model — Analyze: `execute_plan` returning an `ExecutionJob` reference, with a post-execution `AnalysisResultPackage` projection read permitted when the scenario exercises promotion or provenance inspection; Publish Data: `execute_plan` into `PipelineService` with no MCP-owned return object, followed by post-handoff state read only through `PipelineService`-owned surfaces (publication-state read or `PublishedService` read, the latter flagged `deferred: true` per §2.4 until `honua-server#730`); Build App: a direct Builder tool (`create_app_package` returning `AppPackage`, or `preview_app_package` returning a preview `ArtifactRef`), with no `execute_plan` turn per [planning.md §4.3](planning.md#43-build-app); Automate / Deploy: deferred, shape-only scenarios per §3.2 | [planning.md §5](planning.md#5-plan-handoff-semantics), [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping) |
 | `expectedReasonCodes[]` | `ClarificationReasonCode` values the scenario is designed to exercise, restricted to the per-family scope in [planning.md §2.1](planning.md#21-trigger-conditions) | planning.md |
 | `expectedStepKinds[]` | Step kinds expected in the emitted plan, drawn from the per-family set in [planning.md §4](planning.md#4-per-family-planning-behavior); omitted for Build App scenarios that exercise only direct Builder tools without a separate plan-emission turn | planning.md |
 | `expectedResourceReads[]` | Resource families expected during planning, drawn from the per-family required resources in [planning.md §3](planning.md#3-planning-stage-resources) | planning.md |
@@ -182,7 +191,7 @@ the per-family planning behavior in
 | Family | Scenario coverage target | Handoff model |
 |---|---|---|
 | Analyze | discovery, planning, execution, map refinement, promotion | `execute_plan` → `ProcessService.SubmitPlanJob` → `ExecutionJob` → `AnalysisResultPackage` |
-| Publish Data | source inspection, schema and quality review, publish, refresh monitoring (deferred shape), deployment inspection | `execute_plan` → `PipelineService` execution → post-handoff state read only through `PipelineService`-owned surfaces (publication-state read or `PublishedService` read, the latter flagged `deferred: true` per §2.4 until `honua-server#730`); `PublishingResultPackage` is surfaced once upstream defines a stable shared result identifier (reserved per the Reserved `honua://results/{id}` — Publishing Result section of [resources.md](resources.md)) |
+| Publish Data | source inspection, schema and quality review, publish, refresh monitoring (deferred shape), deployment inspection | `execute_plan` → `PipelineService` execution with no MCP-owned return object → post-handoff state read only through `PipelineService`-owned surfaces (publication-state read or `PublishedService` read, the latter flagged `deferred: true` per §2.4 until `honua-server#730`); `PublishingResultPackage` is surfaced once upstream defines a stable shared result identifier (reserved per the Reserved `honua://results/{id}` — Publishing Result section of [resources.md](resources.md)) |
 | Build App | template binding, `create_app_package`, `preview_app_package`, package inspection | direct Builder tools → `AppPackage` (via `create_app_package`) or preview `ArtifactRef` (via `preview_app_package`); no `execute_plan` handoff per [planning.md §4.3](planning.md#43-build-app) |
 | Automate / Deploy | deferred; shape-only scenarios only | not executed in v1; scenarios validate plan-shape assertions only |
 
@@ -235,7 +244,7 @@ the listed source section.
 | 2. AssumptionPolicy behavior | Non-suppressible reason codes always surface regardless of policy; suppressed reason codes bake resolved values into plan step `inputs` (the authoritative record per [planning.md §2.3](planning.md#23-assumptionpolicy-behavior)); when the upstream submission envelope supports the compact assumption audit carrier, the planner additionally hands one audit string per suppressed reason code across the boundary | The compact assumption audit is attached in a forward-compatible shape before the upstream carrier field is formally defined (SHOULD over-delivery permitted per [planning.md §2.3](planning.md#23-assumptionpolicy-behavior) and [§5.4](planning.md#54-boundary-crossing-fields)); baked step inputs remain the authoritative record in either case | `DestructiveAction`, `PublishAction`, or `PolicyBoundary` is suppressed under any policy; a suppressed reason code fails to bake the resolved value into plan step `inputs`; the submission envelope defines the audit carrier field and the planner omits the compact assumption audit string | [planning.md §2.3](planning.md#23-assumptionpolicy-behavior) |
 | 3. Plan validity | Every step kind is in the per-family set; each `Geoprocess` step binds a `ProcessDefinition`; every entry in `requestedOutputs` has at least one producing step; `BuilderPlan` ordering holds (`select_template` first; `generate_project` after all required `bind_*` / `compose_*`) | A plan includes a warning-level condition permitted by [planning.md §4](planning.md#4-per-family-planning-behavior) but no structural rule is violated | A step kind outside the family set appears; an unbound `Geoprocess` step is emitted; a requested output has no producing step; `BuilderPlan` ordering is violated | [planning.md §4](planning.md#4-per-family-planning-behavior) |
 | 4. Handoff correctness | Only the fields in [planning.md §5.4](planning.md#54-boundary-crossing-fields) cross the boundary; MCP does not retry `execute_plan`; Publish Data post-handoff state is read only through `PipelineService`-owned surfaces; when the audit carrier fields are not yet defined upstream, resolved values baked into plan step inputs serve as the authoritative record per [planning.md §2.3](planning.md#23-assumptionpolicy-behavior) and [§5.2](planning.md#52-handoff-operation) | The handoff attaches clarification or assumption audit strings in a forward-compatible shape before the upstream carrier field is frozen (over-delivery of the SHOULD in [planning.md §5.2](planning.md#52-handoff-operation), revisited when upstream lands the carrier) | MCP synthesizes a shared `ExecutionJob` shape for Publish Data; MCP retries `execute_plan` on its own initiative; a non-boundary field leaves the MCP plane | [planning.md §5](planning.md#5-plan-handoff-semantics) |
-| 5. Result projection | Result, asset, promotion-surface, and workspace resources render only the fields enumerated in [resources.md](resources.md); identifiers use canonical prefixes and the `honua://` URI grammar | A reserved route surfaces a responsibility list rather than concrete fields while the upstream shape is still deferred | A resource projection exposes a mutation path; a resource introduces a field outside the per-family inspection contract; a URI uses a scheme other than `honua://` | [resources.md §Resource URI Conventions, §Result Package Resources, §Asset Resources, §Promotion-Surface Resources](resources.md) |
+| 5. Result projection | Result, asset, promotion-surface, and workspace resources render the read-only projection defined in [resources.md](resources.md): concrete fields where that document enumerates them, and responsibility-level projections where that document intentionally leaves field spellings upstream-owned (for example `MapPackage`, `AppPackage`, `PublishedService`). Identifiers and `honua://` URIs follow the stable form defined for that resource family, including families with no MCP-local prefix convention | A reserved or otherwise deferred route surfaces only the canonical object name or responsibility list permitted by [resources.md](resources.md) while upstream finalizes the constructible field set | A resource projection exposes a mutation path; a resource introduces a field or identifier convention outside the per-family inspection contract; a URI uses a scheme other than `honua://` | [resources.md §Resource URI Conventions, §Result Package Resources, §Asset Resources, §Promotion-Surface Resources](resources.md) |
 | 6. Error envelope | Failures use the canonical `GeoprocessingError` envelope verbatim; `kind` values are drawn from `GeoprocessingErrorKind`; `violations[]` carries `code`, `message`, `fieldPath` as specified | A deferred upstream kind is surfaced by name without local redefinition | An MCP-local error code, envelope, or `kind` value is introduced | [resources.md §Error Model](resources.md#error-model) |
 | 7. Non-goal containment | Every declared out-of-scope guard (§3.3) is observed to hold across the scenario run | A guard is observed to hold but telemetry for that guard category is absent | Any guard fails; no guards are declared; the scenario emits a protocol-specific (GeoServices / OGC / OData) tool path; an AI data-mutation path is taken | [taxonomy.md §Non-Goals](taxonomy.md#non-goals), [resources.md §Non-Goals](resources.md#non-goals) |
 
@@ -244,10 +253,13 @@ the listed source section.
 - A scenario passes when every axis it exercises scores `pass`. A
   scenario passes with deviations when at least one axis scores
   `partial` and no axis scores `fail`.
-- A scenario that carries a deferred-shape fixture (§2.4) or that lives
-  under `scenarios/deploy/` MUST NOT be scored for axes that depend on a
-  concrete upstream shape until that shape lands. The harness marks
-  those axes `not_applicable` in its report.
+- A scenario that carries a deferred-shape fixture (§2.4) is still
+  scored on every axis that can be evaluated from stable identifiers,
+  ownership rules, URI grammar, or responsibility-level projections.
+  The harness marks only the axes that depend on an unsettled upstream
+  field set `not_applicable`.
+- Scenarios under `scenarios/deploy/` remain fully deferred in v1 and
+  MUST NOT be scored until their upstream execution shapes land.
 - Rubric outcomes are reported per axis and per scenario. Aggregate
   numeric scores across implementations are out of scope at v1 (§7
   Non-Goals).
@@ -436,8 +448,8 @@ frameworks are implementation choices.
   values fired across scenarios in a run, extending the
   reason-code-coverage signal in
   [planning.md §7](planning.md#7-observable-signals).
-- **Non-goal assertion rate.** For each out-of-scope guard category in
-  §3.3, the rate at which a scenario observed the guard hold
+- **Non-goal violation rate.** For each out-of-scope guard category in
+  §3.3, the rate at which a scenario observed the guard fail
   (source-data mutation attempted, protocol-specific tool path attempted,
   server-internal field surfaced, MCP-local error code introduced).
 - **Runtime coverage.** For each of the four named runtimes in §5, the

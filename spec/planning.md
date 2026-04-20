@@ -44,11 +44,14 @@ preserves.
 ## 2. Clarification and Elicitation Semantics
 
 The clarification loop is the deterministic protocol for resolving
-underspecified intents before a plan is produced. Planning tools
-(`plan_analysis` and per-family equivalents) and `clarify_intent` cooperate:
-the planner decides whether to emit a plan or a `ClarificationRequest`, and the
-client agent returns a `ClarificationResponse` that rebinds onto the
-originating intent.
+underspecified intents before a plan is produced. In v1, `plan_analysis`
+is the only named MCP tool that emits a plan directly; Publish Data,
+Build App, and Automate / Deploy surface canonical plan semantics to MCP
+through `validate_plan` or direct family tools until
+[taxonomy.md](taxonomy.md) names additional plan-emitting tools. Across
+those planner-facing surfaces, the planner decides whether to emit a
+plan or a `ClarificationRequest`, and the client agent returns a
+`ClarificationResponse` that rebinds onto the originating intent.
 
 ### 2.1 Trigger Conditions
 

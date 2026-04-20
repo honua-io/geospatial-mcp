@@ -690,3 +690,9 @@ frameworks are implementation choices.
 Adding a new clarification reason code, step kind, or planning resource in
 future changes to this document MUST include a corresponding signal category
 here so coverage tracking remains complete.
+
+Planning-plane signals feed the conformance rubric in
+`spec/conformance.md`: reason-code coverage and handoff boundary rejections
+are consumed as rubric inputs (see `spec/conformance.md` §4.1 axes 1, 2,
+and 4), and conformance-scenario runs extend this signal set with
+per-scenario and per-axis outcomes (see `spec/conformance.md` §8).

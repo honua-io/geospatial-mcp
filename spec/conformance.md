@@ -64,10 +64,10 @@ never inlines a canonical definition (per
 ```
 conformance/
   fixtures/
-    tools/          one file per MCP tool, organized by family
-    resources/      one file per resource family
-    prompts/        one file per prompt family
-    elicitation/    one file per ClarificationReasonCode
+    tools/{tool_name}/           one subdirectory per MCP tool, organized by family; each contains one or more single-envelope fixture files (one file per case in §2.3, e.g. a `validate_plan` subdirectory carries separate `plan_validation`, `emit_clarification`, and `geoprocessing_error` files)
+    resources/{family}/          one subdirectory per resource family; each contains one or more single-envelope fixture files
+    prompts/{family}/            one subdirectory per prompt family; each contains one or more single-envelope fixture files
+    elicitation/{reason_code}/   one subdirectory per ClarificationReasonCode; each contains one or more single-envelope fixture files
   scenarios/
     analyze/
     publish/
@@ -75,14 +75,21 @@ conformance/
     deploy/         non-v1; scenarios are shape-only and flagged deferred
 ```
 
+Each leaf fixture file carries exactly one §2.2 envelope. Multiple cases for
+the same primitive entry (for example, the `plan_validation` and
+`emit_clarification` outcomes a `validate_plan` fixture must exercise, or the
+`geoprocessing_error` path every tool and resource MUST cover) are expressed
+as separate files inside the primitive's subdirectory, not as a multi-fixture
+collection file.
+
 Directory keys mirror vocabulary already defined in the spec:
 
 | Directory | Source vocabulary |
 |---|---|
-| `fixtures/tools/` | MCP tools enumerated in [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping) |
-| `fixtures/resources/` | Resource families enumerated in [resources.md §Resource URI Conventions](resources.md#resource-uri-conventions), plus the planning-stage resource families referenced by [planning.md §3](planning.md#3-planning-stage-resources) that use the open-core data-access surface rather than an MCP resource contract defined in this repository: catalog (`CapabilityCatalog`), dataset/layer (open-core `honua://services/{encodedServiceId}/layers/{layerId}` per [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources)), and process definition (`ProcessDefinition`). Fixtures for open-core families bind the canonical object or the open-core URI by name and MUST NOT invent an MCP-local inspection URI for a family that this spec does not define (per [taxonomy.md §Resources](taxonomy.md#resources)) |
-| `fixtures/prompts/` | Prompt families enumerated in [taxonomy.md §Prompts](taxonomy.md#prompts) |
-| `fixtures/elicitation/` | `ClarificationReasonCode` values per [planning.md §2.1](planning.md#21-trigger-conditions) |
+| `fixtures/tools/{tool_name}/` | MCP tools enumerated in [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping) |
+| `fixtures/resources/{family}/` | Resource families enumerated in [resources.md §Resource URI Conventions](resources.md#resource-uri-conventions), plus the planning-stage resource families referenced by [planning.md §3](planning.md#3-planning-stage-resources) that use the open-core data-access surface rather than an MCP resource contract defined in this repository: catalog (`CapabilityCatalog`), dataset/layer (open-core `honua://services/{encodedServiceId}/layers/{layerId}` per [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources)), and process definition (`ProcessDefinition`). Fixtures for open-core families bind the canonical object or the open-core URI by name and MUST NOT invent an MCP-local inspection URI for a family that this spec does not define (per [taxonomy.md §Resources](taxonomy.md#resources)) |
+| `fixtures/prompts/{family}/` | Prompt families enumerated in [taxonomy.md §Prompts](taxonomy.md#prompts) |
+| `fixtures/elicitation/{reason_code}/` | `ClarificationReasonCode` values per [planning.md §2.1](planning.md#21-trigger-conditions) |
 | `scenarios/{family}/` | Workflow families in [taxonomy.md §Workflow Families](taxonomy.md#workflow-families) |
 
 No new family keys, reason codes, or tool names are introduced by this
@@ -97,7 +104,7 @@ downstream harness choice.
 
 | Field | Role |
 |---|---|
-| `id` | Stable fixture identifier, unique within its directory |
+| `id` | Stable fixture identifier, unique within its enclosing primitive subdirectory (per tool, per resource family, per prompt family, or per ClarificationReasonCode) |
 | `inputs` | Typed intent fields, tool arguments, or resource-read parameters, keyed by canonical field name |
 | `expected` | Exactly one of the expected-behavior shapes defined in §2.3 |
 | `canonicalRefs[]` | Canonical objects this fixture binds, by upstream name (for example `AnalysisIntent`, `ClarificationRequest`, `ProcessDefinition`, `MapPackage`, `GeoprocessingError`) |

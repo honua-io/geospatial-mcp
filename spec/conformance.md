@@ -103,11 +103,16 @@ downstream harness choice.
 | `canonicalRefs[]` | Canonical objects this fixture binds, by upstream name (for example `AnalysisIntent`, `ClarificationRequest`, `ProcessDefinition`, `MapPackage`, `GeoprocessingError`) |
 
 `canonicalRefs[]` is a provenance trail for the fixture, not a new
-vocabulary. Every name in it MUST exist in
+vocabulary. Every name in it MUST exist either in
 [taxonomy.md §Canonical Concept Model](taxonomy.md#canonical-concept-model),
 [resources.md](resources.md), or
-[planning.md](planning.md). A fixture MUST NOT introduce an MCP-local
-object name or redefine canonical field sets.
+[planning.md](planning.md), or in one of the upstream authoritative
+documents cited at the top of this document (for example
+`PlanValidationResult`, which is defined upstream in
+[`DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md` §Stage Model](https://github.com/honua-io/honua-server/blob/main/docs/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md#stage-model)
+and referenced without local redefinition per §2.3 and §7.8). A
+fixture MUST NOT introduce an MCP-local object name or redefine
+canonical field sets.
 
 ### 2.3 Expected-Behavior Shapes
 
@@ -115,7 +120,7 @@ A fixture's `expected` value is exactly one of:
 
 | Shape | Applies to | Required bindings |
 |---|---|---|
-| `emit_plan` | Tool fixtures for the named plan-emitting MCP tool: `plan_analysis` (Analyze). Publish Data, Build App, and Automate / Deploy do not define a plan-emitting MCP tool in [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping); their plans surface to MCP through `validate_plan` and `execute_plan` consumers only. A harness MUST NOT fixture an `emit_plan` shape under a tool name the taxonomy does not define; if upstream later names per-family plan-emitting tools, this row and the taxonomy tool matrix update together | Canonical `AnalysisPlan`, expected `outputs` declaration per [planning.md §5.4](planning.md#54-boundary-crossing-fields); no validation verdict is asserted |
+| `emit_plan` | Tool fixtures for the named plan-emitting MCP tool: `plan_analysis` (Analyze). Publish Data, Build App, and Automate / Deploy do not define a plan-emitting MCP tool in [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping); their plans surface to MCP through `validate_plan` or direct family tools (per [planning.md §2](planning.md#2-clarification-and-elicitation-semantics) and the per-family handoff model in [planning.md §5](planning.md#5-plan-handoff-semantics)) until upstream names additional plan-emitting MCP tools. A harness MUST NOT fixture an `emit_plan` shape under a tool name the taxonomy does not define; if upstream later names per-family plan-emitting tools, this row and the taxonomy tool matrix update together | Canonical `AnalysisPlan`, expected `outputs` declaration per [planning.md §5.4](planning.md#54-boundary-crossing-fields); no validation verdict is asserted |
 | `plan_validation` | Tool fixtures for `validate_plan` (Analyze, Publish Data, Build App per [taxonomy.md §MCP Tools to Workflow Family Mapping](taxonomy.md#mcp-tools-to-workflow-family-mapping)) | Canonical `PlanValidationResult` (upstream: [`DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md` §Stage Model](https://github.com/honua-io/honua-server/blob/main/docs/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md#stage-model) and [`AI_OPERATOR_CONTRACT.md` §ValidatePlan](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)) asserted over a supplied canonical plan; the fixture asserts structural validation, capability preview, authorization preview, and policy preview outcomes without emitting a new plan |
 | `tool_result` | Tool fixtures that return a canonical resource object or assert a boundary-crossing handoff rather than a plan (`execute_plan` → `ExecutionJob` reference for Analyze; Publish Data `execute_plan` asserts submission into `PipelineService` with **no MCP-owned return object**, and follow-up state expectations are expressed through subsequent `resource_projection` fixtures in the enclosing scenario; `create_app_package` → `AppPackage`; `preview_app_package` → preview `ArtifactRef` (canonical per [resources.md §`honua://apps/{app_package_id}`](resources.md#honuaappsapp_package_id) and the Reserved `honua://results/{id}` — Builder Result section in the same document); `create_map_package`, `refine_map_package`, `apply_style_preset`, `compose_mixed_protocol_map` → `MapPackage`; `preview_map_package` → preview `ArtifactRef`; `publish_result` → canonical promotion-surface target per family: `PublishedService` for Publish Data (deferred shape until `honua-server#730`) and `Deployment` for Analyze and Build App (deferred shape until `honua-server#732`)) | For canonical-return tools, the returned object by name and, where defined in [resources.md](resources.md), the `honua://` URI under which it is addressable. For Publish Data `execute_plan`, the fixture binds the handoff boundary only: it MUST NOT invent a local job/result noun, and the enclosing scenario MUST pair the handoff with `PipelineService`-owned post-handoff reads. Deferred shapes follow §2.4 |
 | `emit_clarification` | Tool fixtures for `clarify_intent` and any planning or validation tool when reason codes apply | `ClarificationRequest` with `reasonCodes[]` (subset of [planning.md §2.1](planning.md#21-trigger-conditions)) and per-question `kind` drawn from `ClarificationQuestionKind` |
@@ -343,7 +348,7 @@ coverage columns or introduce a parallel matrix.
 | `scenarios/analyze/map_refinement` | Analyze | `refine_map_package` and `apply_style_preset` update `MapPackage` composition without new canonical nouns | taxonomy matrix, row Analyze / Map composition |
 | `scenarios/analyze/promotion` | Analyze | Result-rooted and workspace-rooted artifact reads align per [resources.md §Artifact Addressing Rule](resources.md#artifact-addressing-rule) | resources.md |
 | `scenarios/publish/source_inspection` | Publish Data | `ground_candidates` + `inspect_source` surface source without mutation | taxonomy matrix, row Publish Data / Intent capture |
-| `scenarios/publish/schema_quality_review` | Publish Data | `infer_schema`, `map_schema`, `quality_check` emit `DestructiveAction` clarification before any mutating step | planning.md §4.2 |
+| `scenarios/publish/schema_quality_review` | Publish Data | `infer_schema`, `map_schema`, and `quality_check` surface schema and quality findings without emitting `DestructiveAction`; `DestructiveAction` is asserted only when the plan also includes one of the mutating steps (`clean_records`, `dedupe`, `enrich`, `normalize_crs`) per [planning.md §4.2](planning.md#42-publish-data) | planning.md §4.2 |
 | `scenarios/publish/publish` | Publish Data | `publish_service` drives `PublishAction` clarification before handoff; post-handoff state is read through `PipelineService`-owned surfaces | planning.md §5.3 |
 | `scenarios/publish/refresh_monitoring` | Publish Data (deferred shape) | `PublishedService` refresh state surfaced read-only; fixture marked `deferred: true` until `honua-server#730` | resources.md §Promotion-Surface Resources |
 | `scenarios/publish/deployment_inspection` | Publish Data | `honua://deployments/{id}` read surfaces target binding without control paths | resources.md §Promotion-Surface Resources |
@@ -429,7 +434,7 @@ Canonical shapes (`AnalysisResultPackage`, `MapPackage`, `AppPackage`,
 `Deployment`, `PublishedService`, `ProvenanceRecord`, `ArtifactRef`,
 `WorkspaceRef`, `GeoprocessingError`, `ClarificationRequest`,
 `ClarificationResponse`, `AnalysisPlan`, `PublishingPlan`, `BuilderPlan`,
-`DeploymentPlan`) are referenced by name only. Fixtures that need a
+`DeploymentPlan`, `PlanValidationResult`) are referenced by name only. Fixtures that need a
 shape whose concrete fields are deferred upstream MUST use the
 deferred-shape convention in §2.4, matching
 [resources.md §Non-Goals — No Inlined Canonical Shapes](resources.md#6-no-inlined-canonical-shapes).
@@ -448,10 +453,14 @@ frameworks are implementation choices.
   values fired across scenarios in a run, extending the
   reason-code-coverage signal in
   [planning.md §7](planning.md#7-observable-signals).
-- **Non-goal violation rate.** For each out-of-scope guard category in
+- **Non-goal assertion rate.** For each out-of-scope guard category in
   §3.3, the rate at which a scenario observed the guard fail
   (source-data mutation attempted, protocol-specific tool path attempted,
-  server-internal field surfaced, MCP-local error code introduced).
+  server-internal field surfaced, MCP-local error code introduced). This
+  extends the `Non-goal assertions` signal in
+  [resources.md §Observable Signals](resources.md#observable-signals)
+  and the cross-reference in
+  [taxonomy.md §Observable Signals](taxonomy.md#observable-signals).
 - **Runtime coverage.** For each of the four named runtimes in §5, the
   number of scenarios that achieved the runtime's smoke floor in a given
   run.

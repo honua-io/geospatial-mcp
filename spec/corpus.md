@@ -81,13 +81,23 @@ Pack identifiers use dot-separated slugs:
 ```
 
 - `family-slug` MUST match a registered slug from §8.1.
-- `domain-slug` identifies a thematic dataset (letters, digits, hyphens).
+- `domain-slug` identifies a thematic dataset (letters, digits, hyphens;
+  underscores permitted only when the slug reuses an upstream step-kind
+  spelling, as for `dirty.{step-kind}.*` packs in §6).
 - `variant` identifies a specific configuration (letters, digits,
-  hyphens; additional dots are allowed within the variant for multi-part
-  distinctions such as `dirty-crs.wfs`).
+  hyphens; underscores permitted only when the slug reuses an upstream
+  `SourceBinding.protocol` spelling, as for `mirror.{logical-pack}.{adapter-slug}`
+  packs in §5; additional dots are allowed within the variant for
+  multi-part distinctions such as `dirty-crs.wfs`).
+
+The corpus does not mint new tokens in either position; underscores
+appear only by inheritance from the upstream sources cited above, so
+§5 and §6 pack identifiers remain byte-identical to the upstream
+spellings they reference.
 
 Examples: `synthetic.geom.basic`, `analyze.sites.flood-risk`,
-`publish.parcels.dirty-crs`, `mirror.parcels.ogc_features`.
+`publish.parcels.dirty-crs`, `mirror.parcels.ogc_features`,
+`dirty.inspect_source.malformed-file`.
 
 ### 2.3 Fixture Descriptor Conventions
 
@@ -210,7 +220,8 @@ the first-party set enumerated by `SourceBinding`.
 | `publish.source.database` | `database` | Database-table ingestion descriptor (PostGIS-style): records schema, primary key, and spatial index role; exercises `inspect_source`, `map_schema`, and `publish_service` |
 | `publish.source.service` | `service` | Existing-service ingestion: binds to an external open service through `SourceBinding` to exercise pass-through publishing and service-to-service republishing |
 
-Each source-shape pack carries a single clean variant (`basic`); dirty
+Each source-shape pack carries a single clean variant whose identifier
+is the source-shape token itself (`file`, `database`, `service`); dirty
 variants are defined in §6 and are layered on these base packs through
 pack-id composition (for example, `publish.parcels.dirty-crs` builds on
 the file-source variant defined here).
@@ -440,7 +451,7 @@ a parallel workflow-family taxonomy; workflow families remain fixed in
 | `synthetic` | Foundational geometry / CRS / edge-case substrate (§3) |
 | `analyze` | Analyze scenarios (§7.1) |
 | `publish` | Publish Data scenarios and source-shape packs (§4, §7.2) |
-| `buildapp` | Build App scenarios (§7.3) |
+| `build-app` | Build App scenarios (§7.3) |
 | `deploy` | Automate / Deploy scenarios, normative shape only (§7.4) |
 | `mirror` | Protocol-mirror packs (§5) |
 | `dirty` | Dirty-data failure-mode packs bound to Publish Data step kinds (§6) |
@@ -502,8 +513,8 @@ Capability status for any cell follows the taxonomy matrix per §1.
 | `dirty.dedupe.geometric` | `dirty` | `publisher` | `database` | -- | `dedupe` | Expected `ClarificationRequest` with `DestructiveAction` |
 | `dirty.enrich.lookup-gaps` | `dirty` | `publisher` | `database` | -- | `enrich` | Expected `ClarificationRequest` with `MissingRequiredInput` |
 | `dirty.quality_check.out-of-range` | `dirty` | `publisher` | `file` | -- | `quality_check` | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
-| `buildapp.dashboard.basic` | `buildapp` | `analyst` | `synthetic` | -- | -- | `AppBundle` + canonical `AppPackage` reference |
-| `buildapp.field-ops.analysis-bound` | `buildapp` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` + canonical `AppPackage` and `MapPackage` references |
+| `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` + canonical `AppPackage` reference |
+| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` + canonical `AppPackage` and `MapPackage` references |
 | `deploy.app.promotion` | `deploy` | `analyst` | `synthetic` | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 | `deploy.service.promotion` | `deploy` | `publisher` | `service` | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 
@@ -623,7 +634,7 @@ implementation details.
 | [`honua-server#734`](https://github.com/honua-io/honua-server/issues/734) | Conformance harness corpus reuse (eval task corpus materialization) |
 | [`honua-sdk-js#21`](https://github.com/honua-io/honua-sdk-js/issues/21) | JS SDK resource consumption against corpus fixtures |
 | [`honua-sdk-js#22`](https://github.com/honua-io/honua-sdk-js/issues/22) | JS SDK workflow coverage against Analyze and Build App scenario packs |
-| [`honua-sdk-js#29`](https://github.com/honua-io/honua-sdk-js/issues/29) | Map and app packaging conformance against `analyze.*.with-map` and `buildapp.*` scenario packs |
+| [`honua-sdk-js#29`](https://github.com/honua-io/honua-sdk-js/issues/29) | Map and app packaging conformance against `analyze.*.with-map` and `build-app.*` scenario packs |
 | [`honua-devops#29`](https://github.com/honua-io/honua-devops/issues/29) | Automation of conformance runs over the corpus |
 | [`geospatial-mcp#5`](https://github.com/honua-io/geospatial-mcp/issues/5) | Evaluation harness authoring; consumes pack identifiers and expected scenario shapes from this document |
 

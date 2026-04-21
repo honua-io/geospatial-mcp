@@ -365,7 +365,9 @@ taxonomy:
 These signals support operational telemetry without prescribing a specific
 instrumentation framework. See `spec/planning.md` §7 for planning-plane signals
 (clarification reason-code coverage, assumption-policy distribution, plan
-validation outcomes, handoff boundary rejections) that extend this set, and
-`spec/conformance.md` §8 for conformance-plane signals (scenario pass rate,
-non-goal assertion rate, runtime coverage, deferred-shape exclusion rate)
-that further extend it.
+validation outcomes, handoff boundary rejections), `spec/corpus.md` §10 for
+corpus-plane signals (pack coverage per workflow family, protocol-mirror
+coverage per adapter, dirty-data family coverage, coverage-flag balance,
+non-goal rejection signals, determinism drift), and `spec/conformance.md` §8
+for conformance-plane signals (scenario pass rate, non-goal assertion rate,
+runtime coverage, deferred-shape exclusion rate) that extend this set.

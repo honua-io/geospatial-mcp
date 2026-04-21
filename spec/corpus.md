@@ -211,26 +211,35 @@ same geometry set without duplicating bytes.
 
 Publishing and source packs cover the source-shape families that
 [`PublishingIntent.sourceRefs`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishingintent)
-addresses. Each pack describes its inputs through the canonical
-`PublishingIntent.sourceRefs` source responsibilities (source `kind`,
-`provider`, `locator`, and `acquisitionMode`) and records the
-`PublishingIntent.publishTargets` the planner should exercise. The
-corpus does not mint new source-kind or publish-target vocabulary; it
-reuses the upstream set. `SourceBinding` is a `MapPackage` concept and
-is referenced only by the map-package and mirror-pack contexts (§5),
-not by the publish-source packs in this section.
+addresses. Each `publish.source.*` pack is a clean source-shape
+baseline, not an end-to-end Publish Data scenario: it fixes the source
+descriptor and planning inputs that downstream publish scenarios (for
+example, `publish.parcels.*`) and dirty packs (§6) reuse. Each pack
+describes its inputs through the canonical `PublishingIntent.sourceRefs`
+source responsibilities (source `kind`, `provider`, `locator`, and
+`acquisitionMode`) and records the `PublishingIntent.publishTargets`
+that a downstream publish scenario should exercise. The corpus does not
+mint new source-kind or publish-target vocabulary; it reuses the
+upstream set. `SourceBinding` is a `MapPackage` concept and is
+referenced only by the map-package and mirror-pack contexts (§5), not
+by the publish-source packs in this section.
 
 | Pack identifier | Source shape | Purpose |
 |---|---|---|
-| `publish.source.file` | `file` | Flat-file ingestion: small GeoJSON and CSV fixtures drawn from `synthetic.geom.basic`; exercises `inspect_source`, `infer_schema`, and `normalize_crs` on a clean starting point |
-| `publish.source.database` | `database` | Database-table ingestion descriptor (PostGIS-style): records schema, primary key, and spatial index role; exercises `inspect_source`, `map_schema`, and `publish_service` |
-| `publish.source.service` | `service` | Existing-service ingestion: references an external open service through `PublishingIntent.sourceRefs` (`kind: service`, `provider`, `locator`) to exercise pass-through publishing and service-to-service republishing |
+| `publish.source.file` | `file` | Flat-file ingestion baseline: small GeoJSON and CSV fixtures drawn from `synthetic.geom.basic`; exercises `inspect_source`, `infer_schema`, and `normalize_crs` on a clean starting point before a downstream publish step is layered on |
+| `publish.source.database` | `database` | Database-table ingestion baseline (PostGIS-style): records schema, primary key, and spatial index role; exercises `inspect_source` and `map_schema` on a clean database starting point before downstream `publish_service` execution is layered on |
+| `publish.source.service` | `service` | Existing-service ingestion baseline: references an external open service through `PublishingIntent.sourceRefs` (`kind: service`, `provider`, `locator`) to exercise clean service-source inspection and republish planning before a downstream publish step is layered on |
 
 Each source-shape pack carries a single clean variant whose identifier
 is the source-shape token itself (`file`, `database`, `service`); dirty
 variants are defined in §6 and are layered on these base packs through
 pack-id composition (for example, `publish.parcels.dirty-crs` builds on
 the file-source variant defined here).
+
+These baseline packs do not by themselves assert the §7.2 publishing
+result-package, `PublishedService`, or scenario-level `ArtifactKind`
+surfaces. Those expectations attach only when a downstream publish
+scenario opts into end-to-end publication.
 
 ## 5. Protocol Mirror Packs
 
@@ -377,6 +386,9 @@ references stay at responsibility level, consistent with how
 
 ### 7.2 Publish Data
 
+- `publish.source.*` packs from §4 are the clean source-shape baselines
+  for this family. The shape below governs end-to-end Publish Data
+  scenarios such as `publish.parcels.*`, not those baseline descriptors.
 - **Canonical intent:** `PublishingIntent`.
 - **Minimum step kinds exercised:** `inspect_source` followed by
   step kinds required by the pack's failure or clean signature, ending
@@ -522,6 +534,9 @@ captures canonical resource references (`PublishedService`,
 `AppPackage`, `MapPackage`, `Deployment`), `honua://...` bindings, and
 planner- or execution-plane outcomes (`ClarificationRequest` codes,
 `GeoprocessingError.kind` values) that are not `ArtifactKind` values.
+`publish.source.*` rows are baseline descriptors, not end-to-end
+publish scenarios; they therefore record baseline-only outcomes instead
+of the §7.2 publishing-result / `PublishedService` surfaces.
 
 | Pack identifier | Family | Coverage | Source shape | Protocol mirrors | Dirty-data families exercised | Expected `ArtifactKind` values | Expected resource projections or outcomes |
 |---|---|---|---|---|---|---|---|
@@ -530,9 +545,9 @@ planner- or execution-plane outcomes (`ClarificationRequest` codes,
 | `analyze.sites.with-map` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
 | `analyze.hazard.flood-zone` | `analyze` | `analyst` | `synthetic` + `mirror.admin-boundaries.*` | `ogc_features`, `wfs` (via `admin-boundaries`) | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
 | `analyze.service-coverage.baseline` | `analyze` | `analyst` | `synthetic` + `mirror.parcels.*` | `geoservices_feature_service`, `ogc_features`, `wfs` (via `parcels`) | -- | `FeatureLayer`, `Aggregate`-backed `Table`, `Report` | -- |
-| `publish.source.file` | `publish` | `publisher` | `file` | -- | -- | `FeatureLayer` | -- |
-| `publish.source.database` | `publish` | `publisher` | `database` | -- | -- | `FeatureLayer` | `PublishedService` reference |
-| `publish.source.service` | `publish` | `publisher` | `service` | -- | -- | -- | `PublishedService` reference |
+| `publish.source.file` | `publish` | `publisher` | `file` | -- | -- | -- | Source baseline only; no §7.2 publishing-result or `PublishedService` projection |
+| `publish.source.database` | `publish` | `publisher` | `database` | -- | -- | -- | Source baseline only; no §7.2 publishing-result or `PublishedService` projection |
+| `publish.source.service` | `publish` | `publisher` | `service` | -- | -- | -- | Source baseline only; no §7.2 publishing-result or `PublishedService` projection |
 | `publish.parcels.file-ingest` | `publish` | `publisher` | `file` | -- | `inspect_source` (clean baseline) | `FeatureLayer` | `PublishedService` reference |
 | `publish.parcels.dirty-crs` | `publish` | `publisher` | `file` | -- | `normalize_crs` | `FeatureLayer` | `PublishedService` reference |
 | `publish.parcels.dirty-dedupe` | `publish` | `publisher` | `database` | -- | `dedupe` | `FeatureLayer` | `PublishedService` reference |

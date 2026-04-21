@@ -210,17 +210,21 @@ same geometry set without duplicating bytes.
 ## 4. Publishing and Source Packs
 
 Publishing and source packs cover the source-shape families that
-`PublishingIntent` addresses. Each pack binds the canonical
-[`SourceBinding`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding)
-responsibilities (backing protocol, locator, query semantics, artifact
-binding). The corpus does not mint new protocol vocabulary; it reuses
-the first-party set enumerated by `SourceBinding`.
+[`PublishingIntent.sourceRefs`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishingintent)
+addresses. Each pack describes its inputs through the canonical
+`PublishingIntent.sourceRefs` source responsibilities (source `kind`,
+`provider`, `locator`, and `acquisitionMode`) and records the
+`PublishingIntent.publishTargets` the planner should exercise. The
+corpus does not mint new source-kind or publish-target vocabulary; it
+reuses the upstream set. `SourceBinding` is a `MapPackage` concept and
+is referenced only by the map-package and mirror-pack contexts (§5),
+not by the publish-source packs in this section.
 
 | Pack identifier | Source shape | Purpose |
 |---|---|---|
 | `publish.source.file` | `file` | Flat-file ingestion: small GeoJSON and CSV fixtures drawn from `synthetic.geom.basic`; exercises `inspect_source`, `infer_schema`, and `normalize_crs` on a clean starting point |
 | `publish.source.database` | `database` | Database-table ingestion descriptor (PostGIS-style): records schema, primary key, and spatial index role; exercises `inspect_source`, `map_schema`, and `publish_service` |
-| `publish.source.service` | `service` | Existing-service ingestion: binds to an external open service through `SourceBinding` to exercise pass-through publishing and service-to-service republishing |
+| `publish.source.service` | `service` | Existing-service ingestion: references an external open service through `PublishingIntent.sourceRefs` (`kind: service`, `provider`, `locator`) to exercise pass-through publishing and service-to-service republishing |
 
 Each source-shape pack carries a single clean variant whose identifier
 is the source-shape token itself (`file`, `database`, `service`); dirty
@@ -327,10 +331,15 @@ Every workflow family has a scenario-shape specification recorded here.
 Each specification lists the canonical intent object, the minimum plan
 step kinds the scenario exercises, the clarification codes expected to
 trigger or suppress under each `AssumptionPolicy`, the canonical
-result-package and resource URI the scenario expects, and the expected
-`ArtifactKind` set. All references stay at responsibility level,
-consistent with how [resources.md](resources.md) handles `MapPackage`,
-`AppPackage`, and `Deployment` while upstream field names finalize.
+result-package and resource URI the scenario expects, the expected
+`ArtifactKind` values (literal `ArtifactKind` enum members per
+[resources.md §Result Package Resources](resources.md#result-package-resources)),
+and any expected resource projections (canonical references such as
+`PublishedService`, `AppPackage`, `MapPackage`, `Deployment`, and
+`honua://...` bindings, which are not `ArtifactKind` values). All
+references stay at responsibility level, consistent with how
+[resources.md](resources.md) handles `MapPackage`, `AppPackage`, and
+`Deployment` while upstream field names finalize.
 
 ### 7.1 Analyze
 
@@ -360,9 +369,11 @@ consistent with how [resources.md](resources.md) handles `MapPackage`,
   ([resources.md §Result Package Resources](resources.md#result-package-resources)),
   with `honua://results/{rpid}/artifacts/{aid}` and
   `honua://results/{rpid}/provenance` available.
-- **Expected `ArtifactKind` set:** scenarios MUST produce at least one of
-  `FeatureLayer` or `Table`, plus `Report`; scenarios that request a
-  map additionally produce `Map` and a `honua://maps/{id}` binding.
+- **Expected `ArtifactKind` values:** scenarios MUST produce at least
+  one of `FeatureLayer` or `Table`, plus `Report`; scenarios that
+  request a map additionally produce `Map`.
+- **Expected resource projections:** scenarios that request a map
+  additionally surface a `honua://maps/{id}` binding.
 
 ### 7.2 Publish Data
 
@@ -388,9 +399,10 @@ consistent with how [resources.md](resources.md) handles `MapPackage`,
   shared stable identifier. The `PublishedService` surface projects
   under `honua://services/{published_service_id}`
   ([resources.md §Promotion-Surface Resources](resources.md#promotion-surface-resources)).
-- **Expected `ArtifactKind` set:** `FeatureLayer` or `Table`, plus a
-  canonical `PublishedService` reference (or the `serviceDefinition`
-  output branch per the upstream Publishing result shape).
+- **Expected `ArtifactKind` values:** `FeatureLayer` or `Table`.
+- **Expected resource projections:** a canonical `PublishedService`
+  reference (or the `serviceDefinition` output branch per the upstream
+  Publishing result shape).
 
 ### 7.3 Build App
 
@@ -415,9 +427,11 @@ consistent with how [resources.md](resources.md) handles `MapPackage`,
   upstream defines a shared stable identifier
   ([resources.md §Reserved `honua://results/{id}` — Builder Result](resources.md#reserved-honuaresultsid--builder-result));
   scenarios until then assert on the `honua://apps/{id}` projection.
-- **Expected `ArtifactKind` set:** scenarios produce an `AppBundle`
-  artifact and a canonical `AppPackage` reference; scenarios that bind
-  a map additionally surface a `Map` artifact and a
+- **Expected `ArtifactKind` values:** scenarios produce an `AppBundle`
+  artifact; scenarios that bind a map additionally produce a `Map`
+  artifact.
+- **Expected resource projections:** a canonical `AppPackage`
+  reference; scenarios that bind a map additionally surface a
   `honua://maps/{id}` binding. Build App output vocabulary remains
   upstream-owned per [planning.md §4.3](planning.md#43-build-app);
   scenarios cite `AppBundle` as the upstream `ArtifactKind` and emit
@@ -446,7 +460,10 @@ consistent with how [resources.md](resources.md) handles `MapPackage`,
   ([resources.md §`honua://deployments/{deployment_id}`](resources.md#honuadeploymentsdeployment_id));
   `DeploymentResultPackage` routing stays reserved under
   [resources.md §Reserved `honua://results/{id}` — Deployment Result](resources.md#reserved-honuaresultsid--deployment-result).
-- **Expected artifact surface:** target binding resolves to
+- **Expected `ArtifactKind` values:** none; deploy scenarios produce
+  canonical resource references rather than new `ArtifactKind`
+  artifacts.
+- **Expected resource projections:** target binding resolves to
   `AppPackage`, `MapPackage`, or `PublishedService` when the target
   has a defined MCP resource contract; `ProcessDefinition` and
   `PipelineDefinition` targets appear as opaque identifiers per
@@ -498,44 +515,50 @@ Capability status for any cell follows the taxonomy matrix per §1. The
 in §5; `geoservices_feature_service` and `ogc_features` reuse concrete
 upstream `SourceBinding.protocol` tokens, while `wfs`, `wms`,
 `ogc_maps`, `ogc_tiles`, and `odata` are corpus-local labels until
-upstream pins concrete tokens for those adapters.
+upstream pins concrete tokens for those adapters. The
+`Expected ArtifactKind values` column lists only literal `ArtifactKind`
+enum members; the `Expected resource projections or outcomes` column
+captures canonical resource references (`PublishedService`,
+`AppPackage`, `MapPackage`, `Deployment`), `honua://...` bindings, and
+planner- or execution-plane outcomes (`ClarificationRequest` codes,
+`GeoprocessingError.kind` values) that are not `ArtifactKind` values.
 
-| Pack identifier | Family | Coverage | Source shape | Protocol mirrors | Dirty-data families exercised | Expected `ArtifactKind` set |
-|---|---|---|---|---|---|---|
-| `synthetic.geom.basic` | `synthetic` | `both` | `synthetic` | -- | -- | `FeatureLayer` (substrate only; no scenario-level outputs) |
-| `analyze.sites.basic` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Report` |
-| `analyze.sites.with-map` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Map`, `Report` |
-| `analyze.hazard.flood-zone` | `analyze` | `analyst` | `synthetic` + `mirror.admin-boundaries.*` | `ogc_features`, `wfs` (via `admin-boundaries`) | -- | `FeatureLayer`, `Map`, `Report` |
-| `analyze.service-coverage.baseline` | `analyze` | `analyst` | `synthetic` + `mirror.parcels.*` | `geoservices_feature_service`, `ogc_features`, `wfs` (via `parcels`) | -- | `FeatureLayer`, `Aggregate`-backed `Table`, `Report` |
-| `publish.source.file` | `publish` | `publisher` | `file` | -- | -- | `FeatureLayer` |
-| `publish.source.database` | `publish` | `publisher` | `database` | -- | -- | `FeatureLayer` + `PublishedService` reference |
-| `publish.source.service` | `publish` | `publisher` | `service` | -- | -- | `PublishedService` reference |
-| `publish.parcels.file-ingest` | `publish` | `publisher` | `file` | -- | `inspect_source` (clean baseline) | `FeatureLayer` + `PublishedService` reference |
-| `publish.parcels.dirty-crs` | `publish` | `publisher` | `file` | -- | `normalize_crs` | `FeatureLayer` + `PublishedService` reference |
-| `publish.parcels.dirty-dedupe` | `publish` | `publisher` | `database` | -- | `dedupe` | `FeatureLayer` + `PublishedService` reference |
-| `publish.parcels.dirty-quality` | `publish` | `publisher` | `file` | -- | `quality_check` | `FeatureLayer` + `PublishedService` reference |
-| `publish.parcels.dirty-enrich` | `publish` | `publisher` | `database` | -- | `enrich` | `FeatureLayer` + `PublishedService` reference |
-| `mirror.parcels.geoservices_feature_service` | `mirror` | `both` | `service` | `geoservices_feature_service` | -- | `FeatureLayer` reference |
-| `mirror.parcels.ogc_features` | `mirror` | `both` | `service` | `ogc_features` | -- | `FeatureLayer` reference |
-| `mirror.parcels.wfs` | `mirror` | `both` | `service` | `wfs` | -- | `FeatureLayer` reference |
-| `mirror.parcels.odata` | `mirror` | `both` | `service` | `odata` (via canonical external wrapper) | -- | `Table` reference |
-| `mirror.admin-boundaries.ogc_features` | `mirror` | `both` | `service` | `ogc_features` | -- | `FeatureLayer` reference |
-| `mirror.admin-boundaries.wfs` | `mirror` | `both` | `service` | `wfs` | -- | `FeatureLayer` reference |
-| `mirror.basemap-imagery.wms` | `mirror` | `both` | `service` | `wms` | -- | `Raster` reference |
-| `mirror.basemap-imagery.ogc_maps` | `mirror` | `both` | `service` | `ogc_maps` | -- | `Raster` reference |
-| `mirror.basemap-tiles.ogc_tiles` | `mirror` | `both` | `service` | `ogc_tiles` | -- | `Raster` (tile set) reference |
-| `dirty.inspect_source.malformed-file` | `dirty` | `publisher` | `file` | -- | `inspect_source` | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
-| `dirty.infer_schema.mixed-types` | `dirty` | `publisher` | `file` | -- | `infer_schema` | Expected `ClarificationRequest` with `MissingRequiredInput` / `AmbiguousProcess` as mapped by the planner |
-| `dirty.map_schema.source-target-drift` | `dirty` | `publisher` | `database` | -- | `map_schema` | Expected `ClarificationRequest` with `MissingRequiredInput` |
-| `dirty.normalize_crs.heterogeneous-sr` | `dirty` | `publisher` | `file` | -- | `normalize_crs` | Expected `ClarificationRequest` with `MissingRequiredInput`; resolution bakes CRS into plan step inputs |
-| `dirty.clean_records.invalid-polygon` | `dirty` | `publisher` | `file` | -- | `clean_records` | Expected `ClarificationRequest` with `DestructiveAction` |
-| `dirty.dedupe.geometric` | `dirty` | `publisher` | `database` | -- | `dedupe` | Expected `ClarificationRequest` with `DestructiveAction` |
-| `dirty.enrich.lookup-gaps` | `dirty` | `publisher` | `database` | -- | `enrich` | Expected `ClarificationRequest` with `MissingRequiredInput` |
-| `dirty.quality_check.out-of-range` | `dirty` | `publisher` | `file` | -- | `quality_check` | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
-| `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` + canonical `AppPackage` reference |
-| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` + canonical `AppPackage` and `MapPackage` references |
-| `deploy.app.promotion` | `deploy` | `analyst` | `synthetic` | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
-| `deploy.service.promotion` | `deploy` | `publisher` | `service` | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
+| Pack identifier | Family | Coverage | Source shape | Protocol mirrors | Dirty-data families exercised | Expected `ArtifactKind` values | Expected resource projections or outcomes |
+|---|---|---|---|---|---|---|---|
+| `synthetic.geom.basic` | `synthetic` | `both` | `synthetic` | -- | -- | `FeatureLayer` (substrate only; no scenario-level outputs) | -- |
+| `analyze.sites.basic` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Report` | -- |
+| `analyze.sites.with-map` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
+| `analyze.hazard.flood-zone` | `analyze` | `analyst` | `synthetic` + `mirror.admin-boundaries.*` | `ogc_features`, `wfs` (via `admin-boundaries`) | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
+| `analyze.service-coverage.baseline` | `analyze` | `analyst` | `synthetic` + `mirror.parcels.*` | `geoservices_feature_service`, `ogc_features`, `wfs` (via `parcels`) | -- | `FeatureLayer`, `Aggregate`-backed `Table`, `Report` | -- |
+| `publish.source.file` | `publish` | `publisher` | `file` | -- | -- | `FeatureLayer` | -- |
+| `publish.source.database` | `publish` | `publisher` | `database` | -- | -- | `FeatureLayer` | `PublishedService` reference |
+| `publish.source.service` | `publish` | `publisher` | `service` | -- | -- | -- | `PublishedService` reference |
+| `publish.parcels.file-ingest` | `publish` | `publisher` | `file` | -- | `inspect_source` (clean baseline) | `FeatureLayer` | `PublishedService` reference |
+| `publish.parcels.dirty-crs` | `publish` | `publisher` | `file` | -- | `normalize_crs` | `FeatureLayer` | `PublishedService` reference |
+| `publish.parcels.dirty-dedupe` | `publish` | `publisher` | `database` | -- | `dedupe` | `FeatureLayer` | `PublishedService` reference |
+| `publish.parcels.dirty-quality` | `publish` | `publisher` | `file` | -- | `quality_check` | `FeatureLayer` | `PublishedService` reference |
+| `publish.parcels.dirty-enrich` | `publish` | `publisher` | `database` | -- | `enrich` | `FeatureLayer` | `PublishedService` reference |
+| `mirror.parcels.geoservices_feature_service` | `mirror` | `both` | `service` | `geoservices_feature_service` | -- | `FeatureLayer` (mirror exposure) | -- |
+| `mirror.parcels.ogc_features` | `mirror` | `both` | `service` | `ogc_features` | -- | `FeatureLayer` (mirror exposure) | -- |
+| `mirror.parcels.wfs` | `mirror` | `both` | `service` | `wfs` | -- | `FeatureLayer` (mirror exposure) | -- |
+| `mirror.parcels.odata` | `mirror` | `both` | `service` | `odata` (via canonical external wrapper) | -- | `Table` (mirror exposure) | -- |
+| `mirror.admin-boundaries.ogc_features` | `mirror` | `both` | `service` | `ogc_features` | -- | `FeatureLayer` (mirror exposure) | -- |
+| `mirror.admin-boundaries.wfs` | `mirror` | `both` | `service` | `wfs` | -- | `FeatureLayer` (mirror exposure) | -- |
+| `mirror.basemap-imagery.wms` | `mirror` | `both` | `service` | `wms` | -- | `Raster` (mirror exposure) | -- |
+| `mirror.basemap-imagery.ogc_maps` | `mirror` | `both` | `service` | `ogc_maps` | -- | `Raster` (mirror exposure) | -- |
+| `mirror.basemap-tiles.ogc_tiles` | `mirror` | `both` | `service` | `ogc_tiles` | -- | `Raster` (tile-set mirror exposure) | -- |
+| `dirty.inspect_source.malformed-file` | `dirty` | `publisher` | `file` | -- | `inspect_source` | -- | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
+| `dirty.infer_schema.mixed-types` | `dirty` | `publisher` | `file` | -- | `infer_schema` | -- | Expected `ClarificationRequest` with `MissingRequiredInput` / `AmbiguousProcess` as mapped by the planner |
+| `dirty.map_schema.source-target-drift` | `dirty` | `publisher` | `database` | -- | `map_schema` | -- | Expected `ClarificationRequest` with `MissingRequiredInput` |
+| `dirty.normalize_crs.heterogeneous-sr` | `dirty` | `publisher` | `file` | -- | `normalize_crs` | -- | Expected `ClarificationRequest` with `MissingRequiredInput`; resolution bakes CRS into plan step inputs |
+| `dirty.clean_records.invalid-polygon` | `dirty` | `publisher` | `file` | -- | `clean_records` | -- | Expected `ClarificationRequest` with `DestructiveAction` |
+| `dirty.dedupe.geometric` | `dirty` | `publisher` | `database` | -- | `dedupe` | -- | Expected `ClarificationRequest` with `DestructiveAction` |
+| `dirty.enrich.lookup-gaps` | `dirty` | `publisher` | `database` | -- | `enrich` | -- | Expected `ClarificationRequest` with `MissingRequiredInput` |
+| `dirty.quality_check.out-of-range` | `dirty` | `publisher` | `file` | -- | `quality_check` | -- | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
+| `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` | Canonical `AppPackage` reference |
+| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` | Canonical `AppPackage` and `MapPackage` references; `honua://maps/{id}` binding |
+| `deploy.app.promotion` | `deploy` | `analyst` | `synthetic` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
+| `deploy.service.promotion` | `deploy` | `publisher` | `service` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 
 The catalog is the single corpus coverage source. It does not republish
 the v1 capability matrix; a cell marked `--` means the pack does not

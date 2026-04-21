@@ -85,15 +85,17 @@ Pack identifiers use dot-separated slugs:
   underscores permitted only when the slug reuses an upstream step-kind
   spelling, as for `dirty.{step-kind}.*` packs in §6).
 - `variant` identifies a specific configuration (letters, digits,
-  hyphens; underscores permitted only when the slug reuses an upstream
-  `SourceBinding.protocol` spelling, as for `mirror.{logical-pack}.{adapter-slug}`
-  packs in §5; additional dots are allowed within the variant for
-  multi-part distinctions such as `dirty-crs.wfs`).
+  hyphens; underscores permitted only when the slug is an adapter slug
+  registered in §5 or a step-kind identifier registered in §6;
+  additional dots are allowed within the variant for multi-part
+  distinctions such as `dirty-crs.wfs`).
 
-The corpus does not mint new tokens in either position; underscores
-appear only by inheritance from the upstream sources cited above, so
-§5 and §6 pack identifiers remain byte-identical to the upstream
-spellings they reference.
+Step-kind variants inherit their slug verbatim from upstream step-kind
+spellings (§6). Adapter-slug variants reuse the upstream
+`SourceBinding.protocol` spelling where upstream pins one; where
+upstream has not pinned a concrete protocol token, the adapter slug is
+a corpus-local label whose authority is §5. The corpus does not mint
+synonyms for already-pinned upstream tokens.
 
 Examples: `synthetic.geom.basic`, `analyze.sites.flood-risk`,
 `publish.parcels.dirty-crs`, `mirror.parcels.ogc_features`,
@@ -111,7 +113,7 @@ carry:
 |---|---|
 | `packId` | Pack identifier per §2.2 |
 | `coverage` | One of `analyst`, `publisher`, `both` (§8.2) |
-| `family` | Workflow family slug from [taxonomy.md §Workflow Families](taxonomy.md#workflow-families), or `synthetic` / `mirror` / `dirty` for substrate packs (§8.1) |
+| `family` | Family slug registered in §8.1 (one of `synthetic`, `analyze`, `publish`, `build-app`, `deploy`, `mirror`, `dirty`) |
 | `sourceShape` | One of `file`, `database`, `service`, or `synthetic` (§4) |
 | `crs` | One or more spatial references, each recorded as `{wkid, wkt}` tuple (both present, even for EPSG codes, to disambiguate WKT variants) |
 | `extent` | Bounding box `[minX, minY, maxX, maxY]` in the primary CRS |
@@ -256,11 +258,21 @@ absent adapter is not a defect claim against the adapter.
 | `basemap-tiles` | Vector and raster tiles; primary tile mirror substrate | OGC API Tiles |
 
 Pack identifiers under a logical pack follow
-`mirror.{logical-pack}.{adapter-slug}`; adapter slugs reuse the
-`SourceBinding.protocol` spelling (for example `ogc_features`, `wfs`,
-`wms`). Non-first-party OData is scoped only to logical packs whose
-attribute surface fits the canonical wrapper's entity-collection model;
-it is not required for raster or tile mirrors.
+`mirror.{logical-pack}.{adapter-slug}`. Adapter slugs reuse a concrete
+upstream `SourceBinding.protocol` token when one has been pinned
+upstream. Today upstream only pins `geoservices_feature_service` and
+`ogc_features` as concrete `SourceBinding.protocol` values
+([AI_OPERATOR_CONTRACT.md §SourceBinding / §MapPackage](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding));
+WFS, WMS, OGC API Maps, OGC API Tiles, and OData are named only as
+protocol families in upstream prose. The corpus therefore pins its own
+labels for those adapters — `wfs`, `wms`, `ogc_maps`, `ogc_tiles`, and
+`odata` — and carries them as corpus-local pack-identifier tokens, not
+as claimed canonical `SourceBinding.protocol` values. When upstream
+pins a concrete token for any of these adapters, the corpus label will
+be replaced by the upstream spelling through a change to this document.
+Non-first-party OData is scoped only to logical packs whose attribute
+surface fits the canonical wrapper's entity-collection model; it is
+not required for raster or tile mirrors.
 
 Completeness is **per-adapter**, not per-pack. The corpus does not
 assert that every logical pack mirrors across every adapter; it asserts
@@ -340,7 +352,9 @@ consistent with how [resources.md](resources.md) handles `MapPackage`,
   - `UseDefaults`: scenarios MUST cover at least one suppression with
     a safe default for each of `AmbiguousDataset`, `AmbiguousProcess`,
     and `LowConfidence`, and MUST verify non-suppression of
-    `DestructiveAction`, `PublishAction`, and `PolicyBoundary`.
+    `DestructiveAction` and `PolicyBoundary` (the in-scope
+    non-suppressible set for Analyze per
+    [planning.md §2.1](planning.md#21-trigger-conditions)).
 - **Result package and resource URI:** `AnalysisResultPackage`
   surfaced under `honua://results/{result_package_id}`
   ([resources.md §Result Package Resources](resources.md#result-package-resources)),
@@ -479,7 +493,12 @@ the coverage flag vocabulary.
 ### 8.3 Pack Catalog
 
 The v1 pack catalog is this document's single corpus coverage source.
-Capability status for any cell follows the taxonomy matrix per §1.
+Capability status for any cell follows the taxonomy matrix per §1. The
+`Protocol mirrors` column carries the pack's adapter slugs as defined
+in §5; `geoservices_feature_service` and `ogc_features` reuse concrete
+upstream `SourceBinding.protocol` tokens, while `wfs`, `wms`,
+`ogc_maps`, `ogc_tiles`, and `odata` are corpus-local labels until
+upstream pins concrete tokens for those adapters.
 
 | Pack identifier | Family | Coverage | Source shape | Protocol mirrors | Dirty-data families exercised | Expected `ArtifactKind` set |
 |---|---|---|---|---|---|---|

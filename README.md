@@ -10,8 +10,9 @@ publish results. MCP does not replace
 internals; it sits above the execution layer as the orchestration surface.
 
 **Status:** Draft -- vocabulary baseline, per-family resource contracts,
-planning/handoff semantics, and conformance strategy established; downstream
-consumer work tracked in `honua-server#728` and `honua-devops#29`.
+planning/handoff semantics, canonical corpus and scenario-pack taxonomy, and
+conformance strategy established; downstream consumer work tracked in
+`honua-server#728`, `honua-server#734`, and `honua-devops#29`.
 
 ## Spec
 
@@ -20,6 +21,7 @@ consumer work tracked in `honua-server#728` and `honua-devops#29`.
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
 | [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
 | [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification and elicitation semantics, assumption policies, per-family planning step kinds, boundary-crossing handoff contract |
+| [Canonical Dataset Corpus and Scenario Packs](spec/corpus.md) | Corpus layout, fixture descriptor conventions, canonical synthetic pack, publishing source packs, protocol mirrors, dirty-data packs, expected scenario shapes, and scenario-pack taxonomy |
 | [Conformance Fixtures and Evaluation](spec/conformance.md) | Fixture layout, operator-workflow scenario model, pass/fail rubric, runtime portability guidance, scenario coverage matrix |
 
 ## Workflow Families

@@ -2,6 +2,8 @@
 
 Open geospatial MCP standard for analyst, map, and app-builder workflows.
 
+Current MCP capability families are summarized in [docs/features/README.md](docs/features/README.md).
+
 MCP is the **agent interaction plane** for geospatial operator workflows. It
 presents semantic operations that agents use to discover data, gather
 requirements, plan work, execute analysis, compose maps, build applications, and

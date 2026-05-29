@@ -59,7 +59,7 @@ materialization and distribution.
 
 A conforming corpus is organized as:
 
-```
+```text
 corpus/{family}/{domain}/{variant}/
 ```
 
@@ -76,7 +76,7 @@ corpus path.
 
 Pack identifiers use dot-separated slugs:
 
-```
+```text
 {family-slug}.{domain-slug}.{variant}
 ```
 

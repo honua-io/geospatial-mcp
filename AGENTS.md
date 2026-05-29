@@ -71,7 +71,7 @@ referenced by name in these specs, not redefined here.
 
 ## Directory Layout
 
-```
+```text
 .
 ├── README.md                 # Repo intro, spec index, workflow families, related repos
 ├── LICENSE

@@ -39,7 +39,7 @@ The boundary table is not repeated; see
 
 All MCP resources use the `honua://` scheme. The grammar is:
 
-```
+```text
 honua://{family_key}[/{instance_id}[/{subresource}[/{subresource_id}]]]
 ```
 

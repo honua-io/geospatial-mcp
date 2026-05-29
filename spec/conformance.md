@@ -61,7 +61,7 @@ never inlines a canonical definition (per
 
 ### 2.1 Directory Structure
 
-```
+```text
 conformance/
   fixtures/
     tools/{tool_name}/           one subdirectory per MCP tool, organized by family; each contains one or more single-envelope fixture files (one file per case in §2.3, e.g. a `validate_plan` subdirectory carries separate `plan_validation`, `emit_clarification`, and `geoprocessing_error` files)

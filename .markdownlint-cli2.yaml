@@ -1,0 +1,15 @@
+# markdownlint configuration for the geospatial-mcp specification repo.
+# This repo is prose/spec Markdown; line length and inline-HTML style rules
+# are disabled to avoid noise on long normative sentences and tables.
+config:
+  default: true
+  MD013: false   # line-length: spec prose and wide tables exceed 80 cols
+  MD033: false   # inline HTML: allowed where needed
+  MD041: false   # first line in file need not be a top-level heading
+  MD024:
+    siblings_only: true   # allow repeated headings under different parents
+  MD060: false   # table-column-style: dense spec tables use compact pipes
+globs:
+  - "**/*.md"
+ignores:
+  - ".git"

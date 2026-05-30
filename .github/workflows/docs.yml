@@ -1,0 +1,54 @@
+name: docs
+
+on:
+  push:
+    branches: [trunk]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  markdownlint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run markdownlint-cli2
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"
+
+  relative-links:
+    name: Relative link check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify internal relative links resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          broken=0
+          # Check Markdown links [text](target) where target is a relative
+          # path. External (http/https/mailto), honua:// scheme, and pure
+          # anchor (#...) links are intentionally skipped.
+          while IFS= read -r -d '' file; do
+            dir="$(dirname "$file")"
+            while IFS= read -r target; do
+              case "$target" in
+                ""|\#*|http://*|https://*|mailto:*|honua://*) continue ;;
+              esac
+              path="${target%%#*}"   # strip #anchor fragment
+              path="${path%%\?*}"    # strip ?query
+              [ -z "$path" ] && continue
+              if [ ! -e "$dir/$path" ]; then
+                echo "BROKEN LINK: $file -> $target"
+                broken=1
+              fi
+            done < <(grep -oE '\]\([^)]+\)' "$file" | sed -E 's/^\]\(//; s/\)$//')
+          done < <(find . -path ./.git -prune -o -name '*.md' -print0)
+          if [ "$broken" -ne 0 ]; then
+            echo "Internal relative link check failed."
+            exit 1
+          fi
+          echo "All internal relative links resolve."

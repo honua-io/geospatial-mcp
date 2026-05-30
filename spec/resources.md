@@ -711,6 +711,114 @@ envelope verbatim:
 
 No parallel codes, envelopes, or MCP-specific error taxonomy are defined.
 
+## Metadata Cache State
+
+Metadata reads on MCP discovery and inspection surfaces MAY be served from a
+platform metadata cache. The caching policy, cache-key inputs, TTLs,
+revalidation behavior, and invalidation triggers are owned upstream by the
+[platform metadata caching strategy](https://github.com/honua-io/honua-sdk-js/issues/62)
+and the server/SDK contract it lands; this document does not define a TTL
+table, a key-derivation algorithm, or an invalidation policy. What MCP owns is
+the **read-surface projection**: a structured `cache` field that makes the
+cache state of a metadata read visible to agents so they can distinguish fresh
+discovery metadata from stale or degraded metadata and decide when to request a
+refresh.
+
+### Applicable Surfaces
+
+The `cache` projection applies to **metadata-oriented** reads — the discovery,
+catalog, and inspection surfaces that return descriptive metadata about a
+source, layer, collection, capability, style, theme, template, or process:
+
+- catalog and capability metadata (`CapabilityCatalog`);
+- dataset and layer descriptors (`DatasetRef`, `LayerRef`, field and schema
+  reads, including the open-core
+  `honua://services/{encodedServiceId}/layers/{layerId}` route per
+  [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md));
+- process and pipeline descriptions (`ProcessDefinition`,
+  `PipelineDefinition`);
+- style, theme, and template inspection (`StyleRef`, `ThemeSpec`,
+  `MapTemplate`, app-template registry entries);
+- published-service metadata (`honua://services/{published_service_id}`),
+  where the read returns descriptive service metadata rather than live feature
+  state.
+
+The `cache` projection is a transport-neutral envelope attached to the read
+result; it does not replace or rename any canonical metadata field, and it is
+never persisted into a canonical object shape. When a surface is not served
+through the metadata cache, the projection MAY be omitted or carry the
+`bypass` state (see below).
+
+### Feature, Query, and Result Reads Are Not Default-Cached
+
+Live feature state, ad hoc spatial query responses (bbox, geometry, nearest,
+distance, CQL2/OData spatial, render/export), realtime deltas, and operational
+incident rows are **not** default-cached tool results, consistent with the
+upstream non-goals in
+[honua-sdk-js#62](https://github.com/honua-io/honua-sdk-js/issues/62). Feature
+and query tool outputs therefore do not carry a metadata `cache` projection by
+default. A `cache` projection appears on a feature/query/result surface **only**
+when the workflow explicitly consumes a materialized result (an opt-in
+materialization, not baseline behavior); such a surface carries the projection
+with the state that reflects the materialized artifact, never a metadata-cache
+state implying the live source was cached.
+
+### Cache State
+
+`cache.state` is exactly one of the five states defined by the upstream
+SDK/server cache contract. MCP surfaces them verbatim and does not introduce
+synonyms:
+
+| State | Meaning surfaced to the agent |
+|---|---|
+| `hit` | Metadata served from a fresh cache entry within its TTL |
+| `miss` | No usable cache entry; metadata fetched from the source |
+| `stale` | Cache entry served past its TTL while revalidation is pending or has not yet been attempted; the agent MUST treat the metadata as possibly out of date |
+| `refreshed` | Cache entry was revalidated against the source on this read and is current |
+| `bypass` | Cache was intentionally bypassed (for example a forced refresh or a non-cacheable surface); metadata is source-fresh and was not cached |
+
+### Cache Projection Fields
+
+The `cache` projection carries the following fields. Field shapes and exact
+spellings are owned by the upstream cache contract and referenced here, not
+redefined; MCP surfaces the subset relevant to read-state visibility and omits
+a field when the value is not available from the cache layer.
+
+| Field | Role |
+|---|---|
+| `state` | One of the five states above (REQ-002) |
+| `keyFingerprint` | Opaque fingerprint of the cache key (tenant/auth-scope/source/layer/protocol/version inputs); identifies the entry without exposing the server-internal key derivation |
+| `age` | Age of the served entry since it was populated or last revalidated |
+| `ttl` | Time-to-live configured for the entry's metadata category |
+| `revalidatedAt` | Timestamp of the most recent successful revalidation, when available |
+| `validators` | Upstream validators carried for revalidation (for example `ETag`, `Last-Modified`), when available |
+| `invalidationReason` | Reason the entry was invalidated or marked stale (for example source refresh, import job, migration, schema change, admin action), when available |
+| `refreshErrorId` | Identifier of a failed revalidation attempt, present when a refresh was attempted and failed; correlates to the canonical [`GeoprocessingError`](#error-model) surfaced for the failure |
+
+`keyFingerprint` is an opaque correlation handle. The cache key's component
+inputs and derivation are server-internal (see §Non-Goals) and MUST NOT be
+decomposed or reconstructed from the fingerprint on the read surface.
+
+### Stale and Degraded Read Semantics
+
+A read in the `stale` state, or a read whose `cache` projection carries a
+`refreshErrorId`, is a **degraded** metadata read. The surface MUST present it
+as such:
+
+1. A tool summary MUST NOT present `stale` metadata as fresh, and MUST NOT
+   imply realtime feature freshness from any metadata cache state (NFR-001).
+   `hit` and `refreshed` describe metadata freshness only; they say nothing
+   about the freshness of live feature state behind the source.
+2. When `state` is `stale` or a `refreshErrorId` is present, the surface
+   SHOULD signal that a refresh is available and MAY recommend requesting one.
+   Requesting a refresh is a read-time revalidation of cached metadata; it is
+   not a state mutation of the source and stays within the read-only boundary
+   (§Non-Goals — No State Mutation).
+3. A failed revalidation surfaces the failure through the canonical
+   `GeoprocessingError` envelope (§Error Model); the metadata `cache`
+   projection carries the correlating `refreshErrorId` and the last-known
+   `state`. No MCP-local cache error code is introduced.
+
 ## Non-Goals
 
 These items are explicitly out of scope for MCP resource surfaces and align
@@ -732,7 +840,12 @@ or execution semantics. Execution contracts stay with `geospatial-grpc`.
 
 Worker routing, queue state, provider adapters, storage backends,
 eligibility-policy evaluation, and secret material are server-internal
-and must not leak through resource projections.
+and must not leak through resource projections. Metadata cache-key
+derivation, TTL policy, and invalidation-trigger evaluation are
+server-internal; the read surface exposes only the `cache` projection
+(state plus the visibility fields in §Metadata Cache State) and the opaque
+`keyFingerprint`, never the key's component inputs or the policy that
+produced them.
 
 ### 4. No AI Data Editing
 
@@ -744,7 +857,10 @@ do not grant edit paths.
 
 Family names, capability matrix, URI scheme (`honua://`), and error
 envelope (`GeoprocessingError`) stay single-sourced. Alternative schemes
-(for example `mcp://`) are not introduced.
+(for example `mcp://`) are not introduced. The metadata cache states
+(`hit`, `miss`, `stale`, `refreshed`, `bypass`) are owned by the upstream
+cache contract (§Metadata Cache State); MCP surfaces them verbatim and does
+not mint MCP-local cache states or synonyms.
 
 ### 6. No Inlined Canonical Shapes
 
@@ -774,6 +890,11 @@ on and add resource-level signals where behavior changes:
   promotion readiness).
 - **Workspace lifecycle state** -- emit `WorkspaceLifecycleState` on
   workspace reads.
+- **Metadata cache state** -- emit the `cache.state`
+  (`hit`/`miss`/`stale`/`refreshed`/`bypass`) on metadata-oriented reads,
+  with `keyFingerprint` for entry correlation and `refreshErrorId` when a
+  revalidation attempt failed (§Metadata Cache State). Feature, query, and
+  non-materialized result reads do not emit a metadata cache state.
 - **Per-family capability coverage** -- emit coverage flags aligned to
   the family-by-workflow table above.
 - **Non-goal assertions** -- emit rejection or redirection signals when a

@@ -101,8 +101,15 @@ Geospatial tool families:
 - **Intent and planning** -- `plan_analysis`, `ground_candidates`,
   `clarify_intent`, `validate_plan`
 - **Execution** -- `execute_plan`
+- **Style inspection** -- `get_style` (read-only: resolves a canonical
+  `StyleRef` — style_id / title / encodings — from the server OGC API – Styles
+  surface, or lists available styles; see
+  [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id))
 - **Map composition** -- `create_map_package`, `refine_map_package`,
-  `apply_style_preset`, `compose_mixed_protocol_map`, `preview_map_package`
+  `apply_style_preset`, `compose_mixed_protocol_map`, `preview_map_package`.
+  `apply_style_preset` resolves a preset `StyleRef` and its stylesheet for
+  client-side application; like every MCP tool it is read-only and does not
+  mutate server-side styles.
 - **App composition** -- `create_app_package`, `preview_app_package`
 - **Publishing** -- `publish_result`
 
@@ -234,7 +241,7 @@ authoritative.
 
 | Object | Role |
 |---|---|
-| `StyleRef` | Reusable style asset or renderer bundle |
+| `StyleRef` | Reusable style asset or renderer bundle; canonical shape `geospatial.v1.StyleRef` (style_id / title / description / style_version / encodings / legend_url) in [geospatial-grpc](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/style_types.proto). Resolved read-only via [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id) over the server OGC API – Styles surface |
 | `MapTemplate` | Reusable cartographic composition template |
 | `ThemeSpec` | Reusable visual tokens (color ramps, typography, spacing) |
 | `RendererSpec` | Thematic renderer configuration |
@@ -300,6 +307,7 @@ determine whether a capability is in scope, deferred, or excluded.
 | `execute_plan` | v1 | v1 | -- |
 | `create_map_package` | v1 | -- | v1 |
 | `refine_map_package` | v1 | -- | v1 |
+| `get_style` | v1 | v1 | v1 |
 | `apply_style_preset` | v1 | -- | v1 |
 | `compose_mixed_protocol_map` | v1 | -- | v1 |
 | `preview_map_package` | v1 | -- | v1 |

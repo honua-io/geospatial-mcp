@@ -68,7 +68,7 @@ Families introduced by this document:
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
 | Map package | `honua://maps/{map_package_id}` | `MapPackage` |
 | App package | `honua://apps/{app_package_id}` | `AppPackage` |
-| Style | `honua://styles/{style_id}` | `StyleRef` |
+| Style | `honua://styles/{style_id}` | `StyleRef` (`geospatial.v1.StyleRef`, geospatial-grpc; resolved via the server OGC API – Styles surface) |
 | Theme | `honua://themes/{theme_id}` | `ThemeSpec` |
 | Map template | `honua://templates/maps/{map_template_id}` | `MapTemplate` |
 | App template | `honua://templates/apps/{app_template_id}` | `AppPackage.templateId` (shape deferred) |
@@ -322,26 +322,52 @@ flow through by reference.
 
 ### `honua://styles/{style_id}`
 
-Projection of
-[`StyleRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#styleref).
-The canonical source currently standardizes responsibilities and examples
-rather than a frozen property table, so MCP describes the inspection
-projection by responsibility rather than by concrete field names.
+Inspection projection of the canonical
+[`StyleRef`](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/style_types.proto)
+message (`geospatial.v1.StyleRef` in geospatial-grpc). A style is an
+addressable, encoding-independent 2D cartography object; the concrete encoded
+representations live in `StyleRef.encodings` (one entry per encoding).
 
-**Stable identifier:** style ID (prefix `style_…`).
+The canonical identifier is `styleId`, whose canonical URI form is
+`honua://styles/{style_id}`. The server resolves this projection from its live
+**OGC API – Styles** surface (honua-server, ADR-0048):
 
-**Inspection responsibilities surfaced read-only:**
+- `GET /ogc/styles` — the styles list (`{ styles: [{ id, title, links }],
+  default? }`);
+- `GET /ogc/styles/{styleId}` — the stylesheet body, content-negotiated by the
+  `Accept` header (MapLibre/Mapbox style JSON by default; SLD 1.0/1.1 derived);
+- `GET /ogc/styles/{styleId}/metadata` — descriptive metadata
+  (`{ id, title, description, keywords, license, version, links }`).
 
-- thematic renderer selection;
-- style preset reuse and composition;
-- label and popup bindings;
-- legend-generation inputs.
+**Stable identifier:** `styleId` (canonical examples use the `style_…` prefix;
+in the Phase 1 OGC – Styles adapter the identifier is the styled collection's
+resource name).
 
-Edges: renderer, label, and popup composition owned by the canonical
+**Inspection fields surfaced read-only** (aligned with `StyleRef`):
+
+| Field | Role |
+|---|---|
+| `styleId` | Stable identifier; canonical URI `honua://styles/{style_id}` |
+| `title` | Human-readable style title |
+| `description` | Optional free-form description / abstract |
+| `styleVersion` | Author-managed integer version of the style document |
+| `encodings[]` | `StyleEncoding` entries: `{ encoding, contentType, inlineBody? \| storageRef? }`. Canonical `encoding` values: `mapbox-style`, `sld-1.0.0`, `sld-1.1.0`, `esri-drawing-info`, `esri-image-renderer`, `3d-tiles-styling` |
+| `legendUrl` | Optional legend graphic URL |
+
+The MapLibre/Mapbox encoding (`mapbox-style`) is inlined (`inlineBody`); the
+derived SLD encodings are advertised by reference (`storageRef` = the
+`/ogc/styles/{styleId}` stylesheet URL, content-negotiated by `Accept`).
+
+A styles catalog is also addressable at `honua://styles` — the list of
+available styles, each with its `styleId`, `title`, and canonical
+`honua://styles/{id}` URI, plus the server-designated `default` when present.
+
+Edges: renderer, label, and popup composition are owned by the canonical
 `StyleRef`; styles are consumed by `MapPackage` style composition and by
-`PublishedService` styling composition. Concrete field names finalize
-upstream; the resource URI and responsibility list stay stable under
-reference.
+`PublishedService` styling composition. This projection is read-only — MCP
+never mutates server-side styles; persisting a style onto a map or published
+service stays with the gRPC execution layer (see
+[taxonomy.md §MCP Role in the Architecture](taxonomy.md#mcp-role-in-the-architecture)).
 
 ### `honua://themes/{theme_id}`
 

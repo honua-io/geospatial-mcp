@@ -1,5 +1,7 @@
 # geospatial-mcp
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/honua-io/geospatial-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/honua-io/geospatial-mcp)
+
 Open geospatial MCP standard for analyst, map, and app-builder workflows.
 
 Current MCP capability families are summarized in [docs/features/README.md](docs/features/README.md).

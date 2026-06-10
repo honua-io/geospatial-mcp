@@ -13,7 +13,7 @@ jobs:
     name: Markdown lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run markdownlint-cli2
         uses: DavidAnson/markdownlint-cli2-action@v23
         with:
@@ -23,7 +23,7 @@ jobs:
     name: Relative link check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Verify internal relative links resolve
         shell: bash
         run: |

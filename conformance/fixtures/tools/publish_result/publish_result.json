@@ -1,0 +1,15 @@
+{
+  "id": "publish_result.deploy_map",
+  "schemaRef": "tools/publish_result.schema.json",
+  "validates": "inputs",
+  "deferred": true,
+  "inputs": {
+    "sourceId": "map_5a90",
+    "targetKind": "deployment",
+    "visibility": "workspace_shared",
+    "routePrefix": "/flood-dashboard"
+  },
+  "expected": "tool_result",
+  "canonicalRefs": ["Deployment", "PublishedService"],
+  "notes": "Reference implementation does not yet ship publish_result as a discrete tool; responsibility-level shape, marked deferred per spec/conformance.md §2.4."
+}

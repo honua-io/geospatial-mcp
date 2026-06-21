@@ -26,7 +26,14 @@ conformance strategy established; downstream consumer work tracked in
 | [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
 | [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification and elicitation semantics, assumption policies, per-family planning step kinds, boundary-crossing handoff contract |
 | [Canonical Dataset Corpus and Scenario Packs](spec/corpus.md) | Corpus layout, fixture descriptor conventions, canonical synthetic pack, publishing source packs, protocol mirrors, dirty-data packs, expected scenario shapes, and scenario-pack taxonomy |
+| [JSON Schemas](spec/schemas/README.md) | Machine-readable JSON Schema (draft 2020-12) bindings for each core tool `inputSchema` and resource payload shape, plus a `index.json` vocabulary map. Makes the prose implementable. |
 | [Conformance Fixtures and Evaluation](spec/conformance.md) | Fixture layout, operator-workflow scenario model, pass/fail rubric, runtime portability guidance, scenario coverage matrix |
+
+A small self-check **conformance fixture tree** (example tool-call inputs and
+resource payloads that validate against the JSON Schemas) lives under
+[conformance/fixtures/](conformance/fixtures/); run
+[conformance/fixtures/validate.py](conformance/fixtures/validate.py) to confirm
+the schemas load and the examples conform.
 
 ## Workflow Families
 

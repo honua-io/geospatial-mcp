@@ -35,6 +35,14 @@ resource payloads that validate against the JSON Schemas) lives under
 [conformance/fixtures/validate.py](conformance/fixtures/validate.py) to confirm
 the schemas load and the examples conform.
 
+[**CONFORMANCE.md**](CONFORMANCE.md) is the conformance entry point: it names the
+reference implementation ([Honua](https://github.com/honua-io/honua-server)),
+defines the conformance levels, and ships a static **manifest check**
+([conformance/check_manifest.py](conformance/check_manifest.py)) that validates
+a server's advertised tool/resource surface against the published vocabulary.
+Run `python3 conformance/check_manifest.py` to check the bundled reference
+manifest.
+
 ## Workflow Families
 
 The standard covers four operator workflow families. A fifth (Edit Data) is

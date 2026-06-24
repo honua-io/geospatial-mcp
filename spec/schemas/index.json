@@ -228,5 +228,12 @@
       "schema": "common/geoprocessing-error.schema.json",
       "role": "Canonical error envelope reused by all tool/resource failure paths."
     }
+  ],
+  "conformance": [
+    {
+      "name": "ConformanceManifest",
+      "schema": "conformance/manifest.schema.json",
+      "role": "Static declaration of the MCP tool/resource surface an implementation advertises, checked against this index by conformance/check_manifest.py. See /CONFORMANCE.md."
+    }
   ]
 }

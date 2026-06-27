@@ -1,0 +1,28 @@
+name: attribution
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  no-ai-attribution:
+    name: No AI/agent attribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Reject AI/agent attribution in PR commits and body
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 tools/check_attribution.py \
+            --range "${BASE_SHA}..${HEAD_SHA}" \
+            --body-env PR_BODY

@@ -1,0 +1,8 @@
+#!/bin/sh
+# commit-msg hook: reject AI/agent attribution in the commit message
+# (AGENTS.md rule 3). Install with: tools/hooks/install.sh
+#
+# Mirrors the CI check in .github/workflows/attribution.yml so violations are
+# caught locally before they are committed.
+root="$(git rev-parse --show-toplevel)" || exit 0
+exec python3 "$root/tools/check_attribution.py" --commit-msg-file "$1"

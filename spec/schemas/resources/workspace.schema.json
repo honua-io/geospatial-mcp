@@ -35,10 +35,19 @@
       "format": "date-time",
       "description": "Expiration timestamp when applicable."
     },
-    "status": {
+    "lifecycleState": {
       "type": "string",
-      "description": "WorkspaceLifecycleState projection. Reference wire spellings: active, cleanup_pending, sealed, not_found, degraded.",
-      "enum": ["active", "cleanup_pending", "sealed", "not_found", "degraded"]
+      "description": "WorkspaceLifecycleState projection (MCP-layer, not a field of WorkspaceRef — see resources.md §honua://workspaces/{workspace_id}). Canonical enum names are Active/Expired/Archived/Deleted; the reference implementation emits the lower_snake_case wire spelling. Field name matches artifact.schema.json.lifecycleState.",
+      "enum": [
+        "active",
+        "expired",
+        "archived",
+        "deleted",
+        "Active",
+        "Expired",
+        "Archived",
+        "Deleted"
+      ]
     },
     "cleanupScheduledAt": {
       "type": ["string", "null"],

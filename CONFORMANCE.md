@@ -69,6 +69,12 @@ Standard tools the index marks `known-gap` (a standard family with no discrete
 reference tool yet — e.g. the map/app composition and publish families) are
 reported as informational notes and **do not** reduce an implementation's level:
 they describe the standard's own roadmap, not a defect in the implementation.
+Resource families the index marks `known-gap` (e.g. `Style`, `Theme`, and
+`Map template`, which the reference does not yet serve) are treated identically —
+surfaced as notes, never gating the level. FULL therefore requires advertising
+every tool **and** resource family the index marks `implemented`; omitting an
+`implemented` resource family downgrades FULL to MAPPED with a note, exactly as
+omitting an `implemented` tool does.
 
 ## Producing and Checking a Manifest
 

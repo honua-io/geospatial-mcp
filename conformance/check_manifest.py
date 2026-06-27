@@ -21,19 +21,26 @@ It then reports a conformance LEVEL:
   * MAPPED   — every advertised tool/resource maps onto standard vocabulary
                (no unknown standard names); this is the floor a conformant
                implementation must clear.
-  * FULL     — MAPPED, and every standard tool/resource family marked
-               `implemented` in the index is advertised by the manifest.
+  * FULL     — MAPPED, and every standard tool family AND resource family
+               marked `implemented` in the index is advertised by the manifest.
+               Resource families marked `known-gap` (e.g. Style, Theme, Map
+               template — not yet served by the reference) are reported as
+               informational notes and do not reduce the level, exactly as for
+               known-gap tools.
 
 Honua's reference manifest lives at `conformance/manifests/honua.manifest.json`
 and is expected to reach FULL — Honua is the reference implementation
 (see /CONFORMANCE.md).
 
 Usage:
-    python3 conformance/check_manifest.py [manifest.json ...]
+    python3 conformance/check_manifest.py [--strict] [manifest.json ...]
 
 With no argument it checks every manifest under `conformance/manifests/`.
 Pure-stdlib; if the optional `jsonschema` package is installed it additionally
-validates the manifest document against `manifest.schema.json`.
+validates the manifest document against `manifest.schema.json`. Pass `--strict`
+(or set CONFORMANCE_STRICT=1) to require `jsonschema` so a missing dependency is
+a hard failure instead of a silently skipped schema check (install:
+`pip install -r conformance/requirements.txt`).
 
 Exit code 0 = every checked manifest is at least MAPPED; non-zero otherwise.
 """
@@ -116,21 +123,50 @@ def check_manifest(path, index):
     for n in sorted(known_gap_std_tools - advertised_std_tools):
         warnings.append(f"{label}: standard tool '{n}' is a known gap (not yet implemented)")
 
+    # Coverage of standard resource families marked 'implemented' in the index.
+    # Mirrors the tool gate so the documented FULL definition (every standard
+    # tool AND resource family marked implemented is advertised) is enforced.
+    implemented_std_families = {f for f, r in index_resources.items()
+                                if r.get("implementationStatus") == "implemented"}
+    known_gap_std_families = {f for f, r in index_resources.items()
+                              if r.get("implementationStatus") == "known-gap"}
+    missing_implemented_families = sorted(implemented_std_families - advertised_families)
+    for f in missing_implemented_families:
+        warnings.append(f"{label}: standard resource family '{f}' is marked 'implemented' "
+                        f"in the index but is not advertised by this manifest")
+    for f in sorted(known_gap_std_families - advertised_families):
+        warnings.append(f"{label}: standard resource family '{f}' is a known gap "
+                        f"(not yet implemented)")
+
     level = "FAIL"
     if not errors:
-        level = "FULL" if not missing_implemented else "MAPPED"
+        fully_covered = not missing_implemented and not missing_implemented_families
+        level = "FULL" if fully_covered else "MAPPED"
 
     return level, errors, warnings, {
         "schemaChecked": schema_checked,
         "tools": len(manifest.get("tools", [])),
         "resources": len(manifest.get("resources", [])),
         "coveredStandardTools": len(advertised_std_tools),
-        "knownGaps": len(known_gap_std_tools),
+        "coveredStandardFamilies": len(advertised_families),
+        "knownGaps": len(known_gap_std_tools) + len(known_gap_std_families),
         "isReference": bool(manifest.get("implementation", {}).get("isReferenceImplementation")),
     }
 
 
 def main(argv):
+    strict = "--strict" in argv or os.environ.get("CONFORMANCE_STRICT") == "1"
+    argv = [a for a in argv if a != "--strict"]
+
+    if strict:
+        try:
+            import jsonschema  # type: ignore # noqa: F401
+        except Exception as exc:  # noqa: BLE001
+            print("FAIL: --strict requires the 'jsonschema' package "
+                  "(install: pip install -r conformance/requirements.txt); "
+                  f"manifest schema validation did not run ({exc}).", file=sys.stderr)
+            return 2
+
     if not os.path.exists(INDEX_PATH):
         print(f"FAIL: index not found at {INDEX_PATH}", file=sys.stderr)
         return 2

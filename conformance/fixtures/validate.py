@@ -6,9 +6,16 @@ and that each fixture resolves a schema). If the optional `jsonschema` package i
 installed, it additionally performs full draft 2020-12 validation of `inputs`
 against the referenced schema, resolving local `$ref` files.
 
+Run with `--strict` (or set CONFORMANCE_STRICT=1) to require the optional
+dependencies: in strict mode a missing `jsonschema`/`referencing` is a hard
+failure rather than a silent degrade, so CI never reports success when no real
+schema validation actually ran. Install them with
+`pip install -r conformance/requirements.txt`.
+
 Usage:
-    python3 conformance/fixtures/validate.py
-Exit code 0 = all good; non-zero = a schema failed to load or a fixture failed.
+    python3 conformance/fixtures/validate.py [--strict]
+Exit code 0 = all good; non-zero = a schema failed to load, a fixture failed, or
+strict mode was requested without the validation dependencies installed.
 """
 import json
 import os
@@ -32,7 +39,9 @@ def iter_fixtures():
                 yield os.path.join(dirpath, name)
 
 
-def main():
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    strict = "--strict" in argv or os.environ.get("CONFORMANCE_STRICT") == "1"
     errors = []
     checked = 0
 
@@ -53,6 +62,7 @@ def main():
 
     # Optional full validation.
     validator_cls = None
+    import_error = None
     try:
         import jsonschema  # type: ignore
         from referencing import Registry, Resource  # type: ignore
@@ -66,8 +76,15 @@ def main():
                     if "$id" in d:
                         registry = registry.with_resource(d["$id"], Resource.from_contents(d))
         validator_cls = (jsonschema, registry)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         validator_cls = None
+        import_error = exc
+
+    if validator_cls is None and strict:
+        print("FAIL: --strict requires the 'jsonschema' and 'referencing' packages "
+              "(install: pip install -r conformance/requirements.txt); "
+              f"full schema validation did not run ({import_error}).", file=sys.stderr)
+        return 2
 
     # 2. Every fixture: resolve schema, optionally validate inputs.
     for path in iter_fixtures():
@@ -99,7 +116,13 @@ def main():
         for e in errors:
             print("FAIL:", e, file=sys.stderr)
         return 1
-    print("OK: all schemas loaded and all fixtures resolved/validated")
+    if validator_cls:
+        print("OK: all schemas loaded and all fixtures validated against their schemas")
+    else:
+        # Be honest: structural mode did NOT validate inputs against schemas.
+        print("OK (structural only): all schemas loaded and all fixtures resolved a "
+              "schema, but inputs were NOT validated against the schemas — install "
+              "conformance/requirements.txt (or run with --strict) for full validation.")
     return 0
 
 

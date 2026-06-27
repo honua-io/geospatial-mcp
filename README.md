@@ -57,6 +57,15 @@ explicitly excluded per
 | Automate / Deploy | deferred |
 | Edit Data | excluded |
 
+**`v1` here means "specified in the v1 standard", not "shipped by the reference
+implementation".** Today the reference (Honua) implements the Analyze surface
+plus the discovery/analysis reference-shape tools; the Build App and Publish
+Data tool families are specified at v1 but remain **known-gaps** in the
+reference. The authoritative per-tool/per-resource implementation status is the
+`implementationStatus` field in
+[`spec/schemas/index.json`](spec/schemas/index.json), surfaced by
+`conformance/check_manifest.py` (see [CONFORMANCE.md](CONFORMANCE.md)).
+
 See `spec/taxonomy.md` for the full capability matrix and per-tool breakdown.
 See `spec/planning.md` for per-family planning behavior, clarification
 semantics, and handoff contracts.

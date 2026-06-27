@@ -9,9 +9,14 @@ discover data, gather requirements, plan work, execute analysis, compose maps,
 build applications, and publish results.
 
 This is a **specification / documentation repository, not a runtime
-implementation.** There is no code, no build system, and no executable tests.
-The deliverables are Markdown spec documents. MCP sits *above* the execution
-layer; typed deterministic execution lives in the sibling
+implementation.** The deliverables are Markdown spec documents. It is *not*
+entirely code-free, though: it ships a small set of pure-Python, no-runtime
+**static checks** over its own published artifacts — fixture/schema validation
+(`conformance/fixtures/validate.py`), manifest conformance scoring
+(`conformance/check_manifest.py`), and a Markdown link/anchor checker
+(`tools/check_links.py`) — and GitHub Actions workflows that run them. There is
+no application/service/runtime code or compiled artifact. MCP sits *above* the
+execution layer; typed deterministic execution lives in the sibling
 [`geospatial-grpc`](https://github.com/honua-io/geospatial-grpc) repo, and
 upstream contracts/ADRs live in
 [`honua-server`](https://github.com/honua-io/honua-server).
@@ -22,27 +27,48 @@ conformance strategy.
 
 ## Tech Stack
 
-- **Markdown** only. No programming language, package manager, or compiled
-  artifact in this repo.
+- **Markdown** for the normative specification (the bulk of the repo).
+- **Python 3** (standard library) for the static conformance and link checks
+  under `conformance/` and `tools/`. Full JSON Schema validation additionally
+  uses `jsonschema` + `referencing`, pinned in
+  [`conformance/requirements.txt`](conformance/requirements.txt) and installed
+  by CI.
+- **GitHub Actions** CI in [`.github/workflows/`](.github/workflows): `docs.yml`
+  (markdownlint, the relative-link/anchor check, and the conformance checks) and
+  `security.yml` (Trivy + OpenSSF Scorecard). No Dockerfile or Makefile.
 - Git for version control.
-- No CI workflows, Dockerfile, Makefile, or dependency manifests present.
 
 ## Setup
 
-No install or build step. Clone the repo and read/edit the Markdown files
-directly. No toolchain or runtime dependencies are required.
+No build step for the spec itself — clone and read/edit the Markdown directly.
+To run the conformance checks with **full** schema validation (recommended, and
+what CI does), install the optional deps:
+
+```sh
+python3 -m pip install -r conformance/requirements.txt
+```
+
+Without them the checkers still run in a degraded *structural-only* mode and say
+so explicitly (they no longer claim full validation occurred).
 
 ## Commands
 
-There are **no build, test, run, or lint commands** in this repository (no
-`Makefile`, `package.json`, `pyproject.toml`, CI config, or scripts). Work is
-purely editing Markdown.
+The repo ships pure-stdlib Python checks (the same ones CI runs):
 
-Suggested local checks when editing (not enforced by the repo, install
-separately if desired):
+```sh
+# Validate every fixture's inputs against its JSON Schema (strict requires deps):
+python3 conformance/fixtures/validate.py --strict
 
-- Spell/style review of prose by hand.
-- Verify internal relative links between `spec/*.md` and `docs/` resolve.
+# Score the reference manifest's tool/resource coverage against the vocabulary:
+python3 conformance/check_manifest.py --strict
+
+# Verify internal relative links AND #anchor fragments resolve:
+python3 tools/check_links.py
+```
+
+`--strict` (or `CONFORMANCE_STRICT=1`) turns a missing validation dependency
+into a hard failure instead of a silent skip. Markdown is linted by
+`markdownlint-cli2` in CI (config: `.markdownlint-cli2.yaml`).
 
 ## Architecture
 
@@ -74,7 +100,16 @@ referenced by name in these specs, not redefined here.
 ```text
 .
 ├── README.md                 # Repo intro, spec index, workflow families, related repos
+├── CONFORMANCE.md            # Conformance entry point: reference impl, levels, manifest check
 ├── LICENSE
+├── .github/workflows/        # CI: docs.yml (lint, links, conformance), security.yml
+├── conformance/              # Static checks over the published artifacts
+│   ├── check_manifest.py     # Scores a manifest's tool/resource coverage vs index.json
+│   ├── requirements.txt      # Optional deps for full JSON Schema validation
+│   ├── fixtures/             # Example tool inputs/resource payloads + validate.py
+│   └── manifests/            # Reference (Honua) conformance manifest
+├── tools/
+│   └── check_links.py        # Relative-link + #anchor-fragment checker
 ├── docs/
 │   └── features/
 │       └── README.md         # Geospatial MCP feature map / capability families
@@ -83,7 +118,8 @@ referenced by name in these specs, not redefined here.
     ├── resources.md          # Per-family resource URIs (honua:// grammar), inspection fields, lifecycle, relationship graph
     ├── planning.md           # Clarification, elicitation, planning, and handoff semantics
     ├── corpus.md             # Canonical dataset corpus, fixture conventions, scenario-pack taxonomy
-    └── conformance.md        # Conformance fixtures, evaluation rubric, pass/fail, runtime portability
+    ├── conformance.md        # Conformance fixtures, evaluation rubric, pass/fail, runtime portability
+    └── schemas/              # JSON Schemas + index.json vocabulary map
 ```
 
 ## Conventions & Gotchas

@@ -266,6 +266,16 @@ authoritative.
 This matrix defines what the geospatial MCP standard covers in v1. Use it to
 determine whether a capability is in scope, deferred, or excluded.
 
+This matrix describes **standard coverage** (what v1 specifies), which is
+distinct from **reference-implementation coverage** (what Honua ships today).
+Several capabilities below are specified at `v1` but are still `known-gap` in the
+reference — notably the map/app composition and publishing tool families. The
+authoritative per-tool/per-resource implementation status is the
+`implementationStatus` field in
+[`spec/schemas/index.json`](schemas/index.json), enforced by
+`conformance/check_manifest.py` (see [`/CONFORMANCE.md`](../CONFORMANCE.md)). Do
+not read `v1` in this matrix as "available in the reference".
+
 **Coverage key:**
 
 - **v1** -- covered in the first version of the standard

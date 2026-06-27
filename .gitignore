@@ -1,0 +1,3 @@
+# Python bytecode from running the conformance/link checkers locally.
+__pycache__/
+*.py[cod]

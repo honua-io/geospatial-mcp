@@ -24,31 +24,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Verify internal relative links resolve
-        shell: bash
-        run: |
-          set -euo pipefail
-          broken=0
-          # Check Markdown links [text](target) where target is a relative
-          # path. External (http/https/mailto), honua:// scheme, and pure
-          # anchor (#...) links are intentionally skipped.
-          while IFS= read -r -d '' file; do
-            dir="$(dirname "$file")"
-            while IFS= read -r target; do
-              case "$target" in
-                ""|\#*|http://*|https://*|mailto:*|honua://*) continue ;;
-              esac
-              path="${target%%#*}"   # strip #anchor fragment
-              path="${path%%\?*}"    # strip ?query
-              [ -z "$path" ] && continue
-              if [ ! -e "$dir/$path" ]; then
-                echo "BROKEN LINK: $file -> $target"
-                broken=1
-              fi
-            done < <(grep -oE '\]\([^)]+\)' "$file" | sed -E 's/^\]\(//; s/\)$//')
-          done < <(find . -path ./.git -prune -o -name '*.md' -print0)
-          if [ "$broken" -ne 0 ]; then
-            echo "Internal relative link check failed."
-            exit 1
-          fi
-          echo "All internal relative links resolve."
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Verify internal relative links and #anchor fragments resolve
+        run: python3 tools/check_links.py
+
+  conformance:
+    name: Conformance checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install validation dependencies
+        run: python3 -m pip install -r conformance/requirements.txt
+      - name: Validate fixtures against published schemas
+        run: python3 conformance/fixtures/validate.py --strict
+      - name: Check reference manifest conformance
+        run: python3 conformance/check_manifest.py --strict

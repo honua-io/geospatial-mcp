@@ -1,0 +1,9 @@
+# Dependencies for full (JSON Schema draft 2020-12) conformance validation.
+#
+# Without these, conformance/fixtures/validate.py and conformance/check_manifest.py
+# can only run their degraded *structural* mode (JSON well-formedness + schema
+# resolution), which does NOT actually validate documents against the schemas.
+# CI installs these and runs both checkers in --strict mode, so a missing
+# dependency fails the build instead of silently skipping validation.
+jsonschema>=4.18,<5
+referencing>=0.30

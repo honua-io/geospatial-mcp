@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "geospatial-mcp JSON Schema index",
-  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool today (implemented) or whether it is a standard family not yet implemented as a discrete tool (known-gap).",
+  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only.",
   "date": "2026-06-21",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
   "tools": [
@@ -153,73 +153,85 @@
       "family": "Result package",
       "uriForm": "honua://results/{result_package_id}",
       "schema": "resources/result-package.schema.json",
-      "shapeFidelity": "concrete"
+      "shapeFidelity": "concrete",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Result artifact",
       "uriForm": "honua://results/{result_package_id}/artifacts/{artifact_id}",
       "schema": "resources/artifact.schema.json",
-      "shapeFidelity": "concrete"
+      "shapeFidelity": "concrete",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Result provenance",
       "uriForm": "honua://results/{result_package_id}/provenance",
       "schema": "resources/provenance.schema.json",
-      "shapeFidelity": "concrete"
+      "shapeFidelity": "concrete",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Workspace",
       "uriForm": "honua://workspaces/{workspace_id}",
       "schema": "resources/workspace.schema.json",
-      "shapeFidelity": "concrete-reference"
+      "shapeFidelity": "concrete-reference",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Workspace artifact",
       "uriForm": "honua://workspaces/{workspace_id}/artifacts/{artifact_id}",
       "schema": "resources/artifact.schema.json",
-      "shapeFidelity": "concrete"
+      "shapeFidelity": "concrete",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Map package",
       "uriForm": "honua://maps/{map_package_id}",
       "schema": "resources/map-package.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "implemented"
     },
     {
       "family": "App package",
       "uriForm": "honua://apps/{app_package_id}",
       "schema": "resources/app-package.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Style",
       "uriForm": "honua://styles/{style_id}",
       "schema": "resources/style.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "known-gap"
     },
     {
       "family": "Theme",
       "uriForm": "honua://themes/{theme_id}",
       "schema": "resources/theme.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "known-gap"
     },
     {
       "family": "Map template",
       "uriForm": "honua://templates/maps/{map_template_id}",
       "schema": "resources/map-template.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "known-gap"
     },
     {
       "family": "Published service",
       "uriForm": "honua://services/{published_service_id}",
       "schema": "resources/published-service.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "implemented"
     },
     {
       "family": "Deployment",
       "uriForm": "honua://deployments/{deployment_id}",
       "schema": "resources/deployment.schema.json",
-      "shapeFidelity": "responsibility-level"
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "implemented"
     }
   ],
   "common": [

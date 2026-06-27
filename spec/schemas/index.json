@@ -56,6 +56,13 @@
       "implementationStatus": "known-gap"
     },
     {
+      "standardName": "get_style",
+      "referenceToolName": null,
+      "family": "Style inspection",
+      "schema": "tools/get_style.schema.json",
+      "implementationStatus": "known-gap"
+    },
+    {
       "standardName": "apply_style_preset",
       "referenceToolName": null,
       "family": "Map composition",

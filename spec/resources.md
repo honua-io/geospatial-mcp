@@ -94,6 +94,42 @@ layer schema inspection (see
 former is operator-published service metadata, the latter is a layer schema
 view. Both resolve under a single scheme; clients distinguish by path.
 
+### Collection Reads — Pagination and Limits
+
+Collection reads — a family root with no `{instance_id}` (for example
+`honua://services`, `honua://styles`) and any future collection root — are
+**bounded**. A conformant surface MUST NOT return an unbounded enumeration of a
+large catalog; unbounded full-catalog reads are a smell telemetered against in
+[planning.md §3.1](planning.md#31-resource-scoping-contract) and
+[planning.md §7](planning.md#7-observable-signals).
+
+Collection reads use a cursor-based pagination contract:
+
+| Parameter / field | Role |
+|---|---|
+| `limit` (request) | Maximum number of entries to return in one page. The surface applies a server-defined default and a server-defined maximum; a request above the maximum is clamped, not rejected. |
+| `cursor` (request) | Opaque continuation token from a prior page's `nextCursor`; absent on the first page. |
+| `nextCursor` (response) | Opaque continuation token, present when more entries remain and absent on the final page. |
+
+The contract is:
+
+1. `cursor` and `nextCursor` are **opaque**. Clients MUST treat them as
+   meaningless tokens and MUST NOT parse, construct, or order them; their
+   encoding (offset, keyset, snapshot token) is server-internal per
+   [§Non-Goals — No Exposure of Server Internals](#3-no-exposure-of-server-internals).
+2. A read with no `nextCursor` is the final page. A client enumerates a
+   collection by following `nextCursor` until it is absent.
+3. Pagination is read-only and never mutates server state. A cursor MAY
+   expire, in which case the surface returns the canonical
+   [`GeoprocessingError`](#error-model) envelope (`kind: ValidationFailed`)
+   and the client restarts from the first page; no MCP-local pagination error
+   code is introduced.
+4. The open-core data-access collection surface (`honua://services` per
+   [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources))
+   is authoritative for the concrete page-size defaults and token encoding.
+   This section pins the cursor/limit shape so MCP collection reads are
+   uniformly bounded; it does not redefine the open-core token format.
+
 ## Result Package Resources
 
 ### `honua://results/{result_package_id}`
@@ -708,7 +744,7 @@ cell is read from the taxonomy matrix.
 | `results`, `results/{id}/artifacts`, `results/{id}/provenance` | Analyze, Publish Data, Build App, Automate / Deploy |
 | `maps`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
 | `apps`, `templates/apps` | Analyze, Build App, Automate / Deploy |
-| `services` | Publish Data, Automate / Deploy |
+| `services` | Analyze, Publish Data, Automate / Deploy |
 | `deployments` | Publish Data, Build App, Automate / Deploy |
 | `workspaces`, `workspaces/{id}/artifacts` | Analyze, Publish Data, Build App, Automate / Deploy |
 

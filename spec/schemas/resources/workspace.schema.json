@@ -14,7 +14,7 @@
     },
     "kind": {
       "type": "string",
-      "description": "WorkspaceKind. Canonical enum names are Scratch/Persistent/TempLayer/SavedLayer/ResultCollection; the reference implementation emits the lower_snake_case wire spelling.",
+      "description": "WorkspaceKind. Canonical enum names are Scratch/Persistent/TempLayer/SavedLayer/ResultCollection; the reference implementation emits the lower_snake_case wire spelling. An empty/absent kind is not a legal value — omit the property rather than emitting an empty string.",
       "enum": [
         "scratch",
         "persistent",
@@ -25,8 +25,7 @@
         "Persistent",
         "TempLayer",
         "SavedLayer",
-        "ResultCollection",
-        ""
+        "ResultCollection"
       ]
     },
     "label": { "type": "string", "description": "Human-readable label." },

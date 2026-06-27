@@ -188,7 +188,10 @@ An intent is **planning-ready** when all of the following hold:
 
 A planner MUST NOT emit a plan before readiness. A planner MUST emit a plan
 once readiness is reached. "Emit no plan and no clarification" is not a valid
-terminal state.
+terminal state. The clarification loop is bounded: when readiness cannot be
+reached within the clarification budget, the planner terminates with the
+blocked-planning outcome defined in Section 2.8 rather than looping
+indefinitely.
 
 ### 2.6 MCP Elicitation Mapping
 
@@ -218,6 +221,39 @@ This document does not prescribe a numeric threshold; prescribing one would
 constrain planner internals. Implementations that choose to publish a
 threshold should do so through planner configuration, not through the
 protocol.
+
+### 2.8 Clarification Budget and Terminal Blocked State
+
+The clarification loop in Sections 2.1–2.5 has no natural upper bound: a
+planner that keeps discovering new ambiguity could round-trip
+`ClarificationRequest` / `ClarificationResponse` indefinitely (livelock). To
+prevent this, the loop is bounded by a **clarification budget**:
+
+- **Maximum rounds.** A planner MUST enforce a maximum number of clarification
+  rounds per `intentId`. The bound is configurable per deployment and
+  observable through the Section 7 signals; the normative default ceiling is
+  **five rounds** when a deployment sets none.
+- **Optional deadline.** A deployment MAY additionally set a wall-clock
+  planning deadline per `intentId`.
+
+When the budget is exhausted — the maximum round count is reached, or the
+deadline elapses — before the intent is planning-ready (Section 2.5), the
+planner MUST terminate the intent in a **blocked-planning** state. In this
+state the planner MUST NOT emit another `ClarificationRequest` and MUST NOT
+emit a plan. It surfaces the terminal outcome through the canonical
+[`GeoprocessingError`](resources.md#error-model) envelope, reusing the upstream
+`GeoprocessingErrorKind` set and minting no MCP-local code:
+
+- `kind` is `ValidationFailed` for round-budget exhaustion (the intent could
+  not be made planning-ready), or `Timeout` when a planning deadline elapsed;
+- `violations[]` carries one entry per still-unresolved reason code, each with
+  its `code`, a human-readable `message`, and the `fieldPath` of the unresolved
+  intent field, so the caller can see why readiness was not reached.
+
+Blocked-planning is terminal for that `intentId`: the lifecycle ends and a
+retry requires a new intent (a fresh `intentId`). This is the only legal
+"no plan and no clarification" outcome (Section 2.5); it replaces an unbounded
+loop with an explicit, typed terminal state.
 
 ## 3. Planning-Stage Resources
 
@@ -430,7 +466,8 @@ remains family-specific as described in Section 5.3.
 
 - the planner emits a canonical plan object (`AnalysisPlan` or
   `PublishingPlan` in v1; `BuilderPlan` / `DeploymentPlan` for forward
-  compatibility) with `specVersion` set
+  compatibility) with `specVersion` set to the `SPEC_VERSION` it targets
+  ([taxonomy.md §Standard Version](taxonomy.md#standard-version))
 - the planner MAY call `validate_plan` to obtain structural validation, an
   authorization preview, and a cost or coverage estimate surface without
   persisting state. `validate_plan` is v1 for Analyze, Publish Data, and
@@ -530,6 +567,28 @@ Post-handoff ownership is family-specific in v1.
   enum; downstream consumers follow the upstream publishing contract as it
   evolves
 
+**Status and refresh-state freshness (both families).** Post-handoff status
+reads — Analyze `ExecutionJob.status` and Publish Data refresh/publication
+state — are pollable, but the standard constrains *how* to avoid over-poll
+(thundering-herd) and stale reads:
+
+- Each status/refresh read MUST carry a **freshness token** — a monotonic
+  version, an `ETag`, or a `lastModified` timestamp — when the upstream surface
+  exposes one, reusing the metadata `cache` validators in
+  [resources.md §Metadata Cache State](resources.md#metadata-cache-state).
+- Consumers MUST prefer **conditional reads** (revalidating against the
+  freshness token) combined with capped exponential backoff, or a
+  change-subscription, over fixed-interval tight polling. The cadence is
+  consumer-configurable; this document sets no fixed interval and prescribes no
+  minimum.
+- A consumer MUST NOT present a stale status as current. When no freshness
+  token is available the read is treated as uncacheable and backoff still
+  applies. Terminal `ExecutionJob.status` values (`Succeeded`, `Failed`,
+  `Cancelled`) are stable and require no further polling.
+- The concrete freshness-token field on `ExecutionJob` and on the publishing
+  surface is upstream-owned (`ProcessService` / `PipelineService`); MCP requires
+  only that the surface expose such a token and that consumers honor it.
+
 ### 5.4 Boundary-Crossing Fields
 
 For `execute_plan` submissions, only the following fields cross the
@@ -540,7 +599,7 @@ interaction plane.
 |---|---|
 | `intentId` | originating intent identity for provenance |
 | `planId` | plan identity |
-| `specVersion` | spec version the plan was produced against |
+| `specVersion` | the `SPEC_VERSION` ([taxonomy.md §Standard Version](taxonomy.md#standard-version)) the plan was produced against |
 | `requestedOutputs` | originating intent output request, preserved when needed for provenance or reconciliation against the plan's declared `outputs` |
 | `outputs` | canonical plan-level output declaration consumed by the execution host |
 | Plan steps | `stepId`, `kind`, `inputs`, `dependsOn`, family-specific typed fields |
@@ -595,6 +654,58 @@ plans over the same handoff semantics:
   the family-owned post-handoff state model: `ExecutionJob` for Analyze and
   `PipelineService`-owned execution state for Publish Data until upstream
   standardizes a shared publishing run object
+- orchestration hosts MUST honor the submission idempotency contract in
+  Section 5.6: carry `(intentId, planId)` on every submission, keep `planId`
+  stable for identical plan content, and reconcile-before-resubmit rather than
+  blind-retry
+
+### 5.6 Submission Idempotency and Recovery
+
+Because the MCP plane MUST NOT retry `execute_plan` on its own initiative
+(Section 5.2) and an `execute_plan` call can fail *ambiguously* — the
+submission may or may not have been accepted before the failure — the standard
+requires submission idempotency so that recovery cannot double-execute (a
+duplicate `ExecutionJob`, or worse for Publish Data, a duplicate publication
+with no shared status object to detect it).
+
+**Idempotency key.** An `execute_plan` submission is keyed on the pair
+`(intentId, planId)`. Both already cross the boundary (Section 5.4). The
+execution host MUST treat `(intentId, planId)` as the idempotency key: a
+submission carrying a key the host has already accepted MUST return the
+existing handle — the existing `ExecutionJob` reference for Analyze, or the
+existing `PipelineService` submission handle for Publish Data — and MUST NOT
+create a second `ExecutionJob` or a second publication run. Submission is
+therefore at-most-once per `(intentId, planId)` and idempotent-replay-safe for
+the caller.
+
+**Stable `planId`.** For the key to be meaningful, a planner that re-derives a
+plan for the same intent MUST reuse the same `planId` when the plan content is
+unchanged, and MUST allocate a new `planId` when the plan changes materially (a
+new `planId` is a distinct submission). `planId` identifies plan content, not a
+submission attempt.
+
+**Recovery from an indeterminate result.** When an `execute_plan` call returns
+indeterminately (transport error, timeout, or no handle), the caller MUST NOT
+blind-retry. It MUST reconcile first:
+
+1. query the execution host for an existing handle keyed by
+   `(intentId, planId)` — for Analyze, the `ExecutionJob`; for Publish Data,
+   the `PipelineService` publishing-contract lookup for that key;
+2. if a handle exists, adopt it (the submission succeeded);
+3. only if no handle exists may the caller submit again, reusing the same
+   `(intentId, planId)`.
+
+**Publish Data note.** Publish Data has no shared status object (Sections 5.2,
+5.3), so its reconciliation lookup is `PipelineService`-owned. Until upstream
+standardizes that keyed lookup, the `(intentId, planId)` key MUST still be
+carried on every submission so the execution host can deduplicate; the spec
+does not invent a shared Publish Data run object to carry it.
+
+Enforcement of the dedup guarantee is execution-host-owned (execution hosts own
+state transitions and persistence; see Section 6). The MCP-side obligations are
+fixed here: carry `(intentId, planId)` on every submission, keep `planId`
+stable for identical plan content, and reconcile-before-resubmit instead of
+retrying.
 
 ## 6. Non-Goals
 
@@ -689,6 +800,19 @@ frameworks are implementation choices.
   and the reconciliation rate between audit counts and the populated
   `ProvenanceRecord.clarificationsAsked`, `.clarificationsAnswered`,
   and `.assumptions` fields.
+
+- **Clarification budget exhaustion.** The rate at which intents reach the
+  blocked-planning terminal state (Section 2.8) by exhausting the round budget
+  or the planning deadline, and the distribution of still-unresolved reason
+  codes on those terminal `GeoprocessingError` envelopes.
+- **Execute-plan idempotency and recovery.** The rate of idempotent-replay hits
+  (a resubmission keyed `(intentId, planId)` that returned an existing handle)
+  and of reconcile-before-resubmit recoveries after an indeterminate result
+  (Section 5.6).
+- **Status-read freshness.** For Analyze `ExecutionJob` and Publish Data
+  refresh-state polling, the share of reads served as conditional/backoff or
+  subscription rather than fixed-interval polls, and the share carrying a
+  freshness token (Section 5.3).
 
 Adding a new clarification reason code, step kind, or planning resource in
 future changes to this document MUST include a corresponding signal category

@@ -19,6 +19,53 @@ Upstream references:
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
 - [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
 
+## Standard Version
+
+The geospatial MCP standard is versioned as a single monotonic identifier that
+every document in this repository shares. This is the canonical version of the
+standard; it is defined here and referenced (not re-declared) by the other spec
+documents.
+
+```text
+SPEC_VERSION = 1.0
+```
+
+The per-document `**Date:**` headers are editorial provenance for each
+document's last substantive edit; they are **not** independent version
+identities. Consumers pin against `SPEC_VERSION`, never against a per-document
+`Date`.
+
+**Mapping to plan, fixture, and manifest fields.** Several carriers record the
+version an artifact was produced against; each MUST resolve to a released
+`SPEC_VERSION`:
+
+- the canonical plan-object `specVersion`
+  ([planning.md §5.4](planning.md#54-boundary-crossing-fields)) declares the
+  `SPEC_VERSION` a plan was produced against;
+- a conformance fixture descriptor's `specVersion`
+  ([corpus.md §2.3](corpus.md#23-fixture-descriptor-conventions)) declares the
+  `SPEC_VERSION` the fixture was authored against;
+- a conformance manifest's `specDate` records the `**Date:**` of the
+  `spec/conformance.md` revision an implementation was checked against; that
+  `Date` resolves to a `SPEC_VERSION` through this section
+  ([conformance.md §8](conformance.md#8-observable-signals)).
+
+**Versioning and compatibility policy.** `SPEC_VERSION` uses `MAJOR.MINOR`:
+
+- **MINOR** increments for backward-compatible additions (new tools, resource
+  families, reason codes, step kinds, or optional fields). A consumer written
+  against an earlier minor of the same major continues to interoperate, and
+  moving a capability from `deferred` to `v1` in the capability matrix is a
+  MINOR change.
+- **MAJOR** increments for backward-incompatible changes: removing or renaming
+  a tool, resource family, reason code, or step kind; tightening a previously
+  optional contract into a required one; or moving a published capability to
+  `excluded`. Consumers MUST re-pin and migrate across a MAJOR change.
+
+While the standard carries `**Status:** Draft`, `SPEC_VERSION` MAY change
+without the guarantees above; the compatibility policy governs released
+versions.
+
 ## MCP Role in the Architecture
 
 MCP is the **agent interaction plane** for geospatial operator workflows. It
@@ -326,6 +373,32 @@ not read `v1` in this matrix as "available in the reference".
 | `publish_result` | v1 | v1 | v1 |
 
 Automate / Deploy tools are deferred and not listed.
+
+### Reference-Shape Tools (Non-Normative)
+
+The published JSON Schema index
+([`spec/schemas/index.json`](schemas/index.json)) additionally records a set of
+**reference-shape tools** that the reference implementation (Honua `/mcp`)
+advertises over the open-core data-access surface but that are **not** part of
+the v1 standard tool vocabulary above. They carry a `(reference shape)` family
+suffix in the index so a reference manifest can map every advertised tool onto a
+published `standardName` (see [CONFORMANCE.md](../CONFORMANCE.md)); they are not
+standard MCP tools:
+
+| Reference-shape tool | Index family | How the bare standard models it |
+|---|---|---|
+| `list_layers` | Discovery and query (reference shape) | a `CapabilityCatalog` / dataset-layer resource read ([§Resources](#resources)) |
+| `query_features` | Discovery and query (reference shape) | open-core data-access surface; not an MCP standard tool |
+| `render_map` | Discovery and query (reference shape) | open-core data-access surface; not an MCP standard tool |
+| `geocode_address` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
+| `solve_route` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
+| `cancel_job` | Execution (reference shape) | post-handoff `ExecutionJob` lifecycle, owned by `ProcessService` ([planning.md §5.3](planning.md#53-post-handoff-execution--orchestration-plane)) |
+| `propose_operation` | Control-plane proposal (reference shape) | a control-plane proposal; no v1 standard MCP tool |
+
+Reference-shape tools MUST NOT be treated as v1 standard vocabulary; promoting
+one into the standard requires a change to the matrix above. The bare standard
+models discovery as a `CapabilityCatalog` read and analysis as `Geoprocess`
+plan steps rather than as discrete tools.
 
 ## Non-Goals
 

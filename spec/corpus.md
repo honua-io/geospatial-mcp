@@ -123,7 +123,7 @@ carry:
 | `geometryTypes` | Subset of the geospatial-grpc geometry vocabulary (`PointGeometry`, `MultiPointGeometry`, `PolylineGeometry`, `PolygonGeometry`, `MultiPolygonGeometry`) with `z` / `m` presence flags |
 | `payloadRef` | Opaque pointer to fixture bytes in the corpus bundle (not a `honua://` URI); resolves through the corpus-bundle distribution channel |
 | `payloadLicense` | SPDX identifier or equivalent license declaration for the referenced bytes |
-| `specVersion` | The `geospatial-mcp` spec version this fixture was authored against |
+| `specVersion` | The canonical [`SPEC_VERSION`](taxonomy.md#standard-version) of the `geospatial-mcp` standard this fixture was authored against |
 
 ### 2.4 Determinism Rules
 

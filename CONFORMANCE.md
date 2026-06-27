@@ -109,3 +109,5 @@ are scored by a downstream scenario harness against the rubric in
 [`spec/conformance.md` §4](spec/conformance.md#4-passfail-rubric). An
 implementation that reaches **FULL** here is ready to be scored against that
 rubric; reaching **FULL** does not by itself certify rubric conformance.
+
+<!-- ci gate verify -->

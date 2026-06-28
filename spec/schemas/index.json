@@ -227,6 +227,13 @@
       "implementationStatus": "known-gap"
     },
     {
+      "family": "App template",
+      "uriForm": "honua://templates/apps/{app_template_id}",
+      "schema": "resources/app-template.schema.json",
+      "shapeFidelity": "responsibility-level",
+      "implementationStatus": "known-gap"
+    },
+    {
       "family": "Published service",
       "uriForm": "honua://services/{published_service_id}",
       "schema": "resources/published-service.schema.json",

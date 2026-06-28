@@ -53,7 +53,11 @@
       "type": ["string", "null"],
       "format": "date-time"
     },
-    "resultsUri": { "type": ["string", "null"] },
+    "resultsUri": {
+      "type": ["string", "null"],
+      "description": "URI of the result package this workspace's outputs are projected into, when applicable. MUST use the defined honua://results/{result_package_id} route (resources.md §honua://results/{result_package_id}); the spec defines no honua://jobs family (execution/job state is the canonical ExecutionJob object reference, not an MCP resource URI — see planning.md §5.3, conformance.md resource_projection contract).",
+      "pattern": "^honua://results/[^/]+$"
+    },
     "notImplementedReason": { "type": "string" }
   }
 }

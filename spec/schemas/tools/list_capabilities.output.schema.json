@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/list_capabilities.output.schema.json",
+  "title": "list_capabilities outputSchema",
+  "description": "Structured-content shape returned by the list_capabilities tool (MCP 2025-06-18 outputSchema / structuredContent). This is an MCP-owned introspection projection of the server's composable surface (analogous to the conformance manifest), not an upstream canonical object. It lets a cold client LLM discover every tool, resource family, and grounding affordance it can compose, with the safety annotations needed to call them correctly. See taxonomy.md §Capability and grounding, §Grounding-as-Tools, and §Tool Safety Annotations.",
+  "type": "object",
+  "required": ["tools"],
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "type": "string",
+      "description": "The negotiated MCP protocol revision the surface speaks (e.g. '2025-06-18'). See transport.md §Supported Protocol Revision."
+    },
+    "specVersion": {
+      "type": "string",
+      "description": "The geospatial-mcp SPEC_VERSION (taxonomy.md §Standard Version) this surface targets, e.g. '1.0'."
+    },
+    "tools": {
+      "type": "array",
+      "description": "The composable tool surface. Each entry is a capability descriptor sufficient for a model with no Honua-specific knowledge to call the tool.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["standardName", "name"],
+        "properties": {
+          "standardName": {
+            "type": "string",
+            "description": "The bare taxonomy.md tool name (e.g. 'resolve_entity'). Maps to a tools[].standardName in spec/schemas/index.json."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name the server advertises on tools/list (MAY be vendor-prefixed, e.g. 'honua_resolve_entity')."
+          },
+          "family": {
+            "type": "string",
+            "description": "Tool family from taxonomy.md §Tools."
+          },
+          "workflowFamilies": {
+            "type": "array",
+            "description": "Workflow families this tool participates in.",
+            "items": {
+              "type": "string",
+              "enum": ["Analyze", "PublishData", "BuildApp", "AutomateDeploy"]
+            }
+          },
+          "description": {
+            "type": "string",
+            "description": "LLM-grade description of what the tool does and when to call it."
+          },
+          "inputSchemaRef": {
+            "type": "string",
+            "description": "Pointer to the tool's inputSchema (an index.json schema path or a resolvable $id)."
+          },
+          "outputSchemaRef": {
+            "type": "string",
+            "description": "Pointer to the tool's outputSchema, when the tool declares one (MCP 2025-06-18)."
+          },
+          "annotations": {
+            "$ref": "#/$defs/toolAnnotations"
+          },
+          "example": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Optional worked example (representative arguments) to anchor correct tool-calling."
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "description": "Advertised resource families the client can read for context. Present when includeResources is not false.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["family", "uriForm"],
+        "properties": {
+          "family": {
+            "type": "string",
+            "description": "Resource family name (resources.md / index.json)."
+          },
+          "uriForm": {
+            "type": "string",
+            "description": "The honua:// URI template for the family.",
+            "pattern": "^honua://"
+          },
+          "description": {
+            "type": "string",
+            "description": "What the resource family exposes."
+          }
+        }
+      }
+    },
+    "grounding": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The grounding affordances a client LLM uses to ground entities, disambiguate, and self-check. Present when includeGrounding is not false.",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "description": "Standard names of the grounding-as-tools set (e.g. list_capabilities, resolve_entity, ground_candidates, clarify_intent, validate_plan).",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "resources": {
+          "type": "array",
+          "description": "Grounding resources the model can read as evidence (e.g. honua://catalog/features). These may be catalog-family resources whose per-family inspection contract is deferred to the open-core/upstream surface in this version of the standard.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["uriForm"],
+            "properties": {
+              "family": { "type": "string" },
+              "uriForm": {
+                "type": "string",
+                "description": "honua:// URI of the grounding resource.",
+                "pattern": "^honua://"
+              },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "prompts": {
+      "type": "array",
+      "description": "Optional reusable workflow entry points the server advertises (taxonomy.md §Prompts).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "family": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "nextCursor": {
+      "type": "string",
+      "description": "Opaque cursor for the next page when the surface is paginated, per the collection-read pagination contract in resources.md."
+    }
+  },
+  "$defs": {
+    "toolAnnotations": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "MCP tool safety annotations (advisory hints), aligned with the MCP base Tool.annotations. See taxonomy.md §Tool Safety Annotations.",
+      "properties": {
+        "title": { "type": "string", "description": "Human-readable tool title." },
+        "readOnlyHint": {
+          "type": "boolean",
+          "description": "True if the tool does not mutate server state. Every read-only inspection/grounding tool in this standard sets true."
+        },
+        "destructiveHint": {
+          "type": "boolean",
+          "description": "True if the tool may perform destructive updates. Read-only tools set false."
+        },
+        "idempotentHint": {
+          "type": "boolean",
+          "description": "True if repeated calls with the same arguments have no additional effect."
+        },
+        "openWorldHint": {
+          "type": "boolean",
+          "description": "True if the tool interacts with an open, evolving world (e.g. a live catalog) rather than a closed set."
+        }
+      }
+    }
+  }
+}

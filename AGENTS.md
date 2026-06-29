@@ -117,6 +117,7 @@ referenced by name in these specs, not redefined here.
     ├── taxonomy.md           # Vocabulary baseline, v1 capability matrix, MCP-vs-gRPC boundary, non-goals
     ├── resources.md          # Per-family resource URIs (honua:// grammar), inspection fields, lifecycle, relationship graph
     ├── planning.md           # Clarification, elicitation, planning, and handoff semantics
+    ├── transport.md          # Session/streaming transport: protocol revision, Mcp-Session-Id, SSE, progress + list_changed notifications
     ├── corpus.md             # Canonical dataset corpus, fixture conventions, scenario-pack taxonomy
     ├── conformance.md        # Conformance fixtures, evaluation rubric, pass/fail, runtime portability
     └── schemas/              # JSON Schemas + index.json vocabulary map

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/resolve_entity.output.schema.json",
+  "title": "resolve_entity outputSchema",
+  "description": "Structured-content shape returned by the resolve_entity tool (MCP 2025-06-18 outputSchema / structuredContent). Carries ranked, evidence-backed candidate references to canonical geospatial entities, or a clarification pointer when the text is too ambiguous to ground. Each candidate references a canonical object by its upstream id and, where the entity is addressable as an MCP resource, its stable honua:// URI; this schema does not redefine those canonical object field shapes. See taxonomy.md §Capability and grounding and resources.md §Resource URI Conventions.",
+  "type": "object",
+  "required": ["text", "candidates"],
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "The resolution text echoed back from the request."
+    },
+    "groundingResource": {
+      "type": "string",
+      "description": "The grounding resource the resolution was evidenced against (typically honua://catalog/features). Candidates not present in a grounding resource MUST NOT be returned.",
+      "pattern": "^honua://"
+    },
+    "candidates": {
+      "type": "array",
+      "description": "Ranked candidate entity references, most-confident first. MAY be empty when nothing grounds.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "ref", "score"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Resolved entity kind.",
+            "enum": ["Dataset", "Layer", "Feature", "Service", "Style", "Theme", "Template", "Process"]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Canonical reference identifier for the entity (e.g. a DatasetRef/LayerRef id, feature id, ProcessDefinition id, or StyleRef style_id). Identifier spellings are upstream-owned; this field carries the id, not a redefined shape."
+          },
+          "uri": {
+            "type": "string",
+            "description": "Stable honua:// URI under which the entity is addressable as an MCP resource, when one exists for its family per resources.md. Omitted for families with no MCP inspection URI in this version of the standard.",
+            "pattern": "^honua://"
+          },
+          "title": {
+            "type": "string",
+            "description": "Human-readable title for disambiguation in the client UI/LLM."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional short description carried from the catalog entry."
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Server-computed grounding confidence in [0,1]. Deterministic for identical catalog state."
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Why this candidate matched: the grounding signals (e.g. matched name/alias/field, catalog entry id) that ground the candidate. Shape is advisory and server-extensible; it MUST NOT assert a capability absent from the grounding resource."
+          }
+        }
+      }
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Present instead of (or alongside) a thin candidate set when the text is too ambiguous to ground safely. Carries a canonical ClarificationRequest (planning.md §2); the standard does not redefine its shape here. When present, the tool result SHOULD be surfaced as the emit_clarification expected-behavior shape (conformance.md §2.3).",
+      "properties": {
+        "intentId": {
+          "type": "string",
+          "description": "Intent identifier the clarification is bound to, for answer rebinding via clarify_intent."
+        }
+      }
+    }
+  }
+}

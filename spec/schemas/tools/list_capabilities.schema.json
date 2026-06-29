@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/list_capabilities.schema.json",
+  "title": "list_capabilities inputSchema",
+  "description": "Argument shape for the list_capabilities tool (Capability and grounding family). Enumerates the composable capability surface a client LLM can plan over: the standard tools/operations the server advertises (with descriptions and safety annotations), the resource families it exposes, and the grounding tools and grounding resources (e.g. honua://catalog/features) the model uses to ground entities, disambiguate, and self-check. Read-only self-description; it does not plan, execute, or mutate. All arguments are optional filters. See taxonomy.md §Capability and grounding and §Grounding-as-Tools; output shape in list_capabilities.output.schema.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "workflowFamilies": {
+      "type": "array",
+      "description": "Optional filter restricting returned capabilities to those usable in the listed workflow families.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["Analyze", "PublishData", "BuildApp", "AutomateDeploy"]
+      }
+    },
+    "families": {
+      "type": "array",
+      "description": "Optional filter restricting returned tools to the listed tool families (taxonomy.md §Tools), e.g. 'Intent and planning', 'Capability and grounding'.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "includeResources": {
+      "type": "boolean",
+      "description": "Include the advertised resource families in the result. Defaults to true."
+    },
+    "includeGrounding": {
+      "type": "boolean",
+      "description": "Include the grounding-as-tools set and grounding resources in the result. Defaults to true."
+    },
+    "includeAnnotations": {
+      "type": "boolean",
+      "description": "Include per-tool safety annotations (readOnlyHint, destructiveHint, idempotentHint, openWorldHint). Defaults to true."
+    },
+    "cursor": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque pagination cursor from a prior call's nextCursor, following the collection-read pagination contract in resources.md."
+    }
+  }
+}

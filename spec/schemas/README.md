@@ -87,4 +87,18 @@ prefix-independent.
 | [`index.json`](index.json) | Machine-readable tool/resource → schema map |
 | [`common/geoprocessing-error.schema.json`](common/geoprocessing-error.schema.json) | The canonical `GeoprocessingError` envelope (shared) |
 | [`tools/*.schema.json`](tools/) | One `inputSchema` per core tool family |
+| [`tools/*.output.schema.json`](tools/) | The MCP 2025-06-18 `outputSchema` for the tools whose return shape the standard owns (`list_capabilities`, `resolve_entity`) |
 | [`resources/*.schema.json`](resources/) | One payload schema per core resource family |
+
+## Output schemas
+
+MCP revision `2025-06-18` (see [transport.md](../transport.md)) adds tool
+`outputSchema` / `structuredContent`. The standard publishes an `outputSchema`
+only where it **owns** the return shape — currently the capability-surface
+introspection tools `list_capabilities` and `resolve_entity`, whose outputs are
+MCP-owned projections rather than upstream canonical objects. Every other tool's
+return is asserted through the conformance expected-behavior shapes
+([`spec/conformance.md` §2.3](../conformance.md#23-expected-behavior-shapes)),
+which bind the canonical object by name; that pattern is unchanged. Where an
+`outputSchema` exists, `index.json` records it on the tool entry under
+`outputSchema`, and the tool's safety annotations under `annotations`.

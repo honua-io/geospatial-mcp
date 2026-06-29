@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/resolve_entity.schema.json",
+  "title": "resolve_entity inputSchema",
+  "description": "Argument shape for the resolve_entity tool (Capability and grounding family). Resolves a natural-language or partial-text reference into ranked, evidence-backed geospatial entity references (dataset, layer, feature, service, style, theme, template, or process) over the server CapabilityCatalog and feature catalog grounding resource (honua://catalog/features). Read-only grounding primitive: it does not plan, execute, or mutate. A cold client LLM uses it to bind freeform names to canonical references before composing a plan. See taxonomy.md §Capability and grounding and §Grounding-as-Tools; output shape in resolve_entity.output.schema.json.",
+  "type": "object",
+  "required": ["text"],
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Freeform natural-language or partial text naming the entity to resolve (e.g. 'flood zones', 'the parcels layer', 'travel-time service area process')."
+    },
+    "entityKinds": {
+      "type": "array",
+      "description": "Optional filter restricting the kinds of entity to resolve to. When omitted, the server resolves across every kind it can ground.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["Dataset", "Layer", "Feature", "Service", "Style", "Theme", "Template", "Process"]
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "description": "Maximum number of ranked candidates to return (server caps to its own ceiling). Defaults to a small server-chosen value."
+    },
+    "intentId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional intent identifier correlating this resolution with an in-flight grounding/planning session (see ground_candidates)."
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional scoping context that narrows resolution.",
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "Workspace whose visible catalog scopes resolution."
+        },
+        "datasetId": {
+          "type": "string",
+          "description": "Dataset to scope Layer/Feature resolution within."
+        },
+        "layerId": {
+          "type": "string",
+          "description": "Layer to scope Feature resolution within (required for stable Feature resolution)."
+        },
+        "areaOfInterest": {
+          "type": "string",
+          "description": "AOI as WKT, bounding-box string, or named area, used to bias Feature/Service candidates."
+        },
+        "spatialReferenceId": {
+          "type": "integer",
+          "description": "EPSG SRID for the AOI (defaults to 4326)."
+        }
+      }
+    }
+  }
+}

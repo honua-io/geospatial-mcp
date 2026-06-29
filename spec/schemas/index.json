@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "geospatial-mcp JSON Schema index",
-  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only.",
-  "date": "2026-06-21",
+  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'schema' points to the tool inputSchema; 'outputSchema' (optional) points to the tool's MCP 2025-06-18 outputSchema where the standard owns the return shape. 'annotations' (optional) records the tool's MCP safety hints (see taxonomy.md §Tool Safety Annotations). 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only.",
+  "date": "2026-06-29",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
   "tools": [
     {
@@ -33,6 +33,26 @@
       "schema": "tools/validate_plan.schema.json",
       "implementationStatus": "implemented",
       "notes": "Reference also advertises honua_dry_run_plan with the same partial-plan input schema."
+    },
+    {
+      "standardName": "list_capabilities",
+      "referenceToolName": null,
+      "family": "Capability and grounding",
+      "schema": "tools/list_capabilities.schema.json",
+      "outputSchema": "tools/list_capabilities.output.schema.json",
+      "annotations": { "readOnlyHint": true, "destructiveHint": false, "idempotentHint": true, "openWorldHint": false },
+      "implementationStatus": "known-gap",
+      "notes": "Client-LLM self-description tool: enumerates the composable tool/resource surface plus grounding-as-tools and grounding resources. Tracked for the reference in honua-io/honua-server#1949."
+    },
+    {
+      "standardName": "resolve_entity",
+      "referenceToolName": null,
+      "family": "Capability and grounding",
+      "schema": "tools/resolve_entity.schema.json",
+      "outputSchema": "tools/resolve_entity.output.schema.json",
+      "annotations": { "readOnlyHint": true, "destructiveHint": false, "idempotentHint": true, "openWorldHint": true },
+      "implementationStatus": "known-gap",
+      "notes": "Grounds natural-language text to ranked, evidence-backed entity references over honua://catalog/features. Tracked for the reference in honua-io/honua-server#1949."
     },
     {
       "standardName": "execute_plan",

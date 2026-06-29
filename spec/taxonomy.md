@@ -145,6 +145,10 @@ protocol-specific level.
 
 Geospatial tool families:
 
+- **Capability and grounding** -- `list_capabilities`, `resolve_entity`
+  (client-LLM self-description and natural-language entity grounding; the
+  composable-surface entry points a cold client LLM calls first; see
+  [§Grounding-as-Tools](#grounding-as-tools))
 - **Intent and planning** -- `plan_analysis`, `ground_candidates`,
   `clarify_intent`, `validate_plan`
 - **Execution** -- `execute_plan`
@@ -159,6 +163,67 @@ Geospatial tool families:
   mutate server-side styles.
 - **App composition** -- `create_app_package`, `preview_app_package`
 - **Publishing** -- `publish_result`
+
+### Grounding-as-Tools
+
+The standard blesses a **grounding-as-tools** pattern: a cold client LLM (one
+with no Honua-specific system prompt) must be able to compose a correct
+geospatial workflow using only the advertised tool surface. To make that
+possible, the server exposes — as ordinary read-only MCP tools — the affordances
+the model needs to *discover*, *ground*, *disambiguate*, and *self-check*,
+rather than assuming the model already knows the catalog.
+
+The grounding-as-tools set is:
+
+| Tool | Role for the client LLM |
+|---|---|
+| `list_capabilities` | Self-describe the composable surface: which tools/operations exist, which resource families are readable, and which grounding tools and grounding resources are available — with per-tool descriptions and [safety annotations](#tool-safety-annotations) — so the model can plan over the real surface |
+| `resolve_entity` | Ground freeform natural-language text to ranked, evidence-backed canonical entity references (dataset, layer, feature, service, style, theme, template, process) before they are used as plan inputs |
+| `ground_candidates` | Ground a whole goal to a workflow family, ranked candidates, and a draft intent ([planning.md §2](planning.md#2-clarification-and-elicitation-semantics)) |
+| `clarify_intent` | Resolve ambiguity through typed clarification questions ([planning.md §2](planning.md#2-clarification-and-elicitation-semantics)) |
+| `validate_plan` | Self-check a composed (possibly partial) plan before execution ([planning.md §5](planning.md#5-plan-handoff-semantics)) |
+
+Two invariants make grounding-as-tools trustworthy:
+
+1. **Evidence-backed grounding.** `list_capabilities` and `resolve_entity`
+   ground against the server `CapabilityCatalog` and the **feature catalog
+   grounding resource** `honua://catalog/features` (a catalog-family grounding
+   resource; its per-family inspection contract remains deferred to the
+   open-core/upstream surface in this version of the standard, per
+   [resources.md](resources.md)). A capability or entity that has no evidence in
+   a grounding resource MUST NOT be returned. This keeps a client LLM from
+   composing hallucinated capabilities.
+2. **Correctness is server-owned, not model-owned.** Grounding and validation
+   are deterministic over the catalog and independent of the model. Invalid
+   compositions return a structured, actionable
+   [`GeoprocessingError`](resources.md#error-model) (or a `ClarificationRequest`)
+   the model can recover from — never a silent bad result.
+
+`list_capabilities` and `resolve_entity` are read-only and do not advance a
+workflow; they describe and ground it. Grounding resources are MCP **resources**
+(read-only context) surfaced *as* tool-accessible grounding so a client whose
+host does not auto-attach resources can still reach them.
+
+### Tool Safety Annotations
+
+Each advertised MCP tool SHOULD carry the MCP base `Tool.annotations` safety
+hints so a client LLM and its host can reason about a tool before calling it.
+These hints are **advisory** (a security-conscious host MUST NOT treat them as a
+trust boundary); they describe intent:
+
+| Annotation | Meaning |
+|---|---|
+| `readOnlyHint` | The tool does not mutate server state. Every inspection and grounding tool in this standard sets `true`; per the [boundary rules](#boundary-rules) MCP tools never mutate server state directly, so a tool that would imply mutation is out of scope |
+| `destructiveHint` | The tool may perform destructive updates. Read-only tools set `false` |
+| `idempotentHint` | Repeated calls with the same arguments have no additional effect beyond the first |
+| `openWorldHint` | The tool interacts with an open, evolving world (e.g. a live catalog) rather than a closed, fixed set |
+
+`list_capabilities` exposes each tool's annotations so the model can discover
+them at runtime. The machine-readable values for standard tools that the
+standard owns are recorded in the `annotations` field of
+[`spec/schemas/index.json`](schemas/index.json) (for example `resolve_entity`
+is `readOnlyHint: true`, `openWorldHint: true`; `list_capabilities` is
+`readOnlyHint: true`, `openWorldHint: false`).
 
 ### Prompts
 
@@ -188,6 +253,17 @@ Elicitation triggers:
 
 See `spec/planning.md` §2 for the full clarification protocol: reason codes,
 question kinds, assumption policies, and answer binding semantics.
+
+### Transport, Sessions, and Streaming
+
+The four primitives above are carried over an MCP transport. The session,
+streaming, and protocol-revision contract — the supported protocol revision
+(`2025-06-18`), the `Mcp-Session-Id` session model, streamable-HTTP/SSE and
+stdio transports, `notifications/progress` for long-running jobs, and the
+`notifications/*/list_changed` capability notifications — is owned by
+[MCP Session and Streaming Transport](transport.md). That document is the
+authoritative transport contract; this section only points to it so the
+primitive vocabulary and the transport contract stay single-sourced.
 
 ## Workflow Families
 
@@ -250,6 +326,19 @@ surfaces. Canonical definitions are spread across three upstream documents:
 
 This section lists the objects for reference; the upstream documents are
 authoritative.
+
+Two capability-surface tool outputs are **MCP-owned introspection
+projections** rather than upstream canonical objects: `list_capabilities`
+returns a self-description of the composable surface, and `resolve_entity`
+returns ranked references to the canonical entities below. Their shapes are
+defined by their JSON Schemas
+([`tools/list_capabilities.output.schema.json`](schemas/tools/list_capabilities.output.schema.json),
+[`tools/resolve_entity.output.schema.json`](schemas/tools/resolve_entity.output.schema.json)),
+in the same spirit as the MCP-owned
+[`ConformanceManifest`](schemas/conformance/manifest.schema.json); they
+reference the canonical objects (e.g. `DatasetRef`, `LayerRef`,
+`ProcessDefinition`, `StyleRef`) by id and `honua://` URI and do not redefine
+their field shapes.
 
 ### Discovery and Context
 
@@ -333,6 +422,7 @@ not read `v1` in this matrix as "available in the reference".
 
 | Capability | Analyze | Publish Data | Build App | Automate / Deploy |
 |---|---|---|---|---|
+| Capability discovery and grounding | v1 | v1 | v1 | deferred |
 | Intent capture | v1 | v1 | v1 | deferred |
 | Clarification / elicitation | v1 | v1 | v1 | deferred |
 | Plan validation | v1 | v1 | v1 | deferred |
@@ -349,7 +439,7 @@ not read `v1` in this matrix as "available in the reference".
 | Primitive | v1 Coverage |
 |---|---|
 | Resources | Catalog, dataset, process definition, style, theme, map template, app template, result package, map, app, published service, deployment, workspace ([per-family contracts](resources.md) for result through workspace families) |
-| Tools | Intent/planning, execution, map composition, app composition, publishing |
+| Tools | Capability and grounding, intent/planning, execution, map composition, app composition, publishing |
 | Prompts | Analysis workflows (site selection, hazard assessment, service coverage), review workflows, builder workflows |
 | Elicitation | Clarification reason codes defined in `spec/planning.md` §2.1 (seven codes across all workflow families) |
 
@@ -357,6 +447,8 @@ not read `v1` in this matrix as "available in the reference".
 
 | Tool | Analyze | Publish Data | Build App |
 |---|---|---|---|
+| `list_capabilities` | v1 | v1 | v1 |
+| `resolve_entity` | v1 | v1 | v1 |
 | `plan_analysis` | v1 | -- | -- |
 | `ground_candidates` | v1 | v1 | -- |
 | `clarify_intent` | v1 | v1 | v1 |

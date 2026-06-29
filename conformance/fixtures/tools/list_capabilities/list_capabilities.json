@@ -1,0 +1,13 @@
+{
+  "id": "list_capabilities.analyze",
+  "schemaRef": "tools/list_capabilities.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "workflowFamilies": ["Analyze"],
+    "includeResources": true,
+    "includeGrounding": true,
+    "includeAnnotations": true
+  },
+  "expected": "tool_result",
+  "canonicalRefs": ["CapabilityCatalog"]
+}

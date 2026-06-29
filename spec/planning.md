@@ -199,7 +199,10 @@ indefinitely.
 prompts render the questions to the client and carry answers back as
 `ClarificationResponse`. The transport does not own the reason codes, the
 question kinds, or the assumption policy; those are protocol semantics defined
-here and reused from the upstream contract.
+here and reused from the upstream contract. The concrete transport realization
+of this mapping — MCP-native `elicitation/create` on revision `2025-06-18`, with
+the `emit_clarification` tool-result fallback on older revisions — is specified
+in [transport.md §Elicitation Transport](transport.md#6-elicitation-transport).
 
 A transport MAY batch multiple `ClarificationRequest`s before returning to the
 planner, but MUST preserve `questionId` identity so answers remain bindable.

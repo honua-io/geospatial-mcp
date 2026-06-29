@@ -1,0 +1,16 @@
+{
+  "id": "resolve_entity.layer",
+  "schemaRef": "tools/resolve_entity.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "text": "the parcels layer for the county",
+    "entityKinds": ["Layer", "Dataset"],
+    "limit": 5,
+    "context": {
+      "areaOfInterest": "named:Travis County",
+      "spatialReferenceId": 4326
+    }
+  },
+  "expected": "tool_result",
+  "canonicalRefs": ["CapabilityCatalog", "DatasetRef", "LayerRef"]
+}

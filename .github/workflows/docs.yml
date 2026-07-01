@@ -49,3 +49,5 @@ jobs:
         # published index.json vocabulary and validates it against
         # manifest.schema.json.
         run: python3 conformance/check_manifest.py --strict conformance/manifests/honua.manifest.json
+      - name: Run conformance checker regression tests
+        run: python3 conformance/test_check_manifest.py

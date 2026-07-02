@@ -43,4 +43,9 @@ jobs:
       - name: Validate fixtures against published schemas
         run: python3 conformance/fixtures/validate.py --strict
       - name: Check reference manifest conformance
-        run: python3 conformance/check_manifest.py --strict
+        # The reference manifest is generated from the live honua-server /mcp
+        # surface by scripts/conformance/mcp/manifest-gen in honua-server
+        # (CapabilityManifestEmitter); --strict scores it at FULL against the
+        # published index.json vocabulary and validates it against
+        # manifest.schema.json.
+        run: python3 conformance/check_manifest.py --strict conformance/manifests/honua.manifest.json

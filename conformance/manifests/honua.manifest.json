@@ -5,29 +5,127 @@
     "isReferenceImplementation": true
   },
   "tools": [
-    { "standardName": "plan_analysis", "advertisedName": "honua_plan_analysis", "workflowFamily": "Planning" },
-    { "standardName": "ground_candidates", "advertisedName": "honua_ground_candidates", "workflowFamily": "Planning" },
-    { "standardName": "clarify_intent", "advertisedName": "honua_clarify_intent", "workflowFamily": "Planning" },
-    { "standardName": "validate_plan", "advertisedName": "honua_validate_plan", "workflowFamily": "Planning" },
-    { "standardName": "validate_plan", "advertisedName": "honua_dry_run_plan", "workflowFamily": "Planning" },
-    { "standardName": "execute_plan", "advertisedName": "honua_execute_plan", "workflowFamily": "Execution" },
-    { "standardName": "cancel_job", "advertisedName": "honua_cancel_job", "workflowFamily": "Lifecycle" },
-    { "standardName": "list_layers", "advertisedName": "honua_list_layers", "workflowFamily": "Discovery" },
-    { "standardName": "query_features", "advertisedName": "honua_query_features", "workflowFamily": "Discovery" },
-    { "standardName": "render_map", "advertisedName": "honua_render_map", "workflowFamily": "Discovery" },
-    { "standardName": "geocode_address", "advertisedName": "honua_geocode_address", "workflowFamily": "Analysis" },
-    { "standardName": "solve_route", "advertisedName": "honua_solve_route", "workflowFamily": "Analysis" },
-    { "standardName": "propose_operation", "advertisedName": "honua_propose_operation", "workflowFamily": "Planning" }
+    {
+      "standardName": "cancel_job",
+      "advertisedName": "honua_cancel_job",
+      "workflowFamily": "Lifecycle"
+    },
+    {
+      "standardName": "clarify_intent",
+      "advertisedName": "honua_clarify_intent",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "create_app_package",
+      "advertisedName": "honua_create_app_package",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "create_map_package",
+      "advertisedName": "honua_create_map_package",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "validate_plan",
+      "advertisedName": "honua_dry_run_plan",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "execute_plan",
+      "advertisedName": "honua_execute_plan",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "geocode_address",
+      "advertisedName": "honua_geocode_address",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "ground_candidates",
+      "advertisedName": "honua_ground_candidates",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "list_capabilities",
+      "advertisedName": "honua_list_capabilities",
+      "workflowFamily": "Results"
+    },
+    {
+      "standardName": "list_layers",
+      "advertisedName": "honua_list_layers",
+      "workflowFamily": "Results"
+    },
+    {
+      "standardName": "plan_analysis",
+      "advertisedName": "honua_plan_analysis",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "preview_package",
+      "advertisedName": "honua_preview_package",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "propose_operation",
+      "advertisedName": "honua_propose_operation",
+      "workflowFamily": "Lifecycle"
+    },
+    {
+      "standardName": "publish_service",
+      "advertisedName": "honua_publish_service",
+      "workflowFamily": "Lifecycle"
+    },
+    {
+      "standardName": "query_features",
+      "advertisedName": "honua_query_features",
+      "workflowFamily": "Results"
+    },
+    {
+      "standardName": "render_map",
+      "advertisedName": "honua_render_map",
+      "workflowFamily": "Results"
+    },
+    {
+      "standardName": "resolve_entity",
+      "advertisedName": "honua_resolve_entity",
+      "workflowFamily": "Results"
+    },
+    {
+      "standardName": "solve_route",
+      "advertisedName": "honua_solve_route",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "validate_package",
+      "advertisedName": "honua_validate_package",
+      "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "validate_plan",
+      "advertisedName": "honua_validate_plan",
+      "workflowFamily": "Planning"
+    }
   ],
   "resources": [
-    { "family": "Result package", "uriForm": "honua://results/{result_package_id}" },
-    { "family": "Result artifact", "uriForm": "honua://results/{result_package_id}/artifacts/{artifact_id}" },
-    { "family": "Result provenance", "uriForm": "honua://results/{result_package_id}/provenance" },
-    { "family": "Workspace", "uriForm": "honua://workspaces/{workspace_id}" },
-    { "family": "Workspace artifact", "uriForm": "honua://workspaces/{workspace_id}/artifacts/{artifact_id}" },
-    { "family": "Map package", "uriForm": "honua://maps/{map_package_id}" },
-    { "family": "App package", "uriForm": "honua://apps/{app_package_id}" },
-    { "family": "Published service", "uriForm": "honua://services/{published_service_id}" },
-    { "family": "Deployment", "uriForm": "honua://deployments/{deployment_id}" }
+    {
+      "family": "App package",
+      "uriForm": "honua://app-packages/{app_package_id}"
+    },
+    {
+      "family": "Deployment",
+      "uriForm": "honua://deployments/{deployment_id}"
+    },
+    {
+      "family": "Map package",
+      "uriForm": "honua://map-packages/{map_package_id}"
+    },
+    {
+      "family": "Published service",
+      "uriForm": "honua://published-services/{published_service_id}"
+    },
+    {
+      "family": "Workspace",
+      "uriForm": "honua://workspaces/{workspace_id}"
+    }
   ]
 }

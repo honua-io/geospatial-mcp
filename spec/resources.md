@@ -53,7 +53,7 @@ resource within the family; it is omitted for collection roots.
 `/provenance`).
 
 The open-core data-access surface already exposes the collection
-resource `honua://services` (see
+resource `honua://published-services` (see
 [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources));
 that resource remains valid under this grammar. Families introduced by
 this document address instance resources (and their subresources) only;
@@ -66,13 +66,13 @@ Families introduced by this document:
 | Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result) |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
-| Map package | `honua://maps/{map_package_id}` | `MapPackage` |
-| App package | `honua://apps/{app_package_id}` | `AppPackage` |
+| Map package | `honua://map-packages/{map_package_id}` | `MapPackage` |
+| App package | `honua://app-packages/{app_package_id}` | `AppPackage` |
 | Style | `honua://styles/{style_id}` | `StyleRef` (`geospatial.v1.StyleRef`, geospatial-grpc; resolved via the server OGC API – Styles surface) |
 | Theme | `honua://themes/{theme_id}` | `ThemeSpec` |
 | Map template | `honua://templates/maps/{map_template_id}` | `MapTemplate` |
 | App template | `honua://templates/apps/{app_template_id}` | `AppPackage.templateId` (shape deferred) |
-| Published service | `honua://services/{published_service_id}` | `PublishedService` |
+| Published service | `honua://published-services/{published_service_id}` | `PublishedService` |
 | Deployment | `honua://deployments/{deployment_id}` | `Deployment` |
 | Workspace | `honua://workspaces/{workspace_id}` | `WorkspaceRef` |
 | Workspace artifact (lifecycle view) | `honua://workspaces/{workspace_id}/artifacts/{artifact_id}` | `ArtifactRef` |
@@ -86,18 +86,39 @@ them. Template IDs are stable registry-defined identifiers (for example
 `analysis_default`, `analysis_dashboard`) surfaced through `templateId`; this
 document does not mandate an MCP-local prefix convention for templates.
 
+**Reference-implementation coverage (served vs. known-gap).** The URI grammar
+above is the standard; whether the reference implementation (Honua `/mcp`, per
+the honua-server MCP resource-URI grammar decision, ADR-0058 "Decision A")
+serves a given family today is tracked in
+[`spec/schemas/index.json`](schemas/index.json) `implementationStatus` and the
+reference conformance manifest (`conformance/manifests/honua.manifest.json`),
+and is enforced by `conformance/check_manifest.py --strict`. As of this writing
+the reference serves the **Map package**, **App package**, **Published
+service**, **Deployment**, and **Workspace** families under the URIs above. The
+**Result package**, **Result artifact**, **Result provenance**, **Workspace
+artifact**, **Style**, **Theme**, **Map template**, and **App template**
+families are **known-gaps**: the grammar is normative but the reference does not
+yet project them as MCP resources. In particular, the reference does not serve
+the analysis result package as a `honua://results/{result_package_id}`
+resource; execution outputs are read from the running job at
+`honua://jobs/{job_id}/results` (canonical `ExecutionJob` object reference — the
+standard defines no `honua://jobs` resource family; see
+[planning.md §5.3](planning.md#53-post-handoff-execution--orchestration-plane)).
+Known-gap families are informational in the conformance manifest and do not
+reduce its FULL level.
+
 The open-core data-access surface already uses
-`honua://services/{encodedServiceId}/layers/{layerId}` for catalog-backed
+`honua://published-services/{encodedServiceId}/layers/{layerId}` for catalog-backed
 layer schema inspection (see
 [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md)).
-`honua://services/{published_service_id}` coexists with that usage: the
+`honua://published-services/{published_service_id}` coexists with that usage: the
 former is operator-published service metadata, the latter is a layer schema
 view. Both resolve under a single scheme; clients distinguish by path.
 
 ### Collection Reads — Pagination and Limits
 
 Collection reads — a family root with no `{instance_id}` (for example
-`honua://services`, `honua://styles`) and any future collection root — are
+`honua://published-services`, `honua://styles`) and any future collection root — are
 **bounded**. A conformant surface MUST NOT return an unbounded enumeration of a
 large catalog; unbounded full-catalog reads are a smell telemetered against in
 [planning.md §3.1](planning.md#31-resource-scoping-contract) and
@@ -124,7 +145,7 @@ The contract is:
    [`GeoprocessingError`](#error-model) envelope (`kind: ValidationFailed`)
    and the client restarts from the first page; no MCP-local pagination error
    code is introduced.
-4. The open-core data-access collection surface (`honua://services` per
+4. The open-core data-access collection surface (`honua://published-services` per
    [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources))
    is authoritative for the concrete page-size defaults and token encoding.
    This section pins the cursor/limit shape so MCP collection reads are
@@ -283,7 +304,7 @@ defines a shared stable identifier and its canonical shape finalizes in
 
 ## Asset Resources
 
-### `honua://maps/{map_package_id}`
+### `honua://map-packages/{map_package_id}`
 
 Projection of
 [`MapPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
@@ -319,7 +340,7 @@ these compositions by canonical object name; upstream field renames in
 the packaging lifecycle flow through by reference without invalidating
 this surface.
 
-### `honua://apps/{app_package_id}`
+### `honua://app-packages/{app_package_id}`
 
 Projection of
 [`AppPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage).
@@ -477,7 +498,7 @@ this resource does not create an MCP-local app-template field table.
 These resources are strictly read-only projections of promoted or deployed
 state. None of them expose control operations through MCP.
 
-### `honua://services/{published_service_id}`
+### `honua://published-services/{published_service_id}`
 
 Projection of
 [`PublishedService`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishedservice).
@@ -622,15 +643,15 @@ reads come from workspace ownership and lifecycle context (see
 | `results/{result_package_id}` | `MapPackage` | references (`AnalysisResultPackage.mapPackageId?`) |
 | `results/{result_package_id}` | `AppPackage` | references (`AnalysisResultPackage.appPackageId?`) |
 | `results/{result_package_id}` | `GeoprocessingError` | composes (`AnalysisResultPackage.errors[]`) |
-| `maps/{id}` | `SourceBinding` | composes (binding list) |
-| `maps/{id}` | `StyleRef` | references (style composition) |
-| `maps/{id}` | `ThemeSpec` | references (theme selection) |
-| `maps/{id}` | `MapTemplate` | references (template composition) |
-| `maps/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
-| `apps/{id}` | `MapPackage` | references (map binding) |
-| `apps/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
-| `apps/{id}` | app-template registry entry | references (template binding via `AppPackage.templateId`; standalone shape deferred) |
-| `services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
+| `map-packages/{id}` | `SourceBinding` | composes (binding list) |
+| `map-packages/{id}` | `StyleRef` | references (style composition) |
+| `map-packages/{id}` | `ThemeSpec` | references (theme selection) |
+| `map-packages/{id}` | `MapTemplate` | references (template composition) |
+| `map-packages/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
+| `app-packages/{id}` | `MapPackage` | references (map binding) |
+| `app-packages/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
+| `app-packages/{id}` | app-template registry entry | references (template binding via `AppPackage.templateId`; standalone shape deferred) |
+| `published-services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
 | `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` (opaque) \| `PipelineDefinition` (opaque) | references (`targetRef`); navigable for families with MCP resource contracts; `ProcessDefinition` and `PipelineDefinition` targets are opaque identifiers in this version |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
@@ -742,9 +763,9 @@ cell is read from the taxonomy matrix.
 | Resource family | Workflow families consuming it |
 |---|---|
 | `results`, `results/{id}/artifacts`, `results/{id}/provenance` | Analyze, Publish Data, Build App, Automate / Deploy |
-| `maps`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
-| `apps`, `templates/apps` | Analyze, Build App, Automate / Deploy |
-| `services` | Analyze, Publish Data, Automate / Deploy |
+| `map-packages`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
+| `app-packages`, `templates/apps` | Analyze, Build App, Automate / Deploy |
+| `published-services` | Analyze, Publish Data, Automate / Deploy |
 | `deployments` | Publish Data, Build App, Automate / Deploy |
 | `workspaces`, `workspaces/{id}/artifacts` | Analyze, Publish Data, Build App, Automate / Deploy |
 
@@ -795,13 +816,13 @@ source, layer, collection, capability, style, theme, template, or process:
 - catalog and capability metadata (`CapabilityCatalog`);
 - dataset and layer descriptors (`DatasetRef`, `LayerRef`, field and schema
   reads, including the open-core
-  `honua://services/{encodedServiceId}/layers/{layerId}` route per
+  `honua://published-services/{encodedServiceId}/layers/{layerId}` route per
   [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md));
 - process and pipeline descriptions (`ProcessDefinition`,
   `PipelineDefinition`);
 - style, theme, and template inspection (`StyleRef`, `ThemeSpec`,
   `MapTemplate`, app-template registry entries);
-- published-service metadata (`honua://services/{published_service_id}`),
+- published-service metadata (`honua://published-services/{published_service_id}`),
   where the read returns descriptive service metadata rather than live feature
   state.
 

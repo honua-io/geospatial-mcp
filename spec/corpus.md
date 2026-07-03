@@ -382,7 +382,7 @@ references stay at responsibility level, consistent with how
   one of `FeatureLayer` or `Table`, plus `Report`; scenarios that
   request a map additionally produce `Map`.
 - **Expected resource projections:** scenarios that request a map
-  additionally surface a `honua://maps/{id}` binding.
+  additionally surface a `honua://map-packages/{id}` binding.
 
 ### 7.2 Publish Data
 
@@ -409,7 +409,7 @@ references stay at responsibility level, consistent with how
   [resources.md §Reserved `honua://results/{id}` — Publishing Result](resources.md#reserved-honuaresultsid--publishing-result);
   the expected route becomes constructible once upstream defines a
   shared stable identifier. The `PublishedService` surface projects
-  under `honua://services/{published_service_id}`
+  under `honua://published-services/{published_service_id}`
   ([resources.md §Promotion-Surface Resources](resources.md#promotion-surface-resources)).
 - **Expected `ArtifactKind` values:** `FeatureLayer` or `Table`.
 - **Expected resource projections:** a canonical `PublishedService`
@@ -432,19 +432,19 @@ references stay at responsibility level, consistent with how
   - `UseDefaults`: verify non-suppression of `PublishAction` and
     `PolicyBoundary`.
 - **Result package and resource URI:** Build App scenarios expect an
-  `AppPackage` surfaced under `honua://apps/{app_package_id}`
-  ([resources.md §`honua://apps/{app_package_id}`](resources.md#honuaappsapp_package_id)).
+  `AppPackage` surfaced under `honua://app-packages/{app_package_id}`
+  ([resources.md §`honua://app-packages/{app_package_id}`](resources.md#honuaapp-packagesapp_package_id)).
   `BuilderResultPackage` routing under the reserved
   `honua://results/{id}` builder route becomes constructible once
   upstream defines a shared stable identifier
   ([resources.md §Reserved `honua://results/{id}` — Builder Result](resources.md#reserved-honuaresultsid--builder-result));
-  scenarios until then assert on the `honua://apps/{id}` projection.
+  scenarios until then assert on the `honua://app-packages/{id}` projection.
 - **Expected `ArtifactKind` values:** scenarios produce an `AppBundle`
   artifact; scenarios that bind a map additionally produce a `Map`
   artifact.
 - **Expected resource projections:** a canonical `AppPackage`
   reference; scenarios that bind a map additionally surface a
-  `honua://maps/{id}` binding. Build App output vocabulary remains
+  `honua://map-packages/{id}` binding. Build App output vocabulary remains
   upstream-owned per [planning.md §4.3](planning.md#43-build-app);
   scenarios cite `AppBundle` as the upstream `ArtifactKind` and emit
   the `app_package` / `preview` spellings used in the canonical
@@ -542,8 +542,8 @@ of the §7.2 publishing-result / `PublishedService` surfaces.
 |---|---|---|---|---|---|---|---|
 | `synthetic.geom.basic` | `synthetic` | `both` | `synthetic` | -- | -- | `FeatureLayer` (substrate only; no scenario-level outputs) | -- |
 | `analyze.sites.basic` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Report` | -- |
-| `analyze.sites.with-map` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
-| `analyze.hazard.flood-zone` | `analyze` | `analyst` | `synthetic` + `mirror.admin-boundaries.*` | `ogc_features`, `wfs` (via `admin-boundaries`) | -- | `FeatureLayer`, `Map`, `Report` | `honua://maps/{id}` binding |
+| `analyze.sites.with-map` | `analyze` | `analyst` | `synthetic` | -- | -- | `FeatureLayer`, `Map`, `Report` | `honua://map-packages/{id}` binding |
+| `analyze.hazard.flood-zone` | `analyze` | `analyst` | `synthetic` + `mirror.admin-boundaries.*` | `ogc_features`, `wfs` (via `admin-boundaries`) | -- | `FeatureLayer`, `Map`, `Report` | `honua://map-packages/{id}` binding |
 | `analyze.service-coverage.baseline` | `analyze` | `analyst` | `synthetic` + `mirror.parcels.*` | `geoservices_feature_service`, `ogc_features`, `wfs` (via `parcels`) | -- | `FeatureLayer`, `Aggregate`-backed `Table`, `Report` | -- |
 | `publish.source.file` | `publish` | `publisher` | `file` | -- | -- | -- | Source baseline only; no §7.2 publishing-result or `PublishedService` projection |
 | `publish.source.database` | `publish` | `publisher` | `database` | -- | -- | -- | Source baseline only; no §7.2 publishing-result or `PublishedService` projection |
@@ -571,7 +571,7 @@ of the §7.2 publishing-result / `PublishedService` surfaces.
 | `dirty.enrich.lookup-gaps` | `dirty` | `publisher` | `database` | -- | `enrich` | -- | Expected `ClarificationRequest` with `MissingRequiredInput` |
 | `dirty.quality_check.out-of-range` | `dirty` | `publisher` | `file` | -- | `quality_check` | -- | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
 | `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` | Canonical `AppPackage` reference |
-| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` | Canonical `AppPackage` and `MapPackage` references; `honua://maps/{id}` binding |
+| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` | Canonical `AppPackage` and `MapPackage` references; `honua://map-packages/{id}` binding |
 | `deploy.app.promotion` | `deploy` | `analyst` | `synthetic` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 | `deploy.service.promotion` | `deploy` | `publisher` | `service` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 

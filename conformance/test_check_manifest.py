@@ -30,13 +30,13 @@ def _implemented_families(index):
     )
 
 
-def _check(manifest, index):
+def _check(manifest, index, strict=False):
     """Write a manifest dict to a temp file and return (level, errors, warnings)."""
     fd, path = tempfile.mkstemp(suffix=".manifest.json")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(manifest, fh)
-        level, errors, warnings, _stats = cm.check_manifest(path, index)
+        level, errors, warnings, _stats = cm.check_manifest(path, index, strict=strict)
     finally:
         os.remove(path)
     return level, errors, warnings
@@ -89,6 +89,46 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
                 any(family in w and "not advertised" in w for w in warnings),
                 f"expected a coverage note naming the uncovered family '{family}'",
             )
+
+    def test_strict_reference_coverage_gap_is_hard_failure(self):
+        """A5 (#41): under --strict, a served-surface drop on the reference
+        manifest must FAIL, not silently drop to MAPPED.
+
+        Non-strict, dropping an implemented family/tool downgrades FULL->MAPPED
+        (a warning). Under strict on the reference implementation, the same drop
+        is an error (FAIL) so tool-count / served-family drift can't pass CI.
+        """
+        implemented = _implemented_families(self.index)
+        self.assertTrue(implemented, "index must mark some families implemented")
+        family = implemented[0]
+
+        manifest = copy.deepcopy(self.reference)
+        self.assertTrue(
+            manifest.get("implementation", {}).get("isReferenceImplementation"),
+            "reference manifest must be flagged isReferenceImplementation",
+        )
+        manifest["resources"] = [
+            r for r in manifest["resources"] if r.get("family") != family
+        ]
+
+        # Non-strict: downgrade to MAPPED, no error.
+        level, errors, _warnings = _check(manifest, self.index, strict=False)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "MAPPED")
+
+        # Strict on the reference: same drop is a hard failure.
+        level, errors, _warnings = _check(manifest, self.index, strict=True)
+        self.assertEqual(level, "FAIL")
+        self.assertTrue(
+            any(family in e and "not advertised" in e for e in errors),
+            f"strict error should name the dropped family '{family}'",
+        )
+
+    def test_strict_does_not_penalize_intact_reference(self):
+        """Strict keeps the intact reference manifest at FULL (no false fail)."""
+        level, errors, _warnings = _check(self.reference, self.index, strict=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "FULL")
 
     def test_known_gap_family_does_not_block_full(self):
         """Omitting a `known-gap` family stays informational and keeps FULL."""

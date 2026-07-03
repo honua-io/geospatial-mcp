@@ -42,6 +42,15 @@ validates the manifest document against `manifest.schema.json`. Pass `--strict`
 a hard failure instead of a silently skipped schema check (install:
 `pip install -r conformance/requirements.txt`).
 
+`--strict` additionally hardens the reference implementation's gate (A5,
+geospatial-mcp#41): for a manifest flagged `isReferenceImplementation`, any
+coverage gap against the index's `implemented` surface (a served tool or
+resource family the reference stops advertising — i.e. tool-count / served-family
+drift) becomes a hard FAIL instead of a silent drop to MAPPED. Resource
+`uriForm` drift from the standard already fails unconditionally, and `known-gap`
+families stay informational. This makes the reference manifest un-driftable in
+CI once it has been regenerated from the server surface (A4).
+
 Exit code 0 = every checked manifest is at least MAPPED; non-zero otherwise.
 """
 import json
@@ -74,8 +83,16 @@ def maybe_schema_validate(manifest, errors, label):
     return True
 
 
-def check_manifest(path, index):
-    """Return (level, errors, warnings) for one manifest."""
+def check_manifest(path, index, strict=False):
+    """Return (level, errors, warnings, stats) for one manifest.
+
+    When ``strict`` is set and the manifest is the reference implementation,
+    coverage gaps against the index's ``implemented`` surface are promoted from
+    warnings to hard errors, so tool-count / served-family drift on the
+    reference manifest fails CI instead of silently dropping to ``MAPPED`` (A5,
+    geospatial-mcp#41). URI-template drift already errors unconditionally via
+    the ``uriForm`` check below; ``known-gap`` families stay informational.
+    """
     errors = []
     warnings = []
     label = os.path.relpath(path, REPO)
@@ -116,10 +133,13 @@ def check_manifest(path, index):
                              if t.get("implementationStatus") == "implemented"}
     known_gap_std_tools = {n for n, t in index_tools.items()
                            if t.get("implementationStatus") == "known-gap"}
+    is_reference = bool(manifest.get("implementation", {}).get("isReferenceImplementation"))
+    strict_reference = strict and is_reference
+    coverage_sink = errors if strict_reference else warnings
     missing_implemented = sorted(implemented_std_tools - advertised_std_tools)
     for n in missing_implemented:
-        warnings.append(f"{label}: standard tool '{n}' is marked 'implemented' in the index "
-                        f"but is not advertised by this manifest")
+        coverage_sink.append(f"{label}: standard tool '{n}' is marked 'implemented' in the index "
+                             f"but is not advertised by this manifest")
     for n in sorted(known_gap_std_tools - advertised_std_tools):
         warnings.append(f"{label}: standard tool '{n}' is a known gap (not yet implemented)")
 
@@ -132,8 +152,8 @@ def check_manifest(path, index):
                               if r.get("implementationStatus") == "known-gap"}
     missing_implemented_families = sorted(implemented_std_families - advertised_families)
     for f in missing_implemented_families:
-        warnings.append(f"{label}: standard resource family '{f}' is marked 'implemented' "
-                        f"in the index but is not advertised by this manifest")
+        coverage_sink.append(f"{label}: standard resource family '{f}' is marked 'implemented' "
+                             f"in the index but is not advertised by this manifest")
     for f in sorted(known_gap_std_families - advertised_families):
         warnings.append(f"{label}: standard resource family '{f}' is a known gap "
                         f"(not yet implemented)")
@@ -150,7 +170,7 @@ def check_manifest(path, index):
         "coveredStandardTools": len(advertised_std_tools),
         "coveredStandardFamilies": len(advertised_families),
         "knownGaps": len(known_gap_std_tools) + len(known_gap_std_families),
-        "isReference": bool(manifest.get("implementation", {}).get("isReferenceImplementation")),
+        "isReference": is_reference,
     }
 
 
@@ -185,7 +205,7 @@ def main(argv):
 
     rc = 0
     for path in paths:
-        level, errors, warnings, stats = check_manifest(path, index)
+        level, errors, warnings, stats = check_manifest(path, index, strict=strict)
         rel = os.path.relpath(path, REPO)
         mode = "schema+coverage" if stats["schemaChecked"] else "coverage (stdlib only)"
         ref = " [reference implementation]" if stats["isReference"] else ""

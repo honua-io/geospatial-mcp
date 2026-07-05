@@ -154,9 +154,13 @@ Geospatial tool families:
   [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id))
 - **Map composition** -- `create_map_package`, `refine_map_package`,
   `apply_style_preset`, `compose_mixed_protocol_map`, `preview_map_package`.
-  `apply_style_preset` resolves a preset `StyleRef` and its stylesheet for
-  client-side application; like every MCP tool it is read-only and does not
-  mutate server-side styles.
+  The reference implementation ships `apply_style_preset` as an
+  `x-honua-reference-shape` tool (advertised `honua_apply_style_preset`): it
+  binds a preset `StyleRef` as the primary/default style of a published
+  `(serviceId, layerId)` layer, persisting through the server OGC API – Styles
+  authoring surface (ADR-0048) so subsequent `render_map` calls reflect it. It
+  authors presentation metadata on the hosted service and never edits feature
+  records (ADR-0028).
 - **App composition** -- `create_app_package`, `preview_app_package`
 - **Publishing** -- `publish_result`
 

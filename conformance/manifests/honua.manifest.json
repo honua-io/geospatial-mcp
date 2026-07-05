@@ -81,6 +81,11 @@
       "workflowFamily": "Results"
     },
     {
+      "standardName": "edit_features",
+      "advertisedName": "honua_edit_features",
+      "workflowFamily": "Execution"
+    },
+    {
       "standardName": "render_map",
       "advertisedName": "honua_render_map",
       "workflowFamily": "Results"

@@ -86,6 +86,11 @@
       "workflowFamily": "Lifecycle"
     },
     {
+      "standardName": "publish_result",
+      "advertisedName": "honua_publish_result",
+      "workflowFamily": "Lifecycle"
+    },
+    {
       "standardName": "query_features",
       "advertisedName": "honua_query_features",
       "workflowFamily": "Results"

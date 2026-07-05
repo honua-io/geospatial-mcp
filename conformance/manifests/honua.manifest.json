@@ -46,6 +46,11 @@
       "workflowFamily": "Execution"
     },
     {
+      "standardName": "geocode_addresses",
+      "advertisedName": "honua_geocode_addresses",
+      "workflowFamily": "Execution"
+    },
+    {
       "standardName": "get_style",
       "advertisedName": "honua_get_style",
       "workflowFamily": "Results"
@@ -54,6 +59,11 @@
       "standardName": "ground_candidates",
       "advertisedName": "honua_ground_candidates",
       "workflowFamily": "Planning"
+    },
+    {
+      "standardName": "ingest_dataset",
+      "advertisedName": "honua_ingest_dataset",
+      "workflowFamily": "Lifecycle"
     },
     {
       "standardName": "list_capabilities",

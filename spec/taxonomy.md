@@ -395,9 +395,11 @@ standard MCP tools:
 | `query_features` | Discovery and query (reference shape) | open-core data-access surface; not an MCP standard tool |
 | `render_map` | Discovery and query (reference shape) | open-core data-access surface; not an MCP standard tool |
 | `geocode_address` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
+| `geocode_addresses` | Analysis and geoprocessing (reference shape) | a batched `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
 | `solve_route` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
 | `cancel_job` | Execution (reference shape) | post-handoff `ExecutionJob` lifecycle, owned by `ProcessService` ([planning.md §5.3](planning.md#53-post-handoff-execution--orchestration-plane)) |
 | `propose_operation` | Control-plane proposal (reference shape) | a control-plane proposal; no v1 standard MCP tool |
+| `ingest_dataset` | Publishing | the ingest step of the Publish Data workflow ([§Publish Data](#publish-data)); the standard's file/URL ingest contract finalizes upstream |
 
 Reference-shape tools MUST NOT be treated as v1 standard vocabulary; promoting
 one into the standard requires a change to the matrix above. The bare standard

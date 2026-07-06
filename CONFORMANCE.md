@@ -92,11 +92,15 @@ Each tool's profile is recorded by the optional `profile` field in
 [`index.json`](spec/schemas/index.json) (default `base`). A tool in an additive
 profile is required for **FULL** only when the manifest declares that profile;
 otherwise it is reported as an informational note, exactly like a `known-gap`
-tool. This lets a read-only adopter reach FULL on `base` while the reference
-(Honua), which declares `["base", "mutation"]`, must advertise `edit_features`
-to stay FULL — and, under `--strict`, dropping it fails CI. *Autonomous*
-mutation is never sanctioned by any profile; the mutation profile only covers
-explicit, authorized `edit_features` calls.
+tool. This lets a read-only adopter reach FULL on `base` without advertising any
+editing tool. The reference (Honua) declares `["base"]` only: it does **not**
+implement the `mutation` profile, because Honua does not support AI operational
+data editing (honua-server ADR-0028, founder-reaffirmed 2026-07-06). The
+`mutation` profile remains available in the standard for other adopters that make
+a different, governed trust decision; such an adopter declares `mutation` and
+must advertise `edit_features` to stay FULL. *Autonomous* mutation is never
+sanctioned by any profile; the mutation profile only covers explicit, authorized
+`edit_features` calls.
 
 ## Producing and Checking a Manifest
 

@@ -2,9 +2,15 @@
 
 ## Status
 
-Accepted (2026-07-06). Reconciles
+Accepted (2026-07-06) as an **optional** standard profile, but see the
+**[Addendum (2026-07-06)](#addendum-2026-07-06-the-reference-implementation-does-not-implement-the-mutation-profile)**:
+the reference implementation (Honua) does **not** implement the `mutation`
+profile. The attempt to reconcile
 [honua-server ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
-and resolves [geospatial-mcp#47](https://github.com/honua-io/geospatial-mcp/issues/47).
+by having the reference serve governed mutation was rejected by the founder the
+same day; honua-server ADR-0028 stands unreconciled. The profile remains in the
+standard as an optional capability for other adopters. Relates to
+[geospatial-mcp#47](https://github.com/honua-io/geospatial-mcp/issues/47).
 
 ## Context
 
@@ -120,3 +126,33 @@ spelling under the same reference-shape convention.
 - The standard now owns a decision the reference had been making unilaterally.
   Future mutation members (e.g. schema/topology edits) are added to the profile
   through the same ADR + schema + fixture process, not by vendor hand-edit.
+
+## Addendum (2026-07-06): the reference implementation does not implement the mutation profile
+
+The reconciliation above proposed that the reference implementation (Honua)
+declare and serve the `mutation` profile. That reconciliation was **rejected by
+the Honua founder the same day**: Honua does not support AI operational data
+editing — the prohibition in
+[honua-server ADR-0028](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
+stands unreconciled, and a "governed mutation profile" is not an accepted
+exception to it. Accordingly:
+
+- The reference implementation (Honua) **does NOT implement the `mutation`
+  profile.** Honua removed `honua_edit_features` from its MCP surface; its
+  reference manifest declares `["base"]` only, and `edit_features` is marked
+  `known-gap` with a null `referenceToolName` in
+  [`spec/schemas/index.json`](../../spec/schemas/index.json).
+- The `mutation` **profile, its schema
+  (`spec/schemas/tools/edit_features.schema.json`), and the profile-aware
+  conformance machinery remain in the standard** as an **optional** capability.
+  They are available to any *other* adopter that makes a different, governed
+  trust decision and chooses to offer authenticated, per-edit-type authorized,
+  transactional feature editing. Such an adopter declares `mutation` in its
+  manifest and must advertise `edit_features` to stay FULL.
+- The reference therefore serves as an example of a **base-only** FULL
+  implementation. The standard is deliberately broader than its reference here:
+  it *describes* a capability the reference chooses not to *serve*.
+
+*Autonomous* AI mutation of source data was never sanctioned by any profile and
+remains excluded. This addendum narrows the reference's posture further: it does
+not offer even *governed* AI-facing feature mutation.

@@ -124,12 +124,12 @@
     },
     {
       "standardName": "edit_features",
-      "referenceToolName": "honua_edit_features",
+      "referenceToolName": null,
       "family": "Feature editing",
       "schema": "tools/edit_features.schema.json",
-      "implementationStatus": "implemented",
+      "implementationStatus": "known-gap",
       "profile": "mutation",
-      "notes": "Sole member of the mutation conformance profile (docs/adr/0028-governed-feature-mutation.md). Governed transactional editing: an implementation must require an authenticated, authorized caller and authorize each edit type (insert/update/delete) independently. Base-profile (read-only) implementations conform without advertising this tool; it is required for FULL only when a manifest declares the mutation profile."
+      "notes": "Sole member of the optional mutation conformance profile (docs/adr/0028-governed-feature-mutation.md). Governed transactional editing: an implementation must require an authenticated, authorized caller and authorize each edit type (insert/update/delete) independently. The reference implementation (Honua) does NOT serve this tool — Honua does not support AI operational data editing (honua-server ADR-0028, founder-reaffirmed 2026-07-06); its referenceToolName is null and its implementationStatus is known-gap. Base-profile (read-only) implementations conform without advertising this tool; it is required for FULL only when an adopter's manifest declares the mutation profile."
     },
     {
       "standardName": "render_map",

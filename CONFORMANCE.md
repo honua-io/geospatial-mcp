@@ -76,6 +76,28 @@ every tool **and** resource family the index marks `implemented`; omitting an
 `implemented` resource family downgrades FULL to MAPPED with a note, exactly as
 omitting an `implemented` tool does.
 
+## Conformance Profiles
+
+Conformance is scoped by **profile**. A profile is a named subset of the
+standard tool vocabulary; an implementation declares the profiles it claims in
+its manifest (`implementation.profiles`, default `["base"]`), and the level
+gates only against the tools in the declared profiles.
+
+| Profile | Meaning |
+|---|---|
+| **base** | The read-only floor. Every standard tool except the mutation members. An implementation that never mutates feature records declares only `base` and can reach **FULL** without advertising any editing tool. This is the default when `profiles` is omitted. |
+| **mutation** | Additive. Its sole v1 member is `edit_features` — governed, authenticated, per-edit-type authorized, transactional feature editing (see [`docs/adr/0028-governed-feature-mutation.md`](docs/adr/0028-governed-feature-mutation.md) and [taxonomy.md §Edit Data (Mutation Profile)](spec/taxonomy.md#edit-data-mutation-profile)). An implementation conforms to `mutation` by declaring the profile and advertising `edit_features`. |
+
+Each tool's profile is recorded by the optional `profile` field in
+[`index.json`](spec/schemas/index.json) (default `base`). A tool in an additive
+profile is required for **FULL** only when the manifest declares that profile;
+otherwise it is reported as an informational note, exactly like a `known-gap`
+tool. This lets a read-only adopter reach FULL on `base` while the reference
+(Honua), which declares `["base", "mutation"]`, must advertise `edit_features`
+to stay FULL — and, under `--strict`, dropping it fails CI. *Autonomous*
+mutation is never sanctioned by any profile; the mutation profile only covers
+explicit, authorized `edit_features` calls.
+
 ## Producing and Checking a Manifest
 
 A conformant server produces its manifest from its `tools/list` and

@@ -930,11 +930,15 @@ server-internal; the read surface exposes only the `cache` projection
 `keyFingerprint`, never the key's component inputs or the policy that
 produced them.
 
-### 4. No AI Data Editing
+### 4. No Autonomous AI Data Editing
 
-Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
-AI may inspect but must not autonomously edit source data. Resource reads
-do not grant edit paths.
+Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
+and its standard reconciliation
+([docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md)),
+AI may inspect but must not *autonomously* edit source data. Resource reads are
+read-only and never grant edit paths; the only sanctioned mutation is an
+explicit, authorized `edit_features` call under the opt-in `mutation` conformance
+profile, which is a tool, not a resource.
 
 ### 5. No Parallel Taxonomy, URI Scheme, or Error Envelope
 

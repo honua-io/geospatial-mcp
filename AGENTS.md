@@ -72,9 +72,11 @@ into a hard failure instead of a silent skip. Markdown is linted by
 
 ## Architecture
 
-The standard covers four operator workflow families (a fifth, *Edit Data*, is
-explicitly **excluded** per upstream ADR-0028 — AI agents must not directly
-mutate geospatial records):
+The standard covers four operator workflow families. A fifth, *Edit Data*, is
+admitted only as the opt-in **`mutation` conformance profile** (governed,
+authenticated, per-edit-type authorized, transactional `edit_features`);
+*autonomous* AI mutation of geospatial records remains excluded. See
+[`docs/adr/0028-governed-feature-mutation.md`](docs/adr/0028-governed-feature-mutation.md).
 
 | Family | Status |
 |---|---|
@@ -82,7 +84,7 @@ mutate geospatial records):
 | Publish Data | v1 |
 | Build App | v1 |
 | Automate / Deploy | deferred |
-| Edit Data | excluded |
+| Edit Data | mutation profile (opt-in); autonomous editing excluded |
 
 Layer boundary the spec enforces:
 
@@ -138,8 +140,10 @@ referenced by name in these specs, not redefined here.
   restate it here.
 - Each spec doc carries a `**Status:**`, `**Date:**`, and `**Scope:**` header
   block — preserve this convention when adding or editing docs.
-- Edit Data workflows are out of scope by design (ADR-0028). Do not add agent
-  data-mutation capabilities.
+- *Autonomous* Edit Data workflows are out of scope by design (honua-server
+  ADR-0028). Do not add autonomous agent data-mutation capabilities. *Governed*
+  transactional editing is the opt-in `mutation` profile (`edit_features`);
+  extending it requires a new standard ADR under `docs/adr/`.
 - Downstream consumer work (harnesses, fixtures, runners) is tracked in other
   repos (`honua-server`, `honua-devops`), not here.
 

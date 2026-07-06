@@ -17,7 +17,7 @@ Upstream references:
 - [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
 - [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
-- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
+- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md) — reconciled by the standard's [ADR-0028: Governed Feature Mutation](../docs/adr/0028-governed-feature-mutation.md)
 
 ## Standard Version
 
@@ -196,9 +196,11 @@ question kinds, assumption policies, and answer binding semantics.
 ## Workflow Families
 
 The geospatial MCP standard covers four operator workflow families. A fifth
-family, Edit Data, is explicitly excluded. See `spec/planning.md` §4 for
-per-family planning behavior: step kinds, required planning resources, and
-clarification codes in scope.
+family, Edit Data, is admitted only as the opt-in **`mutation` conformance
+profile** — governed, authenticated, transactional feature editing exposed as a
+discrete tool. *Autonomous* AI mutation of source data remains excluded. See
+`spec/planning.md` §4 for per-family planning behavior: step kinds, required
+planning resources, and clarification codes in scope.
 
 ### Analyze
 
@@ -235,13 +237,23 @@ surface. Covers promotion from one-off results into persistent deployments.
 Lifecycle: `DeploymentIntent` -> `DeploymentPlan` -> provisioning ->
 `Deployment`
 
-### Edit Data (Excluded)
+### Edit Data (Mutation Profile)
 
-AI-driven source-data editing is not allowed in the primary operator contract.
-Per ADR-0028, AI may inspect, profile, validate, recommend fixes, and propose
-edit plans for human review. AI must not autonomously mutate attributes, create
-or reshape geometry, or publish AI-generated edits as authoritative source
-changes.
+Feature editing is admitted as the opt-in **`mutation` conformance profile**,
+whose sole v1 member is the `edit_features` tool. This is *governed* mutation,
+not the *autonomous* mutation honua-server ADR-0028 forbids: an implementation
+MUST require an authenticated, authorized caller, MUST authorize each edit type
+(insert/update/delete) independently, and applies the edits as one all-or-nothing
+transaction by default. An implementation MAY be read-only and still conform to
+the base profile without advertising `edit_features`. Standard reconciliation:
+[docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md).
+
+Autonomous, unapproved editing remains excluded: agents must not mutate
+attributes, create or reshape geometry, or publish edits as authoritative source
+changes on their own initiative. `edit_features` is always an explicit, named,
+authorized tool call — never a side effect of analysis or planning. Outside the
+mutation profile, AI may inspect, profile, validate, recommend fixes, and propose
+edit plans for human review.
 
 ## Canonical Concept Model
 
@@ -332,6 +344,9 @@ not read `v1` in this matrix as "available in the reference".
 - **v1** -- covered in the first version of the standard
 - **deferred** -- recognized but not specified in v1
 - **excluded** -- explicitly out of scope per architectural decisions
+- **mutation** -- available only under the opt-in `mutation` conformance
+  profile (governed `edit_features`; see
+  [Edit Data (Mutation Profile)](#edit-data-mutation-profile))
 
 ### By Workflow Family
 
@@ -346,7 +361,8 @@ not read `v1` in this matrix as "available in the reference".
 | Result packaging | v1 | v1 | v1 | deferred |
 | Artifact publishing | v1 | v1 | v1 | deferred |
 | Deployment orchestration | -- | -- | -- | deferred |
-| Source data mutation | excluded | excluded | excluded | excluded |
+| Autonomous source-data mutation | excluded | excluded | excluded | excluded |
+| Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
 
 ### By MCP Primitive
 
@@ -375,8 +391,13 @@ not read `v1` in this matrix as "available in the reference".
 | `create_app_package` | -- | -- | v1 |
 | `preview_app_package` | -- | -- | v1 |
 | `publish_result` | v1 | v1 | v1 |
+| `edit_features` (mutation profile) | mutation | mutation | mutation |
 
-Automate / Deploy tools are deferred and not listed.
+Automate / Deploy tools are deferred and not listed. `edit_features` is the sole
+member of the opt-in `mutation` conformance profile; it is `v1` only for
+implementations that declare that profile (see
+[Edit Data (Mutation Profile)](#edit-data-mutation-profile) and
+[/CONFORMANCE.md §Conformance Profiles](../CONFORMANCE.md#conformance-profiles)).
 
 ### Reference-Shape Tools (Non-Normative)
 
@@ -411,11 +432,15 @@ plan steps rather than as discrete tools.
 These items are explicitly out of scope for the geospatial MCP standard. They
 are not deferred features; they are architectural boundaries.
 
-### 1. Direct AI Data Editing
+### 1. Autonomous AI Data Editing
 
-AI-driven source-data mutation is not allowed in the primary operator contract
-(ADR-0028). AI may inspect, profile, validate, and recommend, but must not
-autonomously edit source data. Any future change requires a new ADR.
+*Autonomous* AI mutation of source data is not allowed: AI may inspect, profile,
+validate, and recommend, but must not edit source data on its own initiative.
+*Governed* transactional editing — an explicit, authenticated, per-edit-type
+authorized `edit_features` call — is not a non-goal; it is the opt-in `mutation`
+conformance profile (see [Edit Data (Mutation Profile)](#edit-data-mutation-profile)
+and [docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md)).
+Adding further mutation members requires a new ADR.
 
 ### 2. Replacing gRPC Contracts
 

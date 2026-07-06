@@ -144,6 +144,11 @@ referenced by name in these specs, not redefined here.
   ADR-0028). Do not add autonomous agent data-mutation capabilities. *Governed*
   transactional editing is the opt-in `mutation` profile (`edit_features`);
   extending it requires a new standard ADR under `docs/adr/`.
+- **Direct geoprocessing verbs are the opt-in `analysis` profile**
+  (`buffer_features`, `overlay_features`, `summarize_statistics`,
+  `reproject_features`, `join_features`, `export_dataset`; ADR-0029), layered
+  over the base plan/execute analysis floor. Adding a verb to the profile
+  requires a new standard ADR under `docs/adr/`.
 - Downstream consumer work (harnesses, fixtures, runners) is tracked in other
   repos (`honua-server`, `honua-devops`), not here.
 

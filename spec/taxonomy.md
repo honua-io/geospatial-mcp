@@ -258,6 +258,49 @@ authorized tool call — never a side effect of analysis or planning. Outside th
 mutation profile, AI may inspect, profile, validate, recommend fixes, and propose
 edit plans for human review.
 
+### Direct Analysis Verbs (Analysis Profile)
+
+The Analyze family's floor is the plan/execute orchestration surface:
+`plan_analysis` -> `validate_plan` -> `execute_plan`, where each operation is a
+`Geoprocess` plan step. That indirection is right for multi-step analysis with
+dependencies, clarification, and a packaged `AnalysisResultPackage`. For the
+single, self-contained GIS verbs an operator agent reaches for constantly, the
+standard additionally admits **direct geoprocessing verbs** under the opt-in
+**`analysis` conformance profile**, so an agent can call one operation by name —
+the same way it already calls `query_features` / `render_map` directly rather
+than planning a read. Standard decision:
+[docs/adr/0029-direct-geoprocessing-verbs.md](../docs/adr/0029-direct-geoprocessing-verbs.md).
+
+The v1 members are `buffer_features`, `overlay_features` (intersect / union /
+difference / erase / clip), `summarize_statistics` (group-by + statistics),
+`reproject_features`, `join_features` (attribute or spatial), and
+`export_dataset` (layer/result -> GeoJSON / GeoPackage / CSV / Parquet artifact).
+
+- **When to use.** Call a direct verb for a single self-contained step; use
+  `plan_analysis` + `execute_plan` for multi-step analysis with dependencies,
+  clarification, and a packaged result.
+- **Source.** Each verb operates on EITHER a published layer (`LayerRef`:
+  `serviceId` + `layerId`) OR a prior-result `ArtifactRef` (`artifactId`), so
+  verbs chain onto earlier job/verb outputs without a plan.
+- **Async posture.** A verb returns an `ExecutionJob` handle
+  (`honua://jobs/{job_id}`) for durable, long-running work — pollable, and
+  cancelable via `cancel_job` — or an inline result for small/fast computations.
+  This reuses the `execute_plan` handoff; no new job shape is introduced.
+- **Reprojection is both a verb and a param.** `reproject_features` reprojects a
+  whole dataset when reprojection is the goal; the sibling verbs carry an
+  optional `outSrid` output-CRS param (matching `query_features` / `solve_route`)
+  when a caller only needs a verb's output in a given CRS.
+- **Read-only, except export.** The verbs are read-only analysis
+  (`readOnlyHint: true`) and mutate no server state; `export_dataset` writes a
+  new downloadable artifact (`readOnlyHint: false`) but is non-destructive and
+  idempotent, and is **not** a `mutation`-profile tool. An implementation MAY
+  offer only the base plan/execute surface and remain FULL on `base` without
+  advertising any direct verb.
+
+The reference implementation does not ship the direct verbs yet: each is
+`known-gap` in [`spec/schemas/index.json`](schemas/index.json) and carries
+`profile: analysis`. Adding further verbs to the profile requires a new ADR.
+
 ## Canonical Concept Model
 
 These transport-neutral objects form the shared vocabulary between MCP and gRPC
@@ -350,6 +393,9 @@ not read `v1` in this matrix as "available in the reference".
 - **mutation** -- available only under the opt-in `mutation` conformance
   profile (governed `edit_features`; see
   [Edit Data (Mutation Profile)](#edit-data-mutation-profile))
+- **analysis** -- available only under the opt-in `analysis` conformance
+  profile (direct geoprocessing verbs; see
+  [Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile))
 
 ### By Workflow Family
 
@@ -364,6 +410,7 @@ not read `v1` in this matrix as "available in the reference".
 | Result packaging | v1 | v1 | v1 | deferred |
 | Artifact publishing | v1 | v1 | v1 | deferred |
 | Deployment orchestration | -- | -- | -- | deferred |
+| Direct geoprocessing verbs (analysis profile) | analysis | analysis | -- | -- |
 | Autonomous source-data mutation | excluded | excluded | excluded | excluded |
 | Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
 
@@ -394,12 +441,21 @@ not read `v1` in this matrix as "available in the reference".
 | `create_app_package` | -- | -- | v1 |
 | `preview_app_package` | -- | -- | v1 |
 | `publish_result` | v1 | v1 | v1 |
+| `buffer_features` (analysis profile) | analysis | analysis | -- |
+| `overlay_features` (analysis profile) | analysis | analysis | -- |
+| `summarize_statistics` (analysis profile) | analysis | analysis | -- |
+| `reproject_features` (analysis profile) | analysis | analysis | -- |
+| `join_features` (analysis profile) | analysis | analysis | -- |
+| `export_dataset` (analysis profile) | analysis | analysis | -- |
 | `edit_features` (mutation profile) | mutation | mutation | mutation |
 
-Automate / Deploy tools are deferred and not listed. `edit_features` is the sole
-member of the opt-in `mutation` conformance profile; it is `v1` only for
-implementations that declare that profile (see
-[Edit Data (Mutation Profile)](#edit-data-mutation-profile) and
+Automate / Deploy tools are deferred and not listed. The direct geoprocessing
+verbs (`buffer_features` … `export_dataset`) are the members of the opt-in
+`analysis` conformance profile, and `edit_features` is the sole member of the
+opt-in `mutation` conformance profile; each is `v1` only for implementations that
+declare its profile (see
+[Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile),
+[Edit Data (Mutation Profile)](#edit-data-mutation-profile), and
 [/CONFORMANCE.md §Conformance Profiles](../CONFORMANCE.md#conformance-profiles)).
 
 ### Reference-Shape Tools (Non-Normative)

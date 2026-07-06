@@ -245,7 +245,10 @@ not the *autonomous* mutation honua-server ADR-0028 forbids: an implementation
 MUST require an authenticated, authorized caller, MUST authorize each edit type
 (insert/update/delete) independently, and applies the edits as one all-or-nothing
 transaction by default. An implementation MAY be read-only and still conform to
-the base profile without advertising `edit_features`. Standard reconciliation:
+the base profile without advertising `edit_features`. The `mutation` profile is
+**optional** and is not implemented by the reference implementation (Honua),
+which declares `base` only and does not support AI operational data editing
+(honua-server ADR-0028). Standard reconciliation and reference-posture addendum:
 [docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md).
 
 Autonomous, unapproved editing remains excluded: agents must not mutate

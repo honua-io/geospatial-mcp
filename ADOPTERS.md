@@ -8,7 +8,7 @@ named pinned revision of this repo.
 
 | Implementation | Level | Profiles | Manifest | Notes |
 |---|---|---|---|---|
-| **Honua** (`honua-server` `/mcp`) | FULL | base, mutation | [`conformance/manifests/honua.manifest.json`](conformance/manifests/honua.manifest.json) | Reference implementation (see [CONFORMANCE.md](CONFORMANCE.md)). Vendors these schemas byte-for-byte and enforces byte-identity in CI. |
+| **Honua** (`honua-server` `/mcp`) | FULL | base | [`conformance/manifests/honua.manifest.json`](conformance/manifests/honua.manifest.json) | Reference implementation (see [CONFORMANCE.md](CONFORMANCE.md)). Vendors these schemas byte-for-byte and enforces byte-identity in CI. Declares `base` only: it does not implement the optional `mutation` profile — Honua does not support AI operational data editing (honua-server ADR-0028). |
 
 ## An open invitation
 

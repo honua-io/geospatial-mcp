@@ -3,17 +3,12 @@
   "implementation": {
     "name": "Honua /mcp",
     "isReferenceImplementation": true,
-    "profiles": ["base", "mutation"]
+    "profiles": ["base"]
   },
   "tools": [
     {
       "standardName": "apply_style_preset",
       "advertisedName": "honua_apply_style_preset",
-      "workflowFamily": "Execution"
-    },
-    {
-      "standardName": "edit_features",
-      "advertisedName": "honua_edit_features",
       "workflowFamily": "Execution"
     },
     {

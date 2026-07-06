@@ -128,9 +128,25 @@ def check_manifest(path, index, strict=False):
             errors.append(f"{label}: resource family '{fam}' advertises uriForm "
                           f"'{res.get('uriForm')}' but the standard pins '{idx_uri}'")
 
-    # Coverage of standard tools marked 'implemented' in the index.
+    # Coverage of standard tools marked 'implemented' in the index, scoped to
+    # the conformance profiles this manifest declares. A tool's 'profile'
+    # (default 'base') assigns it to a conformance profile: 'base' tools are
+    # always required for FULL; a tool in an additive profile (e.g. 'mutation')
+    # is required only when the manifest declares that profile. This lets a
+    # read-only implementation reach FULL on the base profile without
+    # advertising governed-mutation tools (docs/adr/0028-governed-feature-mutation.md).
+    def tool_profile(entry):
+        return entry.get("profile", "base")
+
+    declared_profiles = set(
+        manifest.get("implementation", {}).get("profiles", ["base"])) | {"base"}
+
     implemented_std_tools = {n for n, t in index_tools.items()
-                             if t.get("implementationStatus") == "implemented"}
+                             if t.get("implementationStatus") == "implemented"
+                             and tool_profile(t) in declared_profiles}
+    undeclared_profile_tools = {n for n, t in index_tools.items()
+                                if t.get("implementationStatus") == "implemented"
+                                and tool_profile(t) not in declared_profiles}
     known_gap_std_tools = {n for n, t in index_tools.items()
                            if t.get("implementationStatus") == "known-gap"}
     is_reference = bool(manifest.get("implementation", {}).get("isReferenceImplementation"))
@@ -140,6 +156,10 @@ def check_manifest(path, index, strict=False):
     for n in missing_implemented:
         coverage_sink.append(f"{label}: standard tool '{n}' is marked 'implemented' in the index "
                              f"but is not advertised by this manifest")
+    for n in sorted(undeclared_profile_tools - advertised_std_tools):
+        warnings.append(f"{label}: standard tool '{n}' belongs to the "
+                        f"'{tool_profile(index_tools[n])}' conformance profile, which this "
+                        f"manifest does not declare (informational; not required for FULL)")
     for n in sorted(known_gap_std_tools - advertised_std_tools):
         warnings.append(f"{label}: standard tool '{n}' is a known gap (not yet implemented)")
 
@@ -171,6 +191,7 @@ def check_manifest(path, index, strict=False):
         "coveredStandardFamilies": len(advertised_families),
         "knownGaps": len(known_gap_std_tools) + len(known_gap_std_families),
         "isReference": is_reference,
+        "profiles": sorted(declared_profiles),
     }
 
 
@@ -209,9 +230,11 @@ def main(argv):
         rel = os.path.relpath(path, REPO)
         mode = "schema+coverage" if stats["schemaChecked"] else "coverage (stdlib only)"
         ref = " [reference implementation]" if stats["isReference"] else ""
+        profiles = "+".join(stats["profiles"])
         print(f"{rel}: {level}{ref} "
               f"({stats['coveredStandardTools']} standard tools, "
-              f"{stats['resources']} resources, {stats['knownGaps']} known gaps; {mode})")
+              f"{stats['resources']} resources, {stats['knownGaps']} known gaps; "
+              f"profiles: {profiles}; {mode})")
         for w in warnings:
             print("  note:", w)
         for e in errors:

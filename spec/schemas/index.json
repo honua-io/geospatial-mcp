@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "geospatial-mcp JSON Schema index",
-  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only.",
-  "date": "2026-07-01",
+  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only. 'profile' (optional; default 'base') assigns a tool to a conformance profile: 'base' tools are required for the base FULL verdict; tools in an additive profile such as 'mutation' are required for FULL only when a manifest declares that profile, and are otherwise reported as informational notes (see /CONFORMANCE.md §Conformance Profiles).",
+  "date": "2026-07-06",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
   "tools": [
     {
@@ -121,6 +121,15 @@
       "family": "Discovery and query (reference shape)",
       "schema": "tools/query_features.schema.json",
       "implementationStatus": "implemented"
+    },
+    {
+      "standardName": "edit_features",
+      "referenceToolName": "honua_edit_features",
+      "family": "Feature editing",
+      "schema": "tools/edit_features.schema.json",
+      "implementationStatus": "implemented",
+      "profile": "mutation",
+      "notes": "Sole member of the mutation conformance profile (docs/adr/0028-governed-feature-mutation.md). Governed transactional editing: an implementation must require an authenticated, authorized caller and authorize each edit type (insert/update/delete) independently. Base-profile (read-only) implementations conform without advertising this tool; it is required for FULL only when a manifest declares the mutation profile."
     },
     {
       "standardName": "render_map",

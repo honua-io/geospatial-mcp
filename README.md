@@ -46,8 +46,11 @@ manifest.
 ## Workflow Families
 
 The standard covers four operator workflow families. A fifth (Edit Data) is
-explicitly excluded per
-[ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md).
+admitted only as the opt-in **`mutation` conformance profile** — governed,
+authorized, transactional `edit_features`; *autonomous* editing remains excluded
+per [honua-server ADR-0028](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md),
+reconciled by the standard's
+[ADR-0028: Governed Feature Mutation](docs/adr/0028-governed-feature-mutation.md).
 
 | Family | Status |
 |---|---|
@@ -55,7 +58,7 @@ explicitly excluded per
 | Publish Data | v1 |
 | Build App | v1 |
 | Automate / Deploy | deferred |
-| Edit Data | excluded |
+| Edit Data | mutation profile (opt-in) |
 
 **`v1` here means "specified in the v1 standard", not "shipped by the reference
 implementation".** Today the reference (Honua) implements the Analyze surface

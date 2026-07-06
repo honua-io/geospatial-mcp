@@ -19,7 +19,7 @@ protocol vocabulary):
 - [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
 - [Deterministic Operator Workflow Results](https://github.com/honua-io/honua-server/blob/main/docs/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md)
-- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
+- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md) — reconciled by the standard's [ADR-0028: Governed Feature Mutation](../docs/adr/0028-governed-feature-mutation.md)
 - [geospatial-grpc `spatial_types.proto`](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/spatial_types.proto)
 - [Taxonomy, Capability Matrix, and Non-Goals](taxonomy.md)
 - [MCP Resource Contracts](resources.md)
@@ -599,15 +599,19 @@ not defined here. Those are the scope of `geospatial-mcp#5` and
 `honua-devops#29`; this document provides the test universe the harness
 runs against.
 
-### 3. No AI Data Mutation Fixtures
+### 3. No Autonomous AI Data Mutation Fixtures
 
-Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md),
-AI-driven source-data mutation is excluded from the operator contract.
-Corpus fixtures that model data mutation do so only within Publish Data
-pipeline step boundaries (`clean_records`, `dedupe`, `enrich`,
-`normalize_crs`) that operate on materialized output under operator
-intent; the corpus does not define scenarios that present AI-authored
-edits to source datasets as authoritative.
+Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
+and its standard reconciliation
+([docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md)),
+*autonomous* AI source-data mutation is excluded from the operator contract.
+*Governed* transactional editing is modelled only through the opt-in `mutation`
+profile's `edit_features` tool — an explicit, authenticated, per-edit-type
+authorized call. Corpus fixtures that model data mutation otherwise do so only
+within Publish Data pipeline step boundaries (`clean_records`, `dedupe`,
+`enrich`, `normalize_crs`) that operate on materialized output under operator
+intent; the corpus does not define scenarios that present AI-authored edits to
+source datasets as authoritative.
 
 ### 4. No Parallel Taxonomy, URI Scheme, Reason-Code Set, Step-Kind Set, or Error Envelope
 

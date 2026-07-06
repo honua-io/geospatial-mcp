@@ -2,12 +2,18 @@
   "specDate": "2026-04-19",
   "implementation": {
     "name": "Honua /mcp",
-    "isReferenceImplementation": true
+    "isReferenceImplementation": true,
+    "profiles": ["base", "mutation"]
   },
   "tools": [
     {
       "standardName": "apply_style_preset",
       "advertisedName": "honua_apply_style_preset",
+      "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "edit_features",
+      "advertisedName": "honua_edit_features",
       "workflowFamily": "Execution"
     },
     {

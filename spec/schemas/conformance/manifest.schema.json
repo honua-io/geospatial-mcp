@@ -23,6 +23,12 @@
         "isReferenceImplementation": {
           "type": "boolean",
           "description": "True only for the reference implementation named in /CONFORMANCE.md (Honua). Other implementations omit this or set it false."
+        },
+        "profiles": {
+          "type": "array",
+          "description": "Conformance profiles this implementation claims (default ['base'] when omitted). 'base' is the read-only floor; additive profiles such as 'mutation' require the implementation to advertise every tool the index assigns to that profile to reach FULL. See /CONFORMANCE.md §Conformance Profiles.",
+          "items": { "type": "string" },
+          "uniqueItems": true
         }
       }
     },

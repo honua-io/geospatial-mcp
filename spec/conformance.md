@@ -20,7 +20,7 @@ Upstream references (authoritative for object field shapes):
 - [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
 - [AI Operator Agent Handoff](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_AGENT_HANDOFF.md)
 - [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
-- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/main/docs/contributor/adr/0028-ai-data-editing-not-allowed.md)
+- [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md) — reconciled by the standard's [ADR-0028: Governed Feature Mutation](../docs/adr/0028-governed-feature-mutation.md)
 
 This repository owns the conformance strategy. Downstream harness
 implementations, reference fixture sets, and host-specific eval runners
@@ -236,7 +236,7 @@ not introduce new non-goals at this point.
 
 | Guard category | Source |
 |---|---|
-| No AI data mutation path is taken | [taxonomy.md §Non-Goals — Direct AI Data Editing](taxonomy.md#1-direct-ai-data-editing) |
+| No autonomous data-mutation path is taken (mutation only via an explicit, authorized `edit_features` call under the declared `mutation` profile) | [taxonomy.md §Non-Goals — Autonomous AI Data Editing](taxonomy.md#1-autonomous-ai-data-editing) |
 | No non-whitelisted step kind is emitted | [planning.md §4](planning.md#4-per-family-planning-behavior) |
 | No unknown `ClarificationReasonCode` is emitted | [planning.md §2.1](planning.md#21-trigger-conditions) |
 | No protocol-specific tool (GeoServices, OGC, OData) surfaces | [taxonomy.md §Non-Goals — Protocol-Specific Tool Contracts](taxonomy.md#4-protocol-specific-tool-contracts) |
@@ -273,7 +273,7 @@ the listed source section.
 | 4. Handoff correctness | Only the fields in [planning.md §5.4](planning.md#54-boundary-crossing-fields) cross the boundary; MCP does not retry `execute_plan`; Publish Data post-handoff state is not surfaced as an MCP resource in v1 (`PipelineService`-owned execution state is not expressible as a `resource_projection`); when the scenario asserts post-handoff state, `PublishedService` assertions bind the stable `honua://published-services/{published_service_id}` URI and responsibility-level projection and are scored on axis 5 (assertions on the still-finalizing concrete field set are marked `not_applicable` per §2.4 until `honua-server#730` lands), while `PublishingResultPackage` assertions use the name-only deferred-shape pattern per §2.4; when the audit carrier fields are not yet defined upstream, resolved values baked into plan step inputs serve as the authoritative record per [planning.md §2.3](planning.md#23-assumptionpolicy-behavior) and [§5.2](planning.md#52-handoff-operation) | The handoff attaches clarification or assumption audit strings in a forward-compatible shape before the upstream carrier field is frozen (over-delivery of the SHOULD in [planning.md §5.2](planning.md#52-handoff-operation), revisited when upstream lands the carrier) | MCP synthesizes a shared `ExecutionJob` shape for Publish Data; MCP retries `execute_plan` on its own initiative; a non-boundary field leaves the MCP plane; a `resource_projection` fixture asserts a non-MCP `PipelineService`-owned surface | [planning.md §5](planning.md#5-plan-handoff-semantics) |
 | 5. Result projection | Result, asset, promotion-surface, and workspace resources render the read-only projection defined in [resources.md](resources.md): concrete fields where that document enumerates them, and responsibility-level projections where that document intentionally leaves field spellings upstream-owned (for example `MapPackage`, `AppPackage`, `PublishedService`). Identifiers and `honua://` URIs follow the stable form defined for that resource family, including families with no MCP-local prefix convention | A reserved or otherwise deferred route surfaces only the canonical object name or responsibility list permitted by [resources.md](resources.md) while upstream finalizes the constructible field set | A resource projection exposes a mutation path; a resource introduces a field or identifier convention outside the per-family inspection contract; a URI uses a scheme other than `honua://` | [resources.md §Resource URI Conventions, §Result Package Resources, §Asset Resources, §Promotion-Surface Resources](resources.md) |
 | 6. Error envelope | Failures use the canonical `GeoprocessingError` envelope verbatim; `kind` values are drawn from `GeoprocessingErrorKind`; `violations[]` carries `code`, `message`, `fieldPath` as specified | A deferred upstream kind is surfaced by name without local redefinition | An MCP-local error code, envelope, or `kind` value is introduced | [resources.md §Error Model](resources.md#error-model) |
-| 7. Non-goal containment | Every declared out-of-scope guard (§3.3) is observed to hold across the scenario run | A guard is observed to hold but telemetry for that guard category is absent | Any guard fails; no guards are declared; the scenario emits a protocol-specific (GeoServices / OGC / OData) tool path; an AI data-mutation path is taken | [taxonomy.md §Non-Goals](taxonomy.md#non-goals), [resources.md §Non-Goals](resources.md#non-goals) |
+| 7. Non-goal containment | Every declared out-of-scope guard (§3.3) is observed to hold across the scenario run | A guard is observed to hold but telemetry for that guard category is absent | Any guard fails; no guards are declared; the scenario emits a protocol-specific (GeoServices / OGC / OData) tool path; an autonomous data-mutation path is taken (a mutation outside an explicit, authorized `edit_features` call under the declared `mutation` profile) | [taxonomy.md §Non-Goals](taxonomy.md#non-goals), [resources.md §Non-Goals](resources.md#non-goals) |
 
 ### 4.2 Rubric Application
 
@@ -382,8 +382,11 @@ coverage columns or introduce a parallel matrix.
 | `scenarios/build/hosted_publication` | Build App | `preview_app_package` + `honua://deployments/{id}` reads align without exposing deployment control | resources.md §Promotion-Surface Resources |
 | `scenarios/deploy/**` | Automate / Deploy | deferred; all scenarios carry `deferred: true` and are shape-only | taxonomy matrix, Automate / Deploy column |
 
-Fifth-family (Edit Data) scenarios are excluded per ADR-0028 and
-[taxonomy.md §Edit Data (Excluded)](taxonomy.md#edit-data-excluded).
+Fifth-family (Edit Data) scenarios are scored only under the opt-in `mutation`
+conformance profile via `edit_features`; *autonomous* editing remains excluded.
+See [taxonomy.md §Edit Data (Mutation Profile)](taxonomy.md#edit-data-mutation-profile),
+[Conformance Profiles](../CONFORMANCE.md#conformance-profiles), and
+[docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md).
 Any cell's coverage state (`v1`, `deferred`, `--`, `excluded`) is read
 from the taxonomy matrix; when coverage changes, the taxonomy matrix is
 the single edit point and this table's status references update by

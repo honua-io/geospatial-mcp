@@ -6,6 +6,11 @@
   },
   "tools": [
     {
+      "standardName": "apply_style_preset",
+      "advertisedName": "honua_apply_style_preset",
+      "workflowFamily": "Execution"
+    },
+    {
       "standardName": "cancel_job",
       "advertisedName": "honua_cancel_job",
       "workflowFamily": "Lifecycle"
@@ -44,6 +49,11 @@
       "standardName": "geocode_addresses",
       "advertisedName": "honua_geocode_addresses",
       "workflowFamily": "Execution"
+    },
+    {
+      "standardName": "get_style",
+      "advertisedName": "honua_get_style",
+      "workflowFamily": "Results"
     },
     {
       "standardName": "ground_candidates",

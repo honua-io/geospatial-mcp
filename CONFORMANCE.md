@@ -85,22 +85,27 @@ gates only against the tools in the declared profiles.
 
 | Profile | Meaning |
 |---|---|
-| **base** | The read-only floor. Every standard tool except the mutation members. An implementation that never mutates feature records declares only `base` and can reach **FULL** without advertising any editing tool. This is the default when `profiles` is omitted. |
+| **base** | The read-only floor. Every standard tool outside an additive profile — including the full plan/execute analysis surface (`plan_analysis`, `validate_plan`, `execute_plan`, …). An implementation that offers only orchestrated, planned analysis and never mutates feature records declares only `base` and can reach **FULL** without advertising any editing tool or direct verb. This is the default when `profiles` is omitted. |
 | **mutation** | Additive. Its sole v1 member is `edit_features` — governed, authenticated, per-edit-type authorized, transactional feature editing (see [`docs/adr/0028-governed-feature-mutation.md`](docs/adr/0028-governed-feature-mutation.md) and [taxonomy.md §Edit Data (Mutation Profile)](spec/taxonomy.md#edit-data-mutation-profile)). An implementation conforms to `mutation` by declaring the profile and advertising `edit_features`. |
+| **analysis** | Additive. The **direct geoprocessing verbs** — `buffer_features`, `overlay_features`, `summarize_statistics`, `reproject_features`, `join_features`, `export_dataset` — a single-step surface layered over the base plan/execute floor (see [`docs/adr/0029-direct-geoprocessing-verbs.md`](docs/adr/0029-direct-geoprocessing-verbs.md) and [taxonomy.md §Direct Analysis Verbs (Analysis Profile)](spec/taxonomy.md#direct-analysis-verbs-analysis-profile)). An implementation conforms to `analysis` by declaring the profile and advertising its members. These are read-only analysis (`export_dataset` writes a new non-source artifact); none mutate source records, so `analysis` is orthogonal to `mutation`. |
 
 Each tool's profile is recorded by the optional `profile` field in
 [`index.json`](spec/schemas/index.json) (default `base`). A tool in an additive
 profile is required for **FULL** only when the manifest declares that profile;
 otherwise it is reported as an informational note, exactly like a `known-gap`
-tool. This lets a read-only adopter reach FULL on `base` without advertising any
-editing tool. The reference (Honua) declares `["base"]` only: it does **not**
-implement the `mutation` profile, because Honua does not support AI operational
-data editing (honua-server ADR-0028, founder-reaffirmed 2026-07-06). The
-`mutation` profile remains available in the standard for other adopters that make
-a different, governed trust decision; such an adopter declares `mutation` and
-must advertise `edit_features` to stay FULL. *Autonomous* mutation is never
-sanctioned by any profile; the mutation profile only covers explicit, authorized
-`edit_features` calls.
+tool. This lets a read-only, planner-only adopter reach FULL on `base` without
+advertising any editing tool or direct verb. The reference (Honua) declares
+`["base"]` only: it does **not** implement the `mutation` profile, because Honua
+does not support AI operational data editing (honua-server ADR-0028,
+founder-reaffirmed 2026-07-06), and it does **not** yet ship the `analysis`
+direct verbs — they are `known-gap` in the index and the reference does not
+declare the `analysis` profile, so they stay informational until the server-side
+implementation phase lands. Both `mutation` and `analysis` remain available in
+the standard for adopters that opt in: such an adopter declares the profile and
+advertises its members (`edit_features` for `mutation`; the direct verbs for
+`analysis`) to stay FULL. *Autonomous* mutation is never sanctioned by any
+profile; the mutation profile only covers explicit, authorized `edit_features`
+calls.
 
 ## Producing and Checking a Manifest
 

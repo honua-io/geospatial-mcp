@@ -146,5 +146,71 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
         self.assertEqual(level, "FULL")
 
 
+class AnalysisProfileGatingTest(unittest.TestCase):
+    """Pins the `analysis` conformance profile's gating (ADR-0029).
+
+    An additive profile must be non-breaking: a tool tagged `profile: analysis`
+    is required for FULL only when a manifest declares `analysis`. Base-only
+    (planner-only) adopters stay FULL without advertising any direct verb.
+    """
+
+    ANALYSIS_VERBS = {
+        "buffer_features", "overlay_features", "summarize_statistics",
+        "reproject_features", "join_features", "export_dataset",
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        cls.index = cm.load_json(cm.INDEX_PATH)
+        cls.reference = cm.load_json(REFERENCE_MANIFEST)
+
+    def test_verbs_are_tagged_analysis_profile_and_known_gap(self):
+        by_name = {t["standardName"]: t for t in self.index.get("tools", [])}
+        for verb in self.ANALYSIS_VERBS:
+            self.assertIn(verb, by_name, f"index must define '{verb}'")
+            self.assertEqual(by_name[verb].get("profile"), "analysis")
+            # Reference does not ship the direct verbs yet: honest status.
+            self.assertEqual(by_name[verb].get("implementationStatus"), "known-gap")
+
+    def test_base_only_manifest_ignores_analysis_verbs(self):
+        """Even if a verb were `implemented`, an undeclared `analysis` profile
+        must not require it for FULL — the tool is informational, not load-bearing."""
+        index = copy.deepcopy(self.index)
+        for t in index["tools"]:
+            if t["standardName"] == "buffer_features":
+                t["implementationStatus"] = "implemented"
+        manifest = copy.deepcopy(self.reference)  # base-only reference
+        level, errors, warnings = _check(manifest, index, strict=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "FULL")
+        self.assertTrue(
+            any("buffer_features" in w and "analysis" in w for w in warnings),
+            "an implemented, undeclared-profile verb should be an informational note",
+        )
+
+    def test_declaring_analysis_requires_the_verb(self):
+        """Declaring `analysis` makes an `implemented` verb load-bearing for FULL."""
+        index = copy.deepcopy(self.index)
+        for t in index["tools"]:
+            if t["standardName"] == "buffer_features":
+                t["implementationStatus"] = "implemented"
+        manifest = copy.deepcopy(self.reference)
+        manifest["implementation"]["profiles"] = ["base", "analysis"]
+        # Not advertising buffer_features -> loses FULL (non-strict: MAPPED).
+        level, errors, warnings = _check(manifest, index, strict=False)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "MAPPED")
+        self.assertTrue(any("buffer_features" in w for w in warnings))
+        # Advertising it -> FULL again.
+        manifest["tools"].append({
+            "standardName": "buffer_features",
+            "advertisedName": "honua_buffer_features",
+            "workflowFamily": "Execution",
+        })
+        level, errors, _warnings = _check(manifest, index, strict=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "FULL")
+
+
 if __name__ == "__main__":
     unittest.main()

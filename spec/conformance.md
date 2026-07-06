@@ -387,6 +387,14 @@ conformance profile via `edit_features`; *autonomous* editing remains excluded.
 See [taxonomy.md §Edit Data (Mutation Profile)](taxonomy.md#edit-data-mutation-profile),
 [Conformance Profiles](../CONFORMANCE.md#conformance-profiles), and
 [docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md).
+
+Direct-analysis-verb scenarios (`buffer_features`, `overlay_features`,
+`summarize_statistics`, `reproject_features`, `join_features`, `export_dataset`)
+are scored only under the opt-in `analysis` conformance profile; the base
+plan/execute analysis surface is unaffected. See
+[taxonomy.md §Direct Analysis Verbs (Analysis Profile)](taxonomy.md#direct-analysis-verbs-analysis-profile),
+[Conformance Profiles](../CONFORMANCE.md#conformance-profiles), and
+[docs/adr/0029-direct-geoprocessing-verbs.md](../docs/adr/0029-direct-geoprocessing-verbs.md).
 Any cell's coverage state (`v1`, `deferred`, `--`, `excluded`) is read
 from the taxonomy matrix; when coverage changes, the taxonomy matrix is
 the single edit point and this table's status references update by

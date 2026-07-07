@@ -74,6 +74,8 @@ Families introduced by this document:
 | App template | `honua://templates/apps/{app_template_id}` | `AppPackage.templateId` (shape deferred) |
 | Published service | `honua://published-services/{published_service_id}` | `PublishedService` |
 | Deployment | `honua://deployments/{deployment_id}` | `Deployment` |
+| Ops health | `honua://ops/health` | `OpsHealthSnapshotResponse` (honua-server) |
+| Ops findings | `honua://ops/findings` | `OpsFindingsListResponse` (honua-server) |
 | Workspace | `honua://workspaces/{workspace_id}` | `WorkspaceRef` |
 | Workspace artifact (lifecycle view) | `honua://workspaces/{workspace_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 
@@ -94,7 +96,8 @@ serves a given family today is tracked in
 reference conformance manifest (`conformance/manifests/honua.manifest.json`),
 and is enforced by `conformance/check_manifest.py --strict`. As of this writing
 the reference serves the **Map package**, **App package**, **Published
-service**, **Deployment**, and **Workspace** families under the URIs above. The
+service**, **Deployment**, **Ops health**, **Ops findings**, and **Workspace**
+families under the URIs above. The
 **Result package**, **Result artifact**, **Result provenance**, **Workspace
 artifact**, **Style**, **Theme**, **Map template**, and **App template**
 families are **known-gaps**: the grammar is normative but the reference does not
@@ -575,6 +578,59 @@ process and pipeline targets is deferred alongside the
 `Automate / Deploy` workflow column.
 Concrete field names finalize alongside `honua-server#732`; the
 resource URI and responsibility list stay stable under reference.
+
+### `honua://ops/health`
+
+Read-only, admin-gated projection of the consolidated operational-health
+snapshot — a concrete-reference mirror of the honua-server
+`OpsHealthSnapshotResponse`
+(`GET /api/v1/admin/observability/ops-health`). Same gated pattern as the
+promotion-oriented surfaces: it never exposes a control path. This is the
+response of the `ops_health` reference-shape tool
+([taxonomy.md §Platform Operations (Reference Shape)](taxonomy.md#platform-operations-reference-shape)).
+
+**Inspection responsibilities surfaced read-only:**
+
+- overall status roll-up (`Healthy` / `Degraded` / `Unhealthy`) and the
+  comprehensive health-check entries;
+- in-process serving latency (per-protocol percentiles + error rate);
+- geoprocessing queue depth by status/backend plus the active total;
+- alert-dispatch backlog / dead-letter summary;
+- coordinated-deploy readiness and the platform-release skew summary
+  (`platform_release` / `server_upgrade` vocabulary — distinct from the
+  hosted-content `honua://deployments/{deployment_id}` family);
+- database connection-pool utilization and cache/error metrics;
+- `clusterReplicaCount` — additive field contributing replica count
+  (`honua-server#2576`), absent when the snapshot is local-only.
+
+Concrete field names are pinned by the honua-server response DTO and vendored
+per `honua-server#2496`; see
+[`schemas/resources/ops-health.schema.json`](schemas/resources/ops-health.schema.json).
+
+### `honua://ops/findings`
+
+Read-only, admin-gated projection of the deterministic ops findings — a
+concrete-reference mirror of the honua-server `OpsFindingsListResponse`
+(`GET /api/v1/admin/observability/findings`). Same gated pattern as the
+promotion-oriented surfaces. This is the response of the `ops_findings`
+reference-shape tool.
+
+**Inspection responsibilities surfaced read-only:**
+
+- evaluation time plus the active findings, ordered by descending severity;
+- per finding: deterministic `id`, kebab-case `rule`, severity, title,
+  plain-language explanation, detection time, subject identifiers, and
+  evidence references;
+- `recommendedAction` `{kind, summary, reason}` (absent for informational
+  findings). The opaque execution payload is never surfaced: the console
+  proposes the action **by finding id** through the operation gateway, and it
+  is never autonomously executed — the honua-server ADR-0028 posture
+  (deterministic server, approval-gated mutation, no autonomous AI data
+  edits).
+
+Concrete field names are pinned by the honua-server response DTO and vendored
+per `honua-server#2496`; see
+[`schemas/resources/ops-findings.schema.json`](schemas/resources/ops-findings.schema.json).
 
 ### `honua://workspaces/{workspace_id}`
 

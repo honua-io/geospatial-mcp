@@ -479,12 +479,67 @@ standard MCP tools:
 | `solve_route` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
 | `cancel_job` | Execution (reference shape) | post-handoff `ExecutionJob` lifecycle, owned by `ProcessService` ([planning.md §5.3](planning.md#53-post-handoff-execution--orchestration-plane)) |
 | `propose_operation` | Control-plane proposal (reference shape) | a control-plane proposal; no v1 standard MCP tool |
+| `propose_rollback` | Control-plane proposal (reference shape) | a control-plane rollback proposal (a new forward Deploy to the prior revision); no v1 standard MCP tool |
+| `ops_health` | Platform operations (reference shape) | admin observability roll-up read; no v1 standard MCP tool |
+| `ops_findings` | Platform operations (reference shape) | deterministic-findings read (list/get); no v1 standard MCP tool |
+| `alert_events` | Platform operations (reference shape) | alert-event history query; no v1 standard MCP tool |
+| `operate_events` | Platform operations (reference shape) | fused Operate-timeline query; no v1 standard MCP tool |
+| `platform_release_status` | Platform operations (reference shape) | platform-release co-versioning/skew read; no v1 standard MCP tool |
+| `deploy_operations` | Platform operations (reference shape) | platform-release/server-upgrade operation read (list/get); no v1 standard MCP tool |
 | `ingest_dataset` | Publishing | the ingest step of the Publish Data workflow ([§Publish Data](#publish-data)); the standard's file/URL ingest contract finalizes upstream |
 
 Reference-shape tools MUST NOT be treated as v1 standard vocabulary; promoting
 one into the standard requires a change to the matrix above. The bare standard
 models discovery as a `CapabilityCatalog` read and analysis as `Geoprocess`
 plan steps rather than as discrete tools.
+
+### Platform Operations (Reference Shape)
+
+The reference implementation additionally advertises a **platform-operations**
+family of reference-shape tools so an agent can *observe* a server — health,
+deterministic findings, alert history, the fused operate timeline, and its
+platform-release / server-upgrade state — and *propose* (never execute) a
+rollback. These mirror the honua-server admin observability and control-plane
+endpoints (epic [`honua-server#2552`](https://github.com/honua-io/honua-server/issues/2552);
+read tools [`#2555`](https://github.com/honua-io/honua-server/pull/2555),
+deploy-operations wire contract pinned by
+[`#2562`/#2577](https://github.com/honua-io/honua-server/pull/2577)) and are kept
+in sync with the vendored schema copy per
+[`honua-server#2496`](https://github.com/honua-io/honua-server/issues/2496).
+
+- **Read tools** (read-only, paginated where they list):
+  - `ops_health` — consolidated operational-health snapshot; response is the
+    [`honua://ops/health`](resources.md#honuaopshealth) resource projection.
+  - `ops_findings` — deterministic findings (list, or get by `findingId`), each
+    with `recommendedAction {kind, summary, reason}` and evidence refs; response
+    is the [`honua://ops/findings`](resources.md#honuaopsfindings) resource
+    projection.
+  - `alert_events` — alert-event history (filters: source `gis`|`ops`, severity,
+    rule, lifecycle state, time range).
+  - `operate_events` — fused Operate timeline (filters: kind, `correlationId`,
+    `operationId`, `releaseId`, time range).
+  - `platform_release_status` — declared release, co-versioning, and skew
+    snapshot.
+  - `deploy_operations` — platform-release / server-upgrade operations (list, or
+    get by `operationId`); the paged response envelope is copied verbatim from
+    the pinned wire contract.
+
+- **Action tool** (approval-gated, never autonomously executed):
+  - `propose_rollback` — proposes rolling a deploy target back to its prior
+    revision **as a new forward Deploy operation to that prior revision** (not an
+    in-flight-operation abort); returns a proposal id / `honua://proposals/{id}`
+    like `propose_operation`. It states the honua-server ADR-0028 posture
+    (deterministic server, approval-gated mutation, no autonomous AI data edits)
+    in its description; approve/reject/submit/promote stay human-only through the
+    console inbox.
+
+These use `platform_release` / `server_upgrade` vocabulary throughout;
+**"deployment"** always refers to the distinct hosted-content
+[`honua://deployments/{deployment_id}`](resources.md#honuadeploymentsdeployment_id)
+family. Like the other reference-shape tools they are not v1 standard vocabulary.
+`propose_operation` additionally records an `x-honua-supported-kinds` runtime
+capability-discovery annotation (the `kind` enum stays wire-compatible; `Seed`
+is currently not routable in the reference).
 
 ## Non-Goals
 

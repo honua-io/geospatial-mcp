@@ -92,6 +92,41 @@
       "workflowFamily": "Lifecycle"
     },
     {
+      "standardName": "propose_rollback",
+      "advertisedName": "honua_propose_rollback",
+      "workflowFamily": "Lifecycle"
+    },
+    {
+      "standardName": "ops_health",
+      "advertisedName": "honua_ops_health",
+      "workflowFamily": "Platform operations"
+    },
+    {
+      "standardName": "ops_findings",
+      "advertisedName": "honua_ops_findings",
+      "workflowFamily": "Platform operations"
+    },
+    {
+      "standardName": "alert_events",
+      "advertisedName": "honua_alert_events",
+      "workflowFamily": "Platform operations"
+    },
+    {
+      "standardName": "operate_events",
+      "advertisedName": "honua_operate_events",
+      "workflowFamily": "Platform operations"
+    },
+    {
+      "standardName": "platform_release_status",
+      "advertisedName": "honua_platform_release_status",
+      "workflowFamily": "Platform operations"
+    },
+    {
+      "standardName": "deploy_operations",
+      "advertisedName": "honua_deploy_operations",
+      "workflowFamily": "Platform operations"
+    },
+    {
       "standardName": "publish_service",
       "advertisedName": "honua_publish_service",
       "workflowFamily": "Lifecycle"
@@ -144,6 +179,14 @@
     {
       "family": "Map package",
       "uriForm": "honua://map-packages/{map_package_id}"
+    },
+    {
+      "family": "Ops findings",
+      "uriForm": "honua://ops/findings"
+    },
+    {
+      "family": "Ops health",
+      "uriForm": "honua://ops/health"
     },
     {
       "family": "Published service",

@@ -7,7 +7,7 @@
     "layerId": 0,
     "where": "zoning = 'R1'",
     "limit": 100,
-    "resultOffset": 100,
+    "cursor": "100",
     "returnGeometry": false,
     "returnCountOnly": false,
     "outSrid": 4326

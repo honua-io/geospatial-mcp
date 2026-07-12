@@ -2,6 +2,7 @@
 
 [![docs](https://github.com/honua-io/geospatial-mcp/actions/workflows/docs.yml/badge.svg)](https://github.com/honua-io/geospatial-mcp/actions/workflows/docs.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/honua-io/geospatial-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/honua-io/geospatial-mcp)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 An open, vendor-neutral **[MCP](https://modelcontextprotocol.io/) standard for
 geospatial operator workflows**. Generic MCP gives an agent *a* tool surface;

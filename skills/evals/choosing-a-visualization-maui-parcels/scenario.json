@@ -1,0 +1,27 @@
+{
+  "scenarioVersion": "1",
+  "id": "choosing-a-visualization-maui-parcels-v1",
+  "status": "not-run",
+  "datasetProfile": "dataset-profile.json",
+  "rubric": "rubric.json",
+  "request": "Using the Maui County parcel layer, produce a defensible countywide map that helps a public-sector analyst compare the geographic pattern of assessed land and building value. Explain the visual variable, normalization, classification, palette family, query bounds, and any layer you decide not to show. Preview the map, but do not publish it.",
+  "endpointRequirements": {
+    "protocol": "MCP",
+    "profiles": ["base"],
+    "requiredStandardTools": ["list_layers", "query_features", "plan_analysis", "create_map_package", "apply_style_preset", "render_map"],
+    "optionalStandardTools": ["summarize_statistics", "reproject_features"]
+  },
+  "comparison": {
+    "freshContextPerRun": true,
+    "sameModelAndSettings": true,
+    "sameEndpointSnapshot": true,
+    "baselineContext": ["request", "MCP endpoint"],
+    "treatmentContext": ["request", "MCP endpoint", "skills/choosing-a-visualization/SKILL.md"]
+  },
+  "requiredEvidence": [
+    "model and harness versions", "endpoint and dataset snapshot identifiers",
+    "complete MCP transcripts", "rendered previews", "blinded rubric scores", "reviewer rationale"
+  ],
+  "evidence": null,
+  "note": "Scaffolding only. No cold-model run, response, score, or proof is claimed."
+}

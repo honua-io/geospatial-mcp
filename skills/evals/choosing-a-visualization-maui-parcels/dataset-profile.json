@@ -1,0 +1,36 @@
+{
+  "profileVersion": "1",
+  "derivedAt": "2026-07-18T00:00:00Z",
+  "source": {
+    "title": "Maui County Certified Parcels 2025",
+    "owner": "MauiCountyGIS",
+    "arcgisItemId": "edf160f9e2324714ae92fcc993a400e9",
+    "serviceUrl": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4",
+    "licenseStatus": "verify-before-redistribution"
+  },
+  "privacy": {
+    "containsRowLevelRecords": false,
+    "containsOwnerNames": false,
+    "containsAddresses": false,
+    "description": "Aggregate schema and distribution facts only; no parcel rows are included."
+  },
+  "geometry": {
+    "type": "polygon",
+    "spatialReferenceWkid": 102662,
+    "featureCount": 51765,
+    "extent": [1420795.1768669114, 60796.915201574564, 1876249.3528989963, 324038.38314015418]
+  },
+  "fields": {
+    "landvalue": { "sourceName": "LandValue", "type": "integer", "nonNullCount": 51047, "min": 0, "max": 393997200, "mean": 860096.4189864242 },
+    "bldgvalue": { "sourceName": "BldgValue", "type": "integer", "nonNullCount": 51047, "min": 0, "max": 522503600, "mean": 513376.3688365624 },
+    "taxacres": { "sourceName": "TaxAcres", "type": "number", "nonNullCount": 51035, "min": 0, "max": 69269.977, "mean": 14.66514158518661 },
+    "gisacres": { "sourceName": "GISAcres", "type": "number", "nonNullCount": 0, "min": null, "max": null, "mean": null },
+    "nhoodcode": { "sourceName": "NHoodCode", "type": "string", "distinctCount": 523 }
+  },
+  "interpretationGuards": [
+    "Raw parcel value is area-confounded at county scale.",
+    "The value distributions have extreme upper tails.",
+    "GISAcres has no non-null observations in this snapshot.",
+    "Zero values must not be silently treated as missing values."
+  ]
+}

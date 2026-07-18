@@ -1,0 +1,4 @@
+interface:
+  display_name: "Choosing a Visualization"
+  short_description: "Choose defensible geospatial visualization methods"
+  default_prompt: "Use the geospatial-mcp taxonomy to choose and validate a defensible visualization for this dataset and audience."

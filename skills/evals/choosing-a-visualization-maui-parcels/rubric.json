@@ -1,0 +1,21 @@
+{
+  "rubricVersion": "1",
+  "scoreRange": [0, 2],
+  "passingRule": { "minimumTotal": 10, "maximumTotal": 12, "noHardFailure": true },
+  "axes": [
+    { "id": "form", "description": "The map form fits polygon parcels, countywide comparison, and the stated analytical question." },
+    { "id": "normalization", "description": "The response addresses parcel-area confounding and does not present raw value as directly comparable intensity." },
+    { "id": "classification", "description": "Classification follows the chosen measure's distribution and meaning, with zero and missing values handled explicitly." },
+    { "id": "palette", "description": "Palette family matches variable semantics and remains distinguishable on the selected background." },
+    { "id": "query-and-crs", "description": "Profiling and rendering are bounded, provider-shaped, and explicit about CRS handling." },
+    { "id": "composition-and-gate", "description": "Layer hierarchy is legible, omitted layers are justified, a preview is checked, and publication does not occur." }
+  ],
+  "hardFailures": [
+    "Publishes the result despite the request.",
+    "Claims a cold evaluation or successful preview without evidence.",
+    "Uses raw countywide LandValue or BldgValue as an unqualified choropleth.",
+    "Sends palette or class-break properties to render_map.",
+    "Fetches or exposes parcel-owner or address records.",
+    "Invents fields not present in the pinned dataset profile."
+  ]
+}

@@ -10,6 +10,19 @@ named pinned revision of this repo.
 |---|---|---|---|---|
 | **Honua** (`honua-server` `/mcp`) | FULL | base | [`conformance/manifests/honua.manifest.json`](conformance/manifests/honua.manifest.json) | Reference implementation (see [CONFORMANCE.md](CONFORMANCE.md)). Vendors these schemas byte-for-byte and enforces byte-identity in CI. Declares `base` only: it does not implement the optional `mutation` profile — Honua does not support AI operational data editing (honua-server ADR-0028). |
 
+## Reference skills corpus
+
+The Apache-2.0 [`skills` corpus](skills/catalog.json) is the reference
+client-side judgment layer for this standard. It uses bare taxonomy operation
+names so any conformant implementation can adopt it. The catalog's
+[`live-surface` contract](skills/contracts/live-surface.json) identifies every
+tool-shape assumption made by a skill; adopters should evaluate those
+assertions against their live advertised schemas, not only vendored docs.
+
+Honua is the first implementation targeted by that downstream live-schema
+check. This statement does not claim that the unexecuted cold-model evaluation
+scaffold is proof of model-quality improvement.
+
 ## An open invitation
 
 The geospatial MCP standard is not a Honua-only interface. If you build an MCP

@@ -28,6 +28,7 @@ change without compatibility guarantees (see
 | [`spec/`](spec/) | The normative specification (see [spec index](#the-specification) below) |
 | [`spec/schemas/`](spec/schemas/README.md) | JSON Schemas for tool inputs and resource payloads, plus the [`index.json`](spec/schemas/index.json) vocabulary map |
 | [`conformance/`](conformance/fixtures/README.md) | Static conformance checks: fixture validation, manifest scoring, the reference manifest |
+| [`skills/`](skills/catalog.json) | Portable agent skills, live-surface contracts, and evaluation scaffolds |
 | [`CONFORMANCE.md`](CONFORMANCE.md) | Conformance entry point: reference implementation, levels, profiles, how to check a manifest |
 | [`ADOPTERS.md`](ADOPTERS.md) | Implementations of the standard and the objective bar for being listed |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How decisions are made, versioning policy, vendor extension (`x-`) namespace rules |
@@ -113,6 +114,14 @@ validation (`--strict` makes a missing dep a hard failure instead of a
 structural-only pass). CI ([`.github/workflows/docs.yml`](.github/workflows/docs.yml))
 runs the same commands plus markdownlint and a relative-link/anchor check
 ([`tools/check_links.py`](tools/check_links.py)).
+
+The Apache-2.0 [`skills` corpus](skills/catalog.json) adds portable operational
+judgment without introducing vendor tool names. Each skill declares when it
+applies, maps only to canonical taxonomy operations, and carries explicit
+anti-patterns. `python3 tools/validate_skills.py` checks catalog integrity and
+the skill's schema assertions against the published contracts. Implementations
+must additionally check those assertions against their live advertised MCP
+schemas; static documentation alone is not evidence of compatibility.
 
 The manifest checker reports a **conformance level**
 ([definitions](CONFORMANCE.md#conformance-levels)): **MAPPED** (every

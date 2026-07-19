@@ -22,7 +22,7 @@
   },
   "requiredArtifacts": [
     "run-metadata.json", "scenario.json", "rubric.json",
-    "baseline-response.json", "skill-response.json", "judge-result.json",
+    "baseline-response.json", "skill-response.json", "judge-result.json", "review-adjudication.json",
     "../dataset-profile.json", "../aggregate-derivation.json"
   ],
   "expectedArtifactsOnCompletion": [
@@ -45,6 +45,8 @@
     },
     "judgeResult": "judge-result.json",
     "judgeSha256": "4644e16ad11dc0f76a3f7c8ce78a1e386bb82e3d3b9963ea907c707473907a45",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "3f7df6db69c94240e98c7b57272d22a34fcae114a104846c357005202b40d41f",
     "materialLift": false,
     "expansionGateMet": false,
     "outcome": "expansion-gate-not-met"

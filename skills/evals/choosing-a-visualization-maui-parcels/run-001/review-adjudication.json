@@ -1,0 +1,24 @@
+{
+  "adjudicationVersion": "1",
+  "runId": "run-001",
+  "originalJudgeSha256": "4d2ec3a3cbf5d7b466340eb98671fdf4f0182dcfed34bbee7931083520ff83d4",
+  "profileConsistency": {
+    "status": "reconstructed-inconsistent",
+    "responseNeighborhoodDistinctCount": 523,
+    "finalProfileNeighborhoodDistinctNonNullCount": 522,
+    "sameDatasetProfile": false,
+    "rationale": "The response predates the final reproducible aggregate profile. Its 523-category statement includes a null distinct value, while the final profile records 522 distinct non-null NHoodCode values."
+  },
+  "endpointConsistency": {
+    "originalJudgeSameEndpointSnapshot": true,
+    "scenarioEndpointUsed": false,
+    "scenarioSameEndpointSnapshot": false,
+    "originalAssertionValid": false,
+    "rationale": "The run was a tool-less judgment with no endpoint connection, so the original judge's sameEndpointSnapshot=true assertion is invalid."
+  },
+  "adjudicatedScores": {
+    "baseline": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 1, "composition-and-gate": 1, "total": 10 },
+    "treatment": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 2, "composition-and-gate": 1, "total": 11 }
+  },
+  "finalJudgment": { "materialImprovement": false, "expansionGateMet": false }
+}

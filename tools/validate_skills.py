@@ -373,6 +373,75 @@ def validate(root: Path) -> list[str]:
                         expected_material = all(condition["passed"] for condition in conditions.values())
                         if material is not expected_material or gate_met is not expected_material:
                             errors.append("Maui run-002 material and expansion results disagree with threshold conditions")
+                    adjudication_path = (run_root / str(evidence.get("reviewAdjudication"))).resolve()
+                    adjudication = load_json(adjudication_path, errors) if adjudication_path.parent == run_root.resolve() and adjudication_path.is_file() else None
+                    if not isinstance(adjudication, dict):
+                        errors.append(f"Maui {run_id} completed evidence requires a review adjudication")
+                    else:
+                        if evidence.get("reviewAdjudicationSha256") != sha256(adjudication_path):
+                            errors.append(f"Maui {run_id} review adjudication SHA-256 does not match")
+                        if adjudication.get("runId") != run_id or adjudication.get("originalJudgeSha256") != evidence.get("judgeSha256"):
+                            errors.append(f"Maui {run_id} adjudication does not bind the original judge")
+                        adjudicated_scores = adjudication.get("adjudicatedScores", {})
+                        for label in ("baseline", "treatment"):
+                            score = adjudicated_scores.get(label, {})
+                            if score.get("total") != sum(value for key, value in score.items() if key != "total"):
+                                errors.append(f"Maui {run_id} {label} adjudicated total is inconsistent")
+                        final_judgment = adjudication.get("finalJudgment", {})
+                        if final_judgment.get("materialImprovement") is not evidence.get("materialLift") or final_judgment.get("expansionGateMet") is not evidence.get("expansionGateMet"):
+                            errors.append(f"Maui {run_id} adjudicated outcome disagrees with scenario evidence")
+
+                        if scenario.get("id") == "choosing-a-visualization-maui-parcels-v1":
+                            if adjudicated_scores != judge.get("scores"):
+                                errors.append("Maui run-001 adjudicated scores must preserve the original judge scores")
+                            profile_consistency = adjudication.get("profileConsistency", {})
+                            final_count = profile.get("fields", {}).get("nhoodcode", {}).get("distinctNonNullCount") if isinstance(profile, dict) else None
+                            raw_baseline = (run_root / "baseline-response.json").read_text(encoding="utf-8")
+                            raw_treatment = (run_root / "skill-response.json").read_text(encoding="utf-8")
+                            if profile_consistency.get("status") != "reconstructed-inconsistent" or profile_consistency.get("responseNeighborhoodDistinctCount") != 523 or profile_consistency.get("finalProfileNeighborhoodDistinctNonNullCount") != final_count or profile_consistency.get("sameDatasetProfile") is not False:
+                                errors.append("Maui run-001 adjudication does not capture the reconstructed profile inconsistency")
+                            if "523 categories" not in raw_baseline or "523 codes" not in raw_treatment:
+                                errors.append("Maui run-001 preserved responses no longer support the profile inconsistency")
+                            if scenario.get("comparison", {}).get("sameDatasetProfile") is not False:
+                                errors.append("Maui run-001 scenario must mark sameDatasetProfile false")
+                            endpoint = adjudication.get("endpointConsistency", {})
+                            original_same_endpoint = judge.get("coldContextPolicy", {}).get("sameEndpointSnapshot")
+                            comparison = scenario.get("comparison", {})
+                            if original_same_endpoint is not True or endpoint.get("originalJudgeSameEndpointSnapshot") is not True or endpoint.get("originalAssertionValid") is not False or comparison.get("endpointUsed") is not False or comparison.get("sameEndpointSnapshot") is not False:
+                                errors.append("Maui run-001 endpoint adjudication is inconsistent")
+
+                        if scenario.get("id") == "choosing-a-visualization-maui-parcels-v2":
+                            original_scores = judge.get("scores", {})
+                            expected_scores = json.loads(json.dumps(original_scores))
+                            for finding in adjudication.get("findings", []):
+                                label = finding.get("response")
+                                axis = finding.get("axis")
+                                if expected_scores.get(label, {}).get(axis) != finding.get("originalScore"):
+                                    errors.append("Maui run-002 adjudication original score does not match the judge")
+                                    continue
+                                expected_scores[label][axis] = finding.get("adjudicatedScore")
+                                expected_scores[label]["total"] = sum(value for key, value in expected_scores[label].items() if key != "total")
+                            if adjudicated_scores != expected_scores:
+                                errors.append("Maui run-002 adjudicated scores do not follow the declared findings")
+                            treatment_text = (run_root / "skill-response.json").read_text(encoding="utf-8")
+                            if '"operation": "list_layers"' not in treatment_text or "advertised operation schemas" not in treatment_text:
+                                errors.append("Maui run-002 preserved treatment no longer supports the list_layers finding")
+                            lift = rubric.get("materialLift", {})
+                            baseline_total = adjudicated_scores.get("baseline", {}).get("total")
+                            treatment = adjudicated_scores.get("treatment", {})
+                            treatment_total = treatment.get("total")
+                            hard_failures = judge.get("hardFailures", {})
+                            adjudicated_conditions = {
+                                "minimumTreatmentTotal": {"required": lift.get("minimumTreatmentTotal"), "actual": treatment_total, "passed": treatment_total >= lift.get("minimumTreatmentTotal")},
+                                "minimumTreatmentMinusBaseline": {"required": lift.get("minimumTreatmentMinusBaseline"), "actual": treatment_total - baseline_total, "passed": treatment_total - baseline_total >= lift.get("minimumTreatmentMinusBaseline")},
+                                "minimumTreatmentAxisScore": {"required": lift.get("minimumTreatmentAxisScore"), "actual": min(value for key, value in treatment.items() if key != "total"), "passed": min(value for key, value in treatment.items() if key != "total") >= lift.get("minimumTreatmentAxisScore")},
+                                "noHardFailure": {"required": lift.get("noHardFailure"), "actual": not any(hard_failures.get(label, []) for label in ("baseline", "treatment")), "passed": not any(hard_failures.get(label, []) for label in ("baseline", "treatment"))},
+                            }
+                            if adjudication.get("thresholdEvaluation") != adjudicated_conditions:
+                                errors.append("Maui run-002 adjudicated threshold evaluation is inconsistent")
+                            expected_final = all(condition["passed"] for condition in adjudicated_conditions.values())
+                            if final_judgment != {"materialImprovement": expected_final, "expansionGateMet": expected_final}:
+                                errors.append("Maui run-002 adjudicated final judgment is inconsistent")
 
     if isinstance(profile, dict):
         artifact_name = profile.get("derivationArtifact")

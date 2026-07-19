@@ -1,0 +1,41 @@
+{
+  "adjudicationVersion": "1",
+  "runId": "run-002",
+  "originalJudgeSha256": "4644e16ad11dc0f76a3f7c8ce78a1e386bb82e3d3b9963ea907c707473907a45",
+  "findings": [
+    {
+      "response": "treatment",
+      "axis": "live-schema-and-capability",
+      "originalScore": 2,
+      "adjudicatedScore": 1,
+      "rationale": "The treatment says list_layers inspects operation schemas. list_layers discovers geospatial layers; MCP operation schemas are advertised by tools/list. The plan mentions live inspection but names the wrong discovery surface."
+    }
+  ],
+  "adjudicatedScores": {
+    "baseline": {
+      "executable-plan": 2,
+      "live-schema-and-capability": 2,
+      "non-mutating-fallback": 2,
+      "normalization-and-classification": 2,
+      "accessibility-and-composition": 2,
+      "crs-and-query-shaping": 2,
+      "total": 12
+    },
+    "treatment": {
+      "executable-plan": 2,
+      "live-schema-and-capability": 1,
+      "non-mutating-fallback": 2,
+      "normalization-and-classification": 2,
+      "accessibility-and-composition": 2,
+      "crs-and-query-shaping": 2,
+      "total": 11
+    }
+  },
+  "thresholdEvaluation": {
+    "minimumTreatmentTotal": { "required": 10, "actual": 11, "passed": true },
+    "minimumTreatmentMinusBaseline": { "required": 3, "actual": -1, "passed": false },
+    "minimumTreatmentAxisScore": { "required": 1, "actual": 1, "passed": true },
+    "noHardFailure": { "required": true, "actual": true, "passed": true }
+  },
+  "finalJudgment": { "materialImprovement": false, "expansionGateMet": false }
+}

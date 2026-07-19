@@ -136,6 +136,15 @@ class ValidateSkillsTests(unittest.TestCase):
             },
             "judgment": {"expansionGateMet": True, "materialImprovement": True}
         })
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-001/adjudication.json", {
+            "runId": "run-001",
+            "originalJudgeSha256": sha256(eval_root / "judge.json"),
+            "adjudicatedScores": {
+                "baseline": {"form": 2, "total": 2},
+                "treatment": {"form": 2, "total": 2}
+            },
+            "finalJudgment": {"materialImprovement": True, "expansionGateMet": True}
+        })
         digest = hashlib.sha256(b'{"result":"ok"}').hexdigest()
         response = {"sha256": digest, "scores": {"form": 2}, "total": 2}
         scenario = {
@@ -147,6 +156,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 },
                 "judgeResult": "judge.json",
                 "judgeSha256": sha256(eval_root / "judge.json"),
+                "reviewAdjudication": "adjudication.json",
+                "reviewAdjudicationSha256": sha256(eval_root / "adjudication.json"),
                 "materialLift": True,
                 "expansionGateMet": True
             }

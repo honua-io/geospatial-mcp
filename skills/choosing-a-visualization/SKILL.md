@@ -100,15 +100,20 @@ and reprojection after a large result has already crossed the network.
   encoding, obscures the primary evidence, or cannot remain legible at the
   target scale.
 
-Create or refine composition through `create_map_package` and, where
-advertised, `refine_map_package` or `compose_mixed_protocol_map`. Persist and
-bind approved styling through `apply_style_preset` before previewing.
-`render_map` accepts layers and an extent; it does not accept palette or class
-break instructions. Never fabricate styling arguments on the render call.
+Create or refine an isolated composition through `create_map_package` and,
+where advertised, `refine_map_package` or `compose_mixed_protocol_map`. Put the
+candidate `styleId` on that package and use `preview_map_package`; do not mutate
+a hosted layer merely to obtain a preview. Use `apply_style_preset` only when
+the operator explicitly approves a persistent default-style change. A direct
+`render_map` call accepts layers and an extent; it does not accept palette or
+class-break instructions. Never fabricate styling arguments on the render
+call.
 
 ## Preview and publishing gate
 
-1. Preview with `render_map` or `preview_map_package` after the style is bound.
+1. Preview an isolated styled package with `preview_map_package`. Use
+   `render_map` only for an already configured layer; do not first change that
+   layer's persistent style unless the operator explicitly approved it.
 2. Inspect the full intended extent and representative dense, sparse, edge,
    missing-value, and boundary areas.
 3. Confirm title, legend, units, CRS, attribution, source date, accessibility,
@@ -132,6 +137,7 @@ break instructions. Never fabricate styling arguments on the render call.
 - Omitting CRS identifiers from an extent or silently mixing coordinate axes.
 - Stacking similarly colored layers or allowing a background to dominate.
 - Keeping every available layer and compensating with tiny labels or opacity.
+- Mutating a hosted layer's default style solely to produce a preview.
 - Sending palette or class-break fields to `render_map` when they are absent
   from its advertised schema.
 - Publishing a draft without provenance, rights, privacy, visibility, and

@@ -1,0 +1,172 @@
+{
+  "scenarioId": "choosing-a-visualization-maui-parcels-v1",
+  "status": "draft-not-previewed",
+  "decisionContext": {
+    "intendedTakeaway": "Show where assessed land value intensity and assessed building value intensity are relatively high or low across Maui County without allowing parcel size or extreme raw totals to dominate the pattern.",
+    "audience": "public-sector analyst",
+    "viewingScale": "countywide, with parcel detail available only on zoom",
+    "priority": "broad pattern recognition rather than exact parcel lookup"
+  },
+  "dataset": {
+    "title": "Maui County Certified Parcels 2025",
+    "arcgisItemId": "edf160f9e2324714ae92fcc993a400e9",
+    "layerUrl": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4",
+    "geometry": "polygon",
+    "featureCount": 51765,
+    "sourceCrsWkid": 102662,
+    "sourceExtent": [
+      1420795.1768669114,
+      60796.915201574564,
+      1876249.3528989963,
+      324038.38314015418
+    ],
+    "snapshot": "profile derived 2026-07-18T00:00:00Z from the 2025 certified parcel layer"
+  },
+  "visualization": {
+    "form": "two synchronized side-by-side parcel choropleths",
+    "panels": [
+      {
+        "title": "Assessed land value per taxable acre",
+        "sourceField": "LandValue",
+        "derivedMeasure": "LandValue / TaxAcres",
+        "palette": "color-vision-safe sequential ochre ordered by lightness"
+      },
+      {
+        "title": "Assessed building value per taxable acre",
+        "sourceField": "BldgValue",
+        "derivedMeasure": "BldgValue / TaxAcres",
+        "palette": "color-vision-safe sequential teal ordered by lightness"
+      }
+    ],
+    "visualVariable": "polygon fill lightness encodes increasing assessed dollars per taxable acre; hue distinguishes the land and building panels, not magnitude",
+    "normalization": {
+      "denominator": "TaxAcres",
+      "unit": "assessed dollars per taxable acre",
+      "eligibleRows": "TaxAcres > 0 and the relevant value is non-null",
+      "zeroTreatment": "A valid assessed value of zero receives a separate labeled zero class and is not treated as missing.",
+      "missingTreatment": "Null values and records with null, zero, or negative TaxAcres receive a neutral gray or hatch labeled 'No comparable rate'.",
+      "limitations": "TaxAcres is an administrative acreage measure; per-acre building value can still be misleading for condominium or shared-land assessment structures and should be disclosed. GISAcres is unusable because it has no non-null observations."
+    },
+    "classification": {
+      "method": "five pooled quantile classes calculated server-side from the combined positive land-per-acre and building-per-acre observations after log10 transformation",
+      "comparisonRule": "Calculate one set of breaks from the pooled distribution and apply those identical original-unit break values to both panels; do not independently fit each map.",
+      "legendRule": "Label class boundaries in original dollars per taxable acre, state that class widths are unequal, and show zero and no-comparable-rate outside the five positive classes.",
+      "rationale": "The two source value distributions have extreme upper tails. A log transform prevents those tails from collapsing most observations, while pooled quantiles emphasize countywide rank patterns and fixed shared breaks preserve cross-panel comparison.",
+      "pendingEvidence": "Numeric break values must be obtained from the bounded server-side analysis before styling; they are not inferable from minima, maxima, and means alone."
+    },
+    "accessibility": {
+      "requirements": [
+        "monotonic lightness within each ramp",
+        "adequate contrast over the basemap",
+        "color-vision-safe hues",
+        "grayscale-distinguishable classes",
+        "text or pattern distinction for zero and missing classes"
+      ]
+    }
+  },
+  "queryAndOperationPlan": [
+    {
+      "operation": "list_layers",
+      "purpose": "Confirm the live layer identity, field names and types, feature count, extent, CRS, and advertised operation schemas before issuing requests."
+    },
+    {
+      "operation": "query_features",
+      "purpose": "Profile only LandValue, BldgValue, and TaxAcres within the full source extent, with bboxSrid 102662, geometry omitted, and count-only or bounded stable pages; push eligibility filters to the server and never fetch all parcel geometries for profiling."
+    },
+    {
+      "operation": "plan_analysis",
+      "purpose": "Because only the base profile is required and summarize_statistics is optional, request the canonical server-side fallback that computes valid, zero, missing, and invalid-denominator counts; both per-acre measures; log10-positive distributions; pooled quantiles; and the resulting shared class breaks."
+    },
+    {
+      "operation": "create_map_package",
+      "purpose": "Create a private two-panel package referencing the parcel source, derived measures, full county extent, scale-dependent parcel detail, subdued context, shared class breaks, legends, units, limitation text, and attribution."
+    },
+    {
+      "operation": "apply_style_preset",
+      "purpose": "Bind the approved sequential styles, separate zero and missing treatments, outlines, and scale gates to the package before rendering."
+    },
+    {
+      "operation": "render_map",
+      "purpose": "Render the styled package at the county extent and representative zoomed extents; pass only supported layer and extent inputs, with no invented palette or class-break arguments."
+    }
+  ],
+  "queryBounds": {
+    "bbox": [
+      1420795.1768669114,
+      60796.915201574564,
+      1876249.3528989963,
+      324038.38314015418
+    ],
+    "bboxSrid": 102662,
+    "outSrid": "Use the renderer's confirmed display CRS; request it server-side through query_features when supported rather than reprojecting a large client-side result.",
+    "fields": [
+      "LandValue",
+      "BldgValue",
+      "TaxAcres"
+    ],
+    "geometryForProfiling": false
+  },
+  "crsHandling": {
+    "source": "WKID 102662",
+    "rule": "Keep the county bbox explicitly identified as WKID 102662. Confirm the package display CRS from the live schemas and perform server-side output reprojection before transfer when required.",
+    "optionalOperation": "reproject_features is optional; use a planned equivalent from plan_analysis or an outSrid-supported source query when it is unavailable."
+  },
+  "layerOrder": [
+    "subdued contextual basemap",
+    "one parcel-value fill layer in each panel",
+    "thin parcel outlines only above a legible zoom threshold",
+    "essential place labels and county reference boundaries"
+  ],
+  "layersAndAlternativesNotShown": [
+    {
+      "item": "raw LandValue or BldgValue choropleths",
+      "reason": "Raw totals are area-confounded and extremely heavy-tailed."
+    },
+    {
+      "item": "simultaneous transparent overlay of land and building fills",
+      "reason": "Color mixing would obscure both variables; synchronized small multiples support cleaner comparison."
+    },
+    {
+      "item": "single diverging land-minus-building or ratio map",
+      "reason": "The request is to compare two geographic patterns, and no substantively meaningful midpoint or ratio interpretation has been established."
+    },
+    {
+      "item": "NHoodCode categorical fill",
+      "reason": "There are 523 codes and their ordering and public meaning are unconfirmed; it would be illegible and would not encode assessed value."
+    },
+    {
+      "item": "GISAcres normalization",
+      "reason": "The field has zero non-null observations in this snapshot."
+    }
+  ],
+  "preview": {
+    "state": "not executed",
+    "evidence": [],
+    "reason": "No live MCP transcript, map package, style binding, or rendered artifact was available in the supplied evaluation context, so a successful preview is not claimed.",
+    "requiredInspection": [
+      "full county extent",
+      "dense urban parcels",
+      "sparse and large rural parcels",
+      "coastal and dataset-edge parcels",
+      "zero-value parcels",
+      "null-value and invalid-denominator parcels",
+      "class boundaries, legends, units, CRS, source date, attribution, accessibility, and limitation wording"
+    ]
+  },
+  "publication": {
+    "state": "private draft; not published",
+    "rightsGate": "License and redistribution rights remain unverified, independently preventing publication."
+  },
+  "unsupportedOptionalOperations": [
+    {
+      "operation": "summarize_statistics",
+      "status": "not assumed under the required base profile",
+      "fallback": "plan_analysis"
+    },
+    {
+      "operation": "reproject_features",
+      "status": "not assumed under the required base profile",
+      "fallback": "query_features with deliberate outSrid or a planned server-side equivalent"
+    }
+  ]
+}

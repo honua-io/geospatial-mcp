@@ -1,12 +1,15 @@
 {
   "profileVersion": "1",
-  "derivedAt": "2026-07-18T00:00:00Z",
+  "derivedAt": "2026-07-18T23:30:00Z",
+  "derivationArtifact": "aggregate-derivation.json",
   "source": {
     "title": "Maui County Certified Parcels 2025",
     "owner": "MauiCountyGIS",
     "arcgisItemId": "edf160f9e2324714ae92fcc993a400e9",
     "serviceUrl": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4",
-    "licenseStatus": "verify-before-redistribution"
+    "licenseStatus": "verify-before-redistribution",
+    "itemModifiedEpochMs": 1754329823000,
+    "layerLastEditEpochMs": 1766078061758
   },
   "privacy": {
     "containsRowLevelRecords": false,
@@ -25,7 +28,7 @@
     "bldgvalue": { "sourceName": "BldgValue", "type": "integer", "nonNullCount": 51047, "min": 0, "max": 522503600, "mean": 513376.3688365624 },
     "taxacres": { "sourceName": "TaxAcres", "type": "number", "nonNullCount": 51035, "min": 0, "max": 69269.977, "mean": 14.66514158518661 },
     "gisacres": { "sourceName": "GISAcres", "type": "number", "nonNullCount": 0, "min": null, "max": null, "mean": null },
-    "nhoodcode": { "sourceName": "NHoodCode", "type": "string", "distinctCount": 523 }
+    "nhoodcode": { "sourceName": "NHoodCode", "type": "string", "distinctNonNullCount": 522 }
   },
   "interpretationGuards": [
     "Raw parcel value is area-confounded at county scale.",

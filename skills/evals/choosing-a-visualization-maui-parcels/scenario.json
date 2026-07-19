@@ -1,14 +1,14 @@
 {
   "scenarioVersion": "1",
   "id": "choosing-a-visualization-maui-parcels-v1",
-  "status": "not-run",
+  "status": "completed",
   "datasetProfile": "dataset-profile.json",
   "rubric": "rubric.json",
   "request": "Using the Maui County parcel layer, produce a defensible countywide map that helps a public-sector analyst compare the geographic pattern of assessed land and building value. Explain the visual variable, normalization, classification, palette family, query bounds, and any layer you decide not to show. Preview the map, but do not publish it.",
   "endpointRequirements": {
     "protocol": "MCP",
     "profiles": ["base"],
-    "requiredStandardTools": ["list_layers", "query_features", "plan_analysis", "create_map_package", "apply_style_preset", "render_map"],
+    "requiredStandardTools": ["list_layers", "query_features", "plan_analysis", "create_map_package", "preview_map_package", "render_map"],
     "optionalStandardTools": ["summarize_statistics", "reproject_features"]
   },
   "comparison": {
@@ -22,6 +22,23 @@
     "model and harness versions", "endpoint and dataset snapshot identifiers",
     "complete MCP transcripts", "rendered previews", "blinded rubric scores", "reviewer rationale"
   ],
-  "evidence": null,
-  "note": "Scaffolding only. No cold-model run, response, score, or proof is claimed."
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "17bf80adf093b1b0a80bcf7ad75f3baea8a862b0ec6699f81f50e33b029ac13d",
+        "scores": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 1, "composition-and-gate": 1 },
+        "total": 10
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "62f749cf89d78bf68bbf9d750901cc167616795eb266c2fab673edf06f089f8e",
+        "scores": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 2, "composition-and-gate": 1 },
+        "total": 11
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "outcome": "expansion-gate-not-met"
+  },
+  "note": "Both cold responses pass the original rubric. The skill adds one point of query/CRS rigor but does not produce a material overall improvement; follow-on skills remain gated."
 }

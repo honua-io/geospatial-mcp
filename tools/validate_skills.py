@@ -89,6 +89,11 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def canonical_sha256(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
     try:
         text = path.read_text(encoding="utf-8")
@@ -223,18 +228,70 @@ def validate(root: Path) -> list[str]:
             errors.append(f"skills/catalog.json: {skill} tools lack live-surface assertions: {sorted(uncovered)}")
 
     eval_root = skills_root / "evals" / "choosing-a-visualization-maui-parcels"
-    scenario = load_json(eval_root / "scenario.json", errors)
     profile = load_json(eval_root / "dataset-profile.json", errors)
-    rubric = load_json(eval_root / "rubric.json", errors)
-    if isinstance(scenario, dict):
+    derivation_path = eval_root / "aggregate-derivation.json"
+    expected_runs = {"run-001", "run-002"}
+    actual_runs = {path.name for path in eval_root.iterdir() if path.is_dir() and path.name.startswith("run-")}
+    if actual_runs != expected_runs:
+        errors.append(f"Maui evaluation runs must be exactly {sorted(expected_runs)}")
+    for run_id in sorted(expected_runs):
+        run_root = eval_root / run_id
+        scenario = load_json(run_root / "scenario.json", errors)
+        rubric = load_json(run_root / "rubric.json", errors)
+        metadata = load_json(run_root / "run-metadata.json", errors)
+        if not all(isinstance(value, dict) for value in (scenario, rubric, metadata)):
+            continue
+        assert isinstance(scenario, dict) and isinstance(rubric, dict) and isinstance(metadata, dict)
+        if scenario.get("runId") != run_id or metadata.get("runId") != run_id:
+            errors.append(f"Maui {run_id} identifiers do not agree")
+        if scenario.get("runMetadata") != "run-metadata.json":
+            errors.append(f"Maui {run_id} must reference its run metadata")
+        if scenario.get("runMetadataSha256") != canonical_sha256(metadata):
+            errors.append(f"Maui {run_id} canonical run-metadata SHA-256 does not match")
+        if not re.fullmatch(r"[0-9a-f]{40}", str(metadata.get("skillRevision", ""))):
+            errors.append(f"Maui {run_id} requires a full skill revision")
+        for identity_key in ("modelIdentity", "harnessIdentity"):
+            identity = metadata.get(identity_key)
+            if identity != {"status": "not-exposed", "value": None}:
+                errors.append(f"Maui {run_id} {identity_key} must truthfully record not-exposed without an invented value")
+        execution = metadata.get("execution", {})
+        if execution != {"mode": "tool-less-cold-plan-judgment", "mcpEndpointConnected": False, "toolsExecuted": False, "previewRendered": False}:
+            errors.append(f"Maui {run_id} must record the tool-less execution mode exactly")
+        snapshot = metadata.get("profileSnapshot", {})
+        source = profile.get("source", {}) if isinstance(profile, dict) else {}
+        if snapshot.get("arcgisItemId") != source.get("arcgisItemId") or snapshot.get("itemModifiedEpochMs") != source.get("itemModifiedEpochMs") or snapshot.get("layerLastEditEpochMs") != source.get("layerLastEditEpochMs"):
+            errors.append(f"Maui {run_id} profile snapshot identifiers drifted")
+        if snapshot.get("datasetProfileSha256") != sha256(eval_root / "dataset-profile.json") or snapshot.get("derivationArtifactSha256") != sha256(derivation_path):
+            errors.append(f"Maui {run_id} profile artifact SHA-256 does not match")
+        required_artifacts = scenario.get("requiredArtifacts")
+        if not isinstance(required_artifacts, list) or not required_artifacts:
+            errors.append(f"Maui {run_id} must declare required artifacts")
+        else:
+            for relative in required_artifacts:
+                artifact_path = (run_root / str(relative)).resolve()
+                if eval_root.resolve() not in (artifact_path, *artifact_path.parents) or not artifact_path.is_file():
+                    errors.append(f"Maui {run_id} required artifact is missing or escapes the eval root: {relative}")
+        if run_id == "run-002":
+            axes = rubric.get("axes", [])
+            for axis in axes if isinstance(axes, list) else []:
+                if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
+                    errors.append("Maui run-002 every rubric axis requires explicit 0/1/2 anchors")
+            lift = rubric.get("materialLift")
+            required_lift = {"minimumTreatmentTotal", "minimumTreatmentMinusBaseline", "minimumTreatmentAxisScore", "noHardFailure"}
+            if not isinstance(lift, dict) or set(lift) != required_lift:
+                errors.append("Maui run-002 must predeclare the complete material-lift threshold")
         status = scenario.get("status")
         if status not in {"not-run", "completed"}:
-            errors.append("Maui cold-eval status must be not-run or completed")
+            errors.append(f"Maui {run_id} status must be not-run or completed")
         if not scenario.get("request"):
-            errors.append("Maui cold-eval scaffold must contain an exact request")
+            errors.append(f"Maui {run_id} must contain an exact request")
         evidence = scenario.get("evidence")
         if status == "not-run" and evidence is not None:
-            errors.append("Maui not-run evaluation must not claim evidence")
+            errors.append(f"Maui {run_id} not-run evaluation must not claim evidence")
+        if status == "not-run":
+            for relative in scenario.get("expectedArtifactsOnCompletion", []):
+                if (run_root / str(relative)).exists():
+                    errors.append(f"Maui {run_id} not-run evaluation must not contain output artifact {relative}")
         if status == "completed":
             if not isinstance(evidence, dict) or not isinstance(rubric, dict):
                 errors.append("Maui completed evaluation requires evidence and rubric objects")
@@ -247,24 +304,35 @@ def validate(root: Path) -> list[str]:
                 else:
                     for label, response in responses.items():
                         if not isinstance(response, dict):
-                            errors.append(f"Maui {label} evidence must be an object")
+                            errors.append(f"Maui {run_id} {label} evidence must be an object")
                             continue
                         relative = response.get("path")
-                        response_path = (eval_root / str(relative)).resolve()
-                        if response_path.parent != eval_root.resolve() or not response_path.is_file():
-                            errors.append(f"Maui {label} response path is missing or escapes the eval directory")
+                        response_path = (run_root / str(relative)).resolve()
+                        if response_path.parent != run_root.resolve() or not response_path.is_file():
+                            errors.append(f"Maui {run_id} {label} response path is missing or escapes the run directory")
                         elif sha256(response_path) != str(response.get("sha256", "")).lower():
-                            errors.append(f"Maui {label} response SHA-256 does not match")
+                            errors.append(f"Maui {run_id} {label} response SHA-256 does not match")
                         scores = response.get("scores")
                         if not isinstance(scores, dict) or set(scores) != axes:
-                            errors.append(f"Maui {label} scores must cover every rubric axis exactly")
+                            errors.append(f"Maui {run_id} {label} scores must cover every rubric axis exactly")
                         elif any(not isinstance(value, int) or not score_range[0] <= value <= score_range[1] for value in scores.values()):
-                            errors.append(f"Maui {label} score is outside the rubric range")
+                            errors.append(f"Maui {run_id} {label} score is outside the rubric range")
                         elif response.get("total") != sum(scores.values()):
-                            errors.append(f"Maui {label} total does not equal its axis scores")
-                judge_path = (eval_root / str(evidence.get("judgeResult"))).resolve()
-                if judge_path.parent != eval_root.resolve() or not judge_path.is_file():
-                    errors.append("Maui completed evidence requires a local judge result")
+                            errors.append(f"Maui {run_id} {label} total does not equal its axis scores")
+                judge_path = (run_root / str(evidence.get("judgeResult"))).resolve()
+                judge = load_json(judge_path, errors) if judge_path.parent == run_root.resolve() and judge_path.is_file() else None
+                if not isinstance(judge, dict):
+                    errors.append(f"Maui {run_id} completed evidence requires a local judge result")
+                elif isinstance(responses, dict):
+                    judge_scores = judge.get("scores", {})
+                    for label in ("baseline", "treatment"):
+                        expected = responses.get(label, {})
+                        actual = judge_scores.get(label, {})
+                        if actual.get("total") != expected.get("total") or {key: value for key, value in actual.items() if key != "total"} != expected.get("scores"):
+                            errors.append(f"Maui {run_id} {label} judge scores disagree with scenario evidence")
+                    gate_met = judge.get("judgment", {}).get("expansionGateMet")
+                    if (evidence.get("outcome") == "expansion-gate-not-met") != (gate_met is False):
+                        errors.append(f"Maui {run_id} judge gate outcome disagrees with scenario evidence")
 
     if isinstance(profile, dict):
         artifact_name = profile.get("derivationArtifact")

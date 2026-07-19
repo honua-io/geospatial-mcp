@@ -1,8 +1,11 @@
 {
   "scenarioVersion": "1",
   "id": "choosing-a-visualization-maui-parcels-v1",
+  "runId": "run-001",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "bc1dc597e361981290b798d831edaf17a2025fce7e4af35c7c545891520b3d23",
   "status": "completed",
-  "datasetProfile": "dataset-profile.json",
+  "datasetProfile": "../dataset-profile.json",
   "rubric": "rubric.json",
   "request": "Using the Maui County parcel layer, produce a defensible countywide map that helps a public-sector analyst compare the geographic pattern of assessed land and building value. Explain the visual variable, normalization, classification, palette family, query bounds, and any layer you decide not to show. Preview the map, but do not publish it.",
   "endpointRequirements": {
@@ -14,13 +17,20 @@
   "comparison": {
     "freshContextPerRun": true,
     "sameModelAndSettings": true,
-    "sameEndpointSnapshot": true,
+    "sameEndpointSnapshot": false,
+    "sameDatasetProfile": true,
+    "endpointUsed": false,
     "baselineContext": ["request", "MCP endpoint"],
     "treatmentContext": ["request", "MCP endpoint", "skills/choosing-a-visualization/SKILL.md"]
   },
   "requiredEvidence": [
     "model and harness versions", "endpoint and dataset snapshot identifiers",
     "complete MCP transcripts", "rendered previews", "blinded rubric scores", "reviewer rationale"
+  ],
+  "requiredArtifacts": [
+    "run-metadata.json", "scenario.json", "rubric.json", "baseline-response.json",
+    "skill-response.json", "judge-result.json", "../dataset-profile.json",
+    "../aggregate-derivation.json"
   ],
   "evidence": {
     "responses": {
@@ -40,5 +50,5 @@
     "judgeResult": "judge-result.json",
     "outcome": "expansion-gate-not-met"
   },
-  "note": "Both cold responses pass the original rubric. The skill adds one point of query/CRS rigor but does not produce a material overall improvement; follow-on skills remain gated."
+  "note": "Both cold responses pass the original rubric. The skill adds one point of query/CRS rigor but does not produce a material overall improvement; follow-on skills remain gated. This run was tool-less: no MCP endpoint call or rendered preview occurred."
 }

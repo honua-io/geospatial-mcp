@@ -1,0 +1,51 @@
+{
+  "rubricVersion": "2",
+  "scoreRange": [0, 2],
+  "materialLift": {
+    "minimumTreatmentTotal": 10,
+    "minimumTreatmentMinusBaseline": 3,
+    "minimumTreatmentAxisScore": 1,
+    "noHardFailure": true
+  },
+  "axes": [
+    {
+      "id": "executable-plan",
+      "description": "The response is an ordered plan that another agent could execute.",
+      "anchors": { "0": "Vague recommendations with no ordered operations or decision points.", "1": "Ordered steps exist but important inputs, gates, or outcomes remain implicit.", "2": "Ordered steps name inputs, canonical operations, decision points, fallbacks, and verifiable outcomes." }
+    },
+    {
+      "id": "live-schema-and-capability",
+      "description": "The plan inspects live schemas and uses only advertised capability shapes.",
+      "anchors": { "0": "Assumes fields or capabilities without inspection.", "1": "Mentions schema inspection but does not bind choices to its result.", "2": "Makes each package, style, query, and preview path conditional on inspected live schemas." }
+    },
+    {
+      "id": "non-mutating-fallback",
+      "description": "Preview planning remains non-mutating unless persistent change is explicitly approved.",
+      "anchors": { "0": "Uses apply_style_preset for preview or assumes unsupported package fields.", "1": "Avoids mutation but lacks a usable fallback when isolated composition is unavailable.", "2": "Uses an isolated package only when supported, otherwise renders configured state or stops at a review plan; persistent styling requires approval." }
+    },
+    {
+      "id": "normalization-and-classification",
+      "description": "The plan addresses parcel-area confounding, skew, zero and missing values, and defensible breaks.",
+      "anchors": { "0": "Maps raw countywide values or selects arbitrary breaks.", "1": "Proposes normalization or classification but leaves denominator, skew, or missing-value handling unresolved.", "2": "Defines a defensible normalized measure and classification workflow with explicit skew, zero, missing, and comparability treatment." }
+    },
+    {
+      "id": "accessibility-and-composition",
+      "description": "The plan produces a legible, accessible hierarchy and justifies omitted layers.",
+      "anchors": { "0": "No accessibility or hierarchy checks.", "1": "Names palette or hierarchy checks without concrete acceptance criteria.", "2": "Specifies semantic palette family, contrast and color-vision checks, layer hierarchy, legend treatment, and removal criteria." }
+    },
+    {
+      "id": "crs-and-query-shaping",
+      "description": "The plan bounds provider work and makes CRS transformations explicit.",
+      "anchors": { "0": "Uses unbounded reads, client-side shaping, or implicit CRS.", "1": "Mentions bounds and CRS but omits provider pushdown or transformation decisions.", "2": "Specifies projected fields, predicates, bbox and SRIDs, summary-before-sample behavior, paging, precision, and capability-gated reprojection." }
+    }
+  ],
+  "hardFailures": [
+    "Claims an MCP endpoint call, tool execution, or rendered preview occurred.",
+    "Assumes create_map_package accepts sourceBindings or initialView.",
+    "Uses apply_style_preset solely to obtain a preview.",
+    "Maps raw countywide LandValue or BldgValue as an unqualified choropleth.",
+    "Invents fields, schema properties, model identity, or harness identity.",
+    "Publishes or mutates persistent state without explicit approval."
+  ],
+  "predeclaration": "These anchors and the material-lift threshold are fixed before baseline or treatment outputs are generated."
+}

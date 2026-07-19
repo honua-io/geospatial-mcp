@@ -1,0 +1,32 @@
+{
+  "scenarioVersion": "2",
+  "id": "choosing-a-visualization-maui-parcels-v2",
+  "runId": "run-002",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "89e041a682c8c7892261ac4bf52c50ecae41725a51f03f418087ac8b86612826",
+  "status": "not-run",
+  "datasetProfile": "../dataset-profile.json",
+  "rubric": "rubric.json",
+  "request": "Using only the final choosing-a-visualization skill and the pinned Maui aggregate profile, write an executable plan for a defensible countywide comparison of assessed land and building value. Specify the live-schema inspections, normalization, classification, accessibility, CRS and bounded-query choices, capability-gated non-mutating preview fallback, and publication gate. This is a tool-less judgment exercise: do not claim to call an MCP endpoint, execute tools, or render a preview.",
+  "comparison": {
+    "freshContextPerRun": true,
+    "sameRequest": true,
+    "sameModelAndSettingsWhenExposed": true,
+    "baselineContext": ["request", "dataset profile"],
+    "treatmentContext": ["request", "dataset profile", "skills/choosing-a-visualization/SKILL.md"]
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json", "scenario.json", "rubric.json",
+    "../dataset-profile.json", "../aggregate-derivation.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json", "skill-response.json", "judge-result.json"
+  ],
+  "evidence": null,
+  "note": "Predeclared before outputs. No response, score, endpoint execution, tool execution, rendered preview, or model-quality result is claimed."
+}

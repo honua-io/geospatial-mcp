@@ -9,7 +9,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.validate_skills import REQUIRED_COVERAGE, validate
+from tools.validate_skills import REQUIRED_COVERAGE, canonical_sha256, sha256, validate
+
+
+def load_json_for_test(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 class ValidateSkillsTests(unittest.TestCase):
@@ -18,7 +22,9 @@ class ValidateSkillsTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / "skills" / "demo").mkdir(parents=True)
         (self.root / "skills" / "contracts").mkdir()
-        (self.root / "skills" / "evals" / "choosing-a-visualization-maui-parcels").mkdir(parents=True)
+        eval_root = self.root / "skills" / "evals" / "choosing-a-visualization-maui-parcels"
+        (eval_root / "run-001").mkdir(parents=True)
+        (eval_root / "run-002").mkdir(parents=True)
         (self.root / "spec" / "schemas" / "tools").mkdir(parents=True)
         self.write_json("spec/schemas/index.json", {"tools": [{"standardName": "query_features"}]})
         self.write_json("spec/schemas/tools/query_features.schema.json", {
@@ -65,12 +71,30 @@ class ValidateSkillsTests(unittest.TestCase):
                 "neighborhoodDistinctCount": {"response": {"count": 4}}
             }
         }
-        for name, value in {
-            "scenario.json": {"status": "not-run", "evidence": None, "request": "Make a map."},
-            "dataset-profile.json": profile, "aggregate-derivation.json": derivation,
-            "rubric.json": {"scoreRange": [0, 2], "axes": [{"id": "form"}]}
-        }.items():
-            self.write_json(f"skills/evals/choosing-a-visualization-maui-parcels/{name}", value)
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/dataset-profile.json", profile)
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/aggregate-derivation.json", derivation)
+        profile_hash = sha256(eval_root / "dataset-profile.json")
+        derivation_hash = sha256(eval_root / "aggregate-derivation.json")
+        for run_id in ("run-001", "run-002"):
+            metadata = {
+                "runId": run_id, "skillRevision": "a" * 40,
+                "modelIdentity": {"status": "not-exposed", "value": None},
+                "harnessIdentity": {"status": "not-exposed", "value": None},
+                "execution": {"mode": "tool-less-cold-plan-judgment", "mcpEndpointConnected": False, "toolsExecuted": False, "previewRendered": False},
+                "profileSnapshot": {"arcgisItemId": None, "itemModifiedEpochMs": 1, "layerLastEditEpochMs": 2, "datasetProfileSha256": profile_hash, "derivationArtifactSha256": derivation_hash}
+            }
+            rubric = {
+                "scoreRange": [0, 2], "axes": [{"id": "form", "anchors": {"0": "bad", "1": "partial", "2": "good"}}]
+            }
+            if run_id == "run-002":
+                rubric["materialLift"] = {"minimumTreatmentTotal": 1, "minimumTreatmentMinusBaseline": 1, "minimumTreatmentAxisScore": 1, "noHardFailure": True}
+            scenario = {
+                "runId": run_id, "runMetadata": "run-metadata.json", "runMetadataSha256": canonical_sha256(metadata),
+                "status": "not-run", "evidence": None, "request": "Make a map.", "requiredArtifacts": ["run-metadata.json", "scenario.json", "rubric.json", "../dataset-profile.json", "../aggregate-derivation.json"]
+            }
+            self.write_json(f"skills/evals/choosing-a-visualization-maui-parcels/{run_id}/run-metadata.json", metadata)
+            self.write_json(f"skills/evals/choosing-a-visualization-maui-parcels/{run_id}/rubric.json", rubric)
+            self.write_json(f"skills/evals/choosing-a-visualization-maui-parcels/{run_id}/scenario.json", scenario)
 
     def tearDown(self) -> None:
         self.temp.cleanup()
@@ -96,15 +120,22 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertTrue(any("required fields drift" in error for error in validate(self.root)))
 
     def test_completed_eval_without_evidence_fails(self) -> None:
-        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/scenario.json", {
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-001/scenario.json", {
             "status": "completed", "evidence": None, "request": "Make a map."
         })
         self.assertTrue(any("requires evidence" in error for error in validate(self.root)))
 
     def test_completed_eval_hashes_and_scores_pass(self) -> None:
-        eval_root = self.root / "skills/evals/choosing-a-visualization-maui-parcels"
-        for name in ("baseline.json", "treatment.json", "judge.json"):
+        eval_root = self.root / "skills/evals/choosing-a-visualization-maui-parcels/run-001"
+        for name in ("baseline.json", "treatment.json"):
             (eval_root / name).write_text('{"result":"ok"}', encoding="utf-8")
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-001/judge.json", {
+            "scores": {
+                "baseline": {"form": 2, "total": 2},
+                "treatment": {"form": 2, "total": 2}
+            },
+            "judgment": {"expansionGateMet": True}
+        })
         digest = hashlib.sha256(b'{"result":"ok"}').hexdigest()
         response = {"sha256": digest, "scores": {"form": 2}, "total": 2}
         scenario = {
@@ -117,15 +148,20 @@ class ValidateSkillsTests(unittest.TestCase):
                 "judgeResult": "judge.json"
             }
         }
-        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/scenario.json", scenario)
+        metadata = load_json_for_test(eval_root / "run-metadata.json")
+        scenario.update({"runId": "run-001", "runMetadata": "run-metadata.json", "runMetadataSha256": canonical_sha256(metadata), "requiredArtifacts": ["run-metadata.json", "scenario.json", "rubric.json", "baseline.json", "treatment.json", "judge.json", "../dataset-profile.json", "../aggregate-derivation.json"]})
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-001/scenario.json", scenario)
         self.assertEqual([], validate(self.root))
 
     def test_completed_eval_rejects_bad_hash(self) -> None:
-        eval_root = self.root / "skills/evals/choosing-a-visualization-maui-parcels"
+        eval_root = self.root / "skills/evals/choosing-a-visualization-maui-parcels/run-001"
         for name in ("baseline.json", "treatment.json", "judge.json"):
             (eval_root / name).write_text('{}', encoding="utf-8")
         response = {"sha256": "0" * 64, "scores": {"form": 2}, "total": 2}
-        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/scenario.json", {
+        metadata = load_json_for_test(eval_root / "run-metadata.json")
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-001/scenario.json", {
+            "runId": "run-001", "runMetadata": "run-metadata.json", "runMetadataSha256": canonical_sha256(metadata),
+            "requiredArtifacts": ["run-metadata.json", "scenario.json", "rubric.json", "baseline.json", "treatment.json", "judge.json", "../dataset-profile.json", "../aggregate-derivation.json"],
             "status": "completed", "request": "Make a map.", "evidence": {
                 "responses": {
                     "baseline": response | {"path": "baseline.json"},

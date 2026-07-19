@@ -1,0 +1,19 @@
+{
+  "runId": "run-001",
+  "skillRevision": "b939e0e50836deed47c396fd3eac92a07758a5fb",
+  "modelIdentity": { "status": "not-exposed", "value": null },
+  "harnessIdentity": { "status": "not-exposed", "value": null },
+  "execution": {
+    "mode": "tool-less-cold-plan-judgment",
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "profileSnapshot": {
+    "arcgisItemId": "edf160f9e2324714ae92fcc993a400e9",
+    "itemModifiedEpochMs": 1754329823000,
+    "layerLastEditEpochMs": 1766078061758,
+    "datasetProfileSha256": "335c1466bd4e3f745f0a0a9a763de300a0d4497471e4e32387cbf70227e19ce6",
+    "derivationArtifactSha256": "647eb8065ca8b51b1b64e3b8189a306f744e4d4b9ead393a462669f79596c192"
+  }
+}

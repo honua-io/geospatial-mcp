@@ -1,0 +1,204 @@
+{
+  "scenarioVersion": "2",
+  "scenarioId": "choosing-a-visualization-maui-parcels-v2",
+  "runId": "run-002",
+  "status": "planned",
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "plan": {
+    "intendedTakeaway": "Show where assessed land value per acre and assessed building value per acre are relatively high or low across Maui County without allowing parcel area or independently fitted classes to drive the comparison.",
+    "decisionContext": {
+      "audience": "Countywide planning and assessment reviewers; confirm the publication audience before final legend wording or release.",
+      "viewingScale": "Countywide overview with synchronized local inspection views.",
+      "priority": "Broad spatial pattern recognition first, with parcel-level lookup available only in bounded local views.",
+      "knownProfile": {
+        "geometry": "51765 polygons",
+        "sourceCrs": "WKID 102662",
+        "sourceExtent": [
+          1420795.1768669114,
+          60796.915201574564,
+          1876249.3528989963,
+          324038.38314015418
+        ],
+        "valueFields": [
+          "LandValue",
+          "BldgValue"
+        ],
+        "candidateDenominator": "TaxAcres",
+        "excludedDenominator": "GISAcres, because it has no non-null observations in the pinned profile"
+      },
+      "requiredClarifications": [
+        "Confirm that TaxAcres is the authoritative, consistently defined parcel-area denominator for comparing both assessed values and that dollars per tax acre is meaningful for the intended audience.",
+        "Confirm whether zero LandValue and zero BldgValue are valid assessed states; do not recode either as missing.",
+        "Confirm the target display CRS, publication audience, and whether any policy-defined value-per-acre thresholds exist."
+      ]
+    },
+    "liveSchemaInspections": [
+      {
+        "operation": "list_layers",
+        "purpose": "Confirm stable layer identity, polygon geometry, exact field names and types, source CRS, extent, feature count, capabilities, and advertised operation schemas. Treat the live schema as authoritative over this plan if they differ."
+      },
+      {
+        "operation": "query_features",
+        "purpose": "Confirm support and parameter names for where, bbox, bboxSrid, outSrid, outFields, returnCountOnly, returnGeometry, limit, stable ordering or paging, and geometryPrecision."
+      },
+      {
+        "operation": "summarize_statistics",
+        "purpose": "Use only if the analysis profile advertises it; inspect supported filters, expressions, percentiles, grouping, and derived-field support before defining the normalized distribution."
+      },
+      {
+        "operation": "plan_analysis",
+        "purpose": "Canonical fallback when summarize_statistics is unavailable or cannot compute filtered normalized summaries; request an equivalent server-side normalization and pooled-break analysis plan."
+      },
+      {
+        "operation": "reproject_features",
+        "purpose": "Inspect only if query_features cannot return the required display CRS; keep reprojection server-side and bounded."
+      },
+      {
+        "operation": "preview_map_package",
+        "purpose": "Inspect together with any advertised non-mutating package-creation schema to determine whether source bindings, two styles, synchronized extent, legend, and initial view are expressible."
+      },
+      {
+        "operation": "refine_map_package",
+        "purpose": "Use only for inputs its live schema explicitly advertises; do not assume it can bind sources or set an initial view."
+      },
+      {
+        "operation": "render_map",
+        "purpose": "Inspect as a fallback for already configured layers only; never send palette or class-break arguments unless they are actually advertised."
+      },
+      {
+        "operation": "publish_result",
+        "purpose": "Inspect only after all publication gates pass; preview success is not publication."
+      }
+    ],
+    "normalization": {
+      "gate": "Do not produce the thematic comparison until TaxAcres semantics are confirmed.",
+      "landMeasure": "LandValue / TaxAcres",
+      "buildingMeasure": "BldgValue / TaxAcres",
+      "units": "assessed dollars per tax acre",
+      "validRows": "TaxAcres IS NOT NULL AND TaxAcres > 0, with the corresponding value field IS NOT NULL",
+      "zeroTreatment": "Retain a zero numerator as a distinct valid zero class after its semantics are confirmed.",
+      "missingTreatment": "Render null value, null TaxAcres, zero TaxAcres, and otherwise invalid denominator records as no-data, distinct from valid zero; report counts for every exclusion reason.",
+      "distributionTreatment": "Profile strictly positive normalized values. Because the source totals have extreme upper tails and very small positive denominators may amplify them, inspect minima, maxima, percentiles, and denominator diagnostics before styling. Use a log10 transform only for break derivation if needed, label the legend in original dollars per acre, and document that transformation. Do not silently trim or winsorize records."
+    },
+    "visualization": {
+      "form": "Two synchronized parcel choropleth small multiples: assessed land dollars per tax acre and assessed building dollars per tax acre.",
+      "classification": {
+        "method": "Five common quantile thresholds derived once from the pooled set of both strictly positive normalized measures, then frozen and applied identically to both maps.",
+        "rationale": "Pooled thresholds preserve direct cross-panel class meaning while balanced pooled membership limits collapse from the heavy tails.",
+        "disclosure": "Quantile classes compare rank in the pooled distribution; adjacent classes can differ by small dollar amounts, and class membership is not an equal-interval claim.",
+        "execution": "Compute and record the four pooled thresholds through summarize_statistics when supported, otherwise through plan_analysis. Never fit breaks independently per panel. If pooled quantiles or derived expressions are unsupported, stop at the reviewable analysis plan rather than inventing thresholds."
+      },
+      "palette": {
+        "family": "One color-vision-safe sequential ordered-lightness ramp shared by both panels, with dark meaning higher in every panel.",
+        "zero": "A separately labelled neutral light fill or pattern.",
+        "noData": "A distinct neutral gray pattern that remains distinguishable from zero.",
+        "checks": [
+          "Verify contrast against a subdued background.",
+          "Verify adjacent classes and zero/no-data states under common color-vision deficiencies and in grayscale.",
+          "Use explicit dollar-per-tax-acre legend bounds, inclusive-edge conventions, zero, no-data, and exclusion notes."
+        ]
+      },
+      "layerOrder": [
+        "Subdued contextual basemap without competing terrain or labels",
+        "One thematic parcel fill per panel",
+        "Very subtle parcel outlines only where scale permits feature identity",
+        "Sparse essential reference boundaries and labels above fills"
+      ],
+      "scaleRules": "Suppress parcel outlines and parcel labels at the countywide scale; enable limited outlines and selected attributes only in bounded local views.",
+      "removedAlternatives": [
+        "Raw LandValue or BldgValue choropleths, because parcel area and the extreme tails confound countywide interpretation.",
+        "Independent quantiles, because identical colors would represent different numeric ranges.",
+        "A diverging palette, because no meaningful midpoint is established.",
+        "A bivariate choropleth, because it increases legend and accessibility burden without improving direct magnitude comparison.",
+        "Stacked semi-transparent value layers, because overlap obscures evidence and the two measures need equal visual roles.",
+        "Neighborhood-code aggregation, because 522 nominal codes have no supplied denominator semantics and would hide parcel patterns.",
+        "GISAcres normalization, because the profile reports no non-null observations."
+      ]
+    },
+    "boundedQueryPlan": [
+      {
+        "step": 1,
+        "operation": "query_features",
+        "requestShape": "Use returnCountOnly with server-side validity predicates separately for LandValue and BldgValue; request no geometry and no unused fields. Also count valid zero, missing numerator, missing TaxAcres, and TaxAcres <= 0 cohorts."
+      },
+      {
+        "step": 2,
+        "operation": "summarize_statistics",
+        "requestShape": "If advertised, request bounded attribute-only summaries for TaxAcres and each normalized measure, including count, min, max, and sufficient percentiles to detect tail and denominator effects; use the full source extent with bboxSrid 102662 when the schema requires a spatial bound."
+      },
+      {
+        "step": 3,
+        "operation": "plan_analysis",
+        "requestShape": "If summarize_statistics or derived expressions are unsupported, request the equivalent server-side filtered normalization, pooled-distribution thresholds, and exclusion counts; do not fetch all 51765 rows for client-side computation."
+      },
+      {
+        "step": 4,
+        "operation": "query_features",
+        "requestShape": "For feature-character inspection only, use representative bounded bboxes for dense, sparse, edge, boundary, zero, and no-data cases; set bboxSrid 102662, explicitly set outSrid, project only parcel identifier plus LandValue, BldgValue, and TaxAcres, use a small limit and stable ordering or paging, and reduce geometryPrecision only if the intended scale tolerates it."
+      }
+    ],
+    "crsHandling": {
+      "source": "WKID 102662",
+      "sourceBounds": "All pinned county extent coordinates and source-space bboxes must explicitly declare bboxSrid 102662.",
+      "display": "Confirm the target display CRS from the live composition or renderer schema; set outSrid explicitly rather than assuming Web Mercator.",
+      "reprojection": "Prefer query_features server-side outSrid conversion. If unsupported, use reproject_features on bounded results before transfer or request the equivalent through plan_analysis. Never transfer the full county polygon set and then reproject locally.",
+      "axisOrder": "Confirm the live schema's axis convention before submitting any bbox."
+    },
+    "previewPlan": {
+      "state": "Not executed; no preview evidence exists.",
+      "preferredPath": "When the advertised non-mutating package schema can bind the parcel source, both normalized styles, common breaks, synchronized extent, legends, and initial view, create an isolated private package and use preview_map_package.",
+      "refinement": "Use refine_map_package only for explicitly advertised inputs and keep the package private or draft.",
+      "fallback": "If no non-mutating package path can express the candidate, use render_map only for an already configured layer and only with its advertised layers-and-extent inputs. Because render_map does not itself establish the proposed class breaks or palette, otherwise stop at this reviewable composition plan.",
+      "prohibition": "Do not use apply_style_preset or otherwise mutate the hosted layer's default style merely to obtain a preview.",
+      "requiredInspection": [
+        "Full county extent",
+        "Representative dense and sparse areas",
+        "Extent edges and parcel boundaries",
+        "Valid zero and each no-data state",
+        "Class-break boundary values",
+        "Title, units, CRS, legend, attribution, source date, accessibility, and limitations"
+      ]
+    },
+    "publicationGate": {
+      "state": "Blocked from publication and remains private or draft.",
+      "blockingFacts": [
+        "The pinned license status is verify-before-redistribution.",
+        "The audience, target visibility, denominator semantics, live source identity, package validity, and endpoint verification method are not yet confirmed.",
+        "No preview has been rendered or inspected."
+      ],
+      "requiredBeforePublish": [
+        "Confirm the ArcGIS item and layer as the stable intended source and record owner, item ID, service URL, item modification time, layer edit time, derivation date, and all transformations and frozen breaks.",
+        "Verify redistribution rights, attribution requirements, privacy exposure of the live projected fields, and explicit target visibility.",
+        "Validate the private package and inspect all required preview cases.",
+        "Confirm an independent way to verify the published endpoint and only then consider publish_result."
+      ]
+    },
+    "capabilityFallbacks": [
+      {
+        "optionalOperation": "summarize_statistics",
+        "support": "unknown until live schema inspection",
+        "fallback": "plan_analysis"
+      },
+      {
+        "optionalOperation": "derived-field statistics or pooled quantiles",
+        "support": "unknown until live schema inspection",
+        "fallback": "plan_analysis, then stop for review if the canonical plan cannot preserve common thresholds"
+      },
+      {
+        "optionalOperation": "non-mutating styled package creation and preview_map_package",
+        "support": "unknown until live schema inspection",
+        "fallback": "render_map for an already configured layer, otherwise a reviewable composition plan with no preview claim"
+      },
+      {
+        "optionalOperation": "query_features outSrid reprojection",
+        "support": "unknown until live schema inspection",
+        "fallback": "reproject_features on bounded results or plan_analysis"
+      }
+    ]
+  },
+  "evidence": null
+}

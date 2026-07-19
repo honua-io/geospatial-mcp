@@ -324,6 +324,8 @@ def validate(root: Path) -> list[str]:
                 if not isinstance(judge, dict):
                     errors.append(f"Maui {run_id} completed evidence requires a local judge result")
                 elif isinstance(responses, dict):
+                    if evidence.get("judgeSha256") != sha256(judge_path):
+                        errors.append(f"Maui {run_id} judge SHA-256 does not match")
                     judge_scores = judge.get("scores", {})
                     for label in ("baseline", "treatment"):
                         expected = responses.get(label, {})
@@ -333,6 +335,44 @@ def validate(root: Path) -> list[str]:
                     gate_met = judge.get("judgment", {}).get("expansionGateMet")
                     if (evidence.get("outcome") == "expansion-gate-not-met") != (gate_met is False):
                         errors.append(f"Maui {run_id} judge gate outcome disagrees with scenario evidence")
+                    if evidence.get("expansionGateMet") is not gate_met:
+                        errors.append(f"Maui {run_id} expansionGateMet disagrees with judge result")
+                    material = judge.get("judgment", {}).get("materialImprovement")
+                    if evidence.get("materialLift") is not material:
+                        errors.append(f"Maui {run_id} materialLift disagrees with judge result")
+                    if run_id == "run-002":
+                        lift = rubric.get("materialLift", {})
+                        baseline_total = responses.get("baseline", {}).get("total")
+                        treatment_total = responses.get("treatment", {}).get("total")
+                        treatment_scores = responses.get("treatment", {}).get("scores", {})
+                        hard_failures = judge.get("hardFailures", {})
+                        conditions = {
+                            "minimumTreatmentTotal": {
+                                "required": lift.get("minimumTreatmentTotal"),
+                                "actual": treatment_total,
+                                "passed": isinstance(treatment_total, int) and treatment_total >= lift.get("minimumTreatmentTotal", 10**9),
+                            },
+                            "minimumTreatmentMinusBaseline": {
+                                "required": lift.get("minimumTreatmentMinusBaseline"),
+                                "actual": treatment_total - baseline_total if isinstance(treatment_total, int) and isinstance(baseline_total, int) else None,
+                                "passed": isinstance(treatment_total, int) and isinstance(baseline_total, int) and treatment_total - baseline_total >= lift.get("minimumTreatmentMinusBaseline", 10**9),
+                            },
+                            "minimumTreatmentAxisScore": {
+                                "required": lift.get("minimumTreatmentAxisScore"),
+                                "actual": min(treatment_scores.values()) if treatment_scores else None,
+                                "passed": bool(treatment_scores) and min(treatment_scores.values()) >= lift.get("minimumTreatmentAxisScore", 10**9),
+                            },
+                            "noHardFailure": {
+                                "required": lift.get("noHardFailure"),
+                                "actual": not any(hard_failures.get(label, []) for label in ("baseline", "treatment")),
+                                "passed": not any(hard_failures.get(label, []) for label in ("baseline", "treatment")),
+                            },
+                        }
+                        if judge.get("thresholdEvaluation") != conditions:
+                            errors.append("Maui run-002 judge threshold evaluation disagrees with rubric and scores")
+                        expected_material = all(condition["passed"] for condition in conditions.values())
+                        if material is not expected_material or gate_met is not expected_material:
+                            errors.append("Maui run-002 material and expansion results disagree with threshold conditions")
 
     if isinstance(profile, dict):
         artifact_name = profile.get("derivationArtifact")

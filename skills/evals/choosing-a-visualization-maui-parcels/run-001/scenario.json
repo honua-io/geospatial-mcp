@@ -48,6 +48,9 @@
       }
     },
     "judgeResult": "judge-result.json",
+    "judgeSha256": "4d2ec3a3cbf5d7b466340eb98671fdf4f0182dcfed34bbee7931083520ff83d4",
+    "materialLift": false,
+    "expansionGateMet": false,
     "outcome": "expansion-gate-not-met"
   },
   "note": "Both cold responses pass the original rubric. The skill adds one point of query/CRS rigor but does not produce a material overall improvement; follow-on skills remain gated. This run was tool-less: no MCP endpoint call or rendered preview occurred."

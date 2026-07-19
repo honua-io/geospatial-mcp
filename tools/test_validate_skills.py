@@ -134,7 +134,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "baseline": {"form": 2, "total": 2},
                 "treatment": {"form": 2, "total": 2}
             },
-            "judgment": {"expansionGateMet": True}
+            "judgment": {"expansionGateMet": True, "materialImprovement": True}
         })
         digest = hashlib.sha256(b'{"result":"ok"}').hexdigest()
         response = {"sha256": digest, "scores": {"form": 2}, "total": 2}
@@ -145,7 +145,10 @@ class ValidateSkillsTests(unittest.TestCase):
                     "baseline": response | {"path": "baseline.json"},
                     "treatment": response | {"path": "treatment.json"}
                 },
-                "judgeResult": "judge.json"
+                "judgeResult": "judge.json",
+                "judgeSha256": sha256(eval_root / "judge.json"),
+                "materialLift": True,
+                "expansionGateMet": True
             }
         }
         metadata = load_json_for_test(eval_root / "run-metadata.json")
@@ -166,7 +169,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "responses": {
                     "baseline": response | {"path": "baseline.json"},
                     "treatment": response | {"path": "treatment.json"}
-                }, "judgeResult": "judge.json"
+                }, "judgeResult": "judge.json", "judgeSha256": sha256(eval_root / "judge.json")
             }
         })
         self.assertTrue(any("SHA-256" in error for error in validate(self.root)))

@@ -1,0 +1,175 @@
+{
+  "scenarioId": "choosing-a-visualization-maui-parcels-v2",
+  "runId": "run-002",
+  "status": "plan-only",
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "recommendation": {
+    "visualization": "paired small-multiple parcel choropleths",
+    "measures": [
+      {
+        "label": "Assessed land value per taxable acre",
+        "expression": "LandValue / TaxAcres"
+      },
+      {
+        "label": "Assessed building value per taxable acre",
+        "expression": "BldgValue / TaxAcres"
+      }
+    ],
+    "rationale": "Raw parcel totals are strongly confounded by parcel area. Two maps using the same extent, projection, color semantics, and class thresholds support a direct countywide comparison without obscuring geography in a single composite symbol.",
+    "avoid": [
+      "mapping raw LandValue and BldgValue totals as though parcel size were irrelevant",
+      "using GISAcres, which has no non-null observations in the pinned profile",
+      "independently classified maps, because equal colors would then represent unequal values",
+      "a bivariate map as the primary view, because its legend and color combinations are harder to interpret accessibly"
+    ]
+  },
+  "executablePlan": [
+    {
+      "step": 1,
+      "name": "Inspect the live layer without mutation",
+      "actions": [
+        "Read layer metadata and confirm the layer is polygon geometry, its current spatial reference and extent, the object-ID field, maxRecordCount, supported output formats, and whether pagination, orderBy, statistics, percentiles, quantization, and resultType are supported.",
+        "Inspect the live field definitions and resolve names case-insensitively; confirm LandValue, BldgValue, and TaxAcres exist, are numeric, and retain their aliases, nullability, domains, and units.",
+        "Compare live feature count, schema, extent, item modification time, and layer edit time with the pinned profile. Stop if the schema or population has materially changed rather than silently treating the pinned aggregates as current.",
+        "Inspect service and layer capabilities and allow only read/query operations during analysis and preview. Do not add, update, delete, overwrite, or change layer definitions."
+      ],
+      "stopConditions": [
+        "Any required field is absent or nonnumeric.",
+        "TaxAcres is not documented as acreage or its semantics cannot be confirmed.",
+        "The layer is not the expected parcel polygon layer.",
+        "A bounded, complete query strategy cannot be established from advertised capabilities."
+      ]
+    },
+    {
+      "step": 2,
+      "name": "Define the analytic population and normalization",
+      "actions": [
+        "Use records where TaxAcres is non-null and greater than zero and the relevant value field is non-null.",
+        "Compute land_value_per_acre = LandValue / TaxAcres and building_value_per_acre = BldgValue / TaxAcres with floating-point arithmetic.",
+        "Preserve zero assessed values as valid zeros; never convert them to null or exclude them solely because they are zero.",
+        "Track separate validity counts for each measure, plus counts excluded for null value, null acreage, zero acreage, and negative acreage. Do not assume both maps have identical valid populations.",
+        "Keep source totals available in popups for context, but do not use them as the primary color variable. Label the normalized values as assessed dollars per taxable acre, not market value or tax owed."
+      ]
+    },
+    {
+      "step": 3,
+      "name": "Compute bounded distribution summaries",
+      "actions": [
+        "First request count, minimum, maximum, and any supported percentile statistics with returnGeometry=false and only the required fields or expressions.",
+        "If server-side percentile expressions are supported, compute percentiles for both normalized measures under their explicit validity predicates.",
+        "If percentiles are not supported, request only object IDs satisfying each validity predicate, split them into deterministic chunks no larger than the advertised record limit, then fetch only object ID, LandValue, BldgValue, and TaxAcres with returnGeometry=false. Deduplicate by object ID and verify fetched counts against the count query.",
+        "Use stable object-ID ordering when pagination is supported. Never issue an unbounded all-fields, all-geometry request.",
+        "Report the observed minimum, median, upper percentiles, maximum, valid count, and exclusion counts before selecting breaks."
+      ]
+    },
+    {
+      "step": 4,
+      "name": "Choose one defensible shared classification",
+      "actions": [
+        "Pool the two valid per-acre distributions only for deriving a common display scale, while retaining measure-specific summary statistics.",
+        "Because the profile shows extreme upper tails, use a continuous log1p scale for analysis and derive five shared, monotonic thresholds from pooled robust percentiles, with the upper display threshold capped at the pooled 98th percentile.",
+        "Place values above the cap in an explicit top class labeled with a greater-than-or-equal boundary; do not discard, rewrite, or silently winsorize underlying values.",
+        "Keep zero in an explicit lowest class. Round labels for readability only after computing thresholds, and ensure rounding does not collapse adjacent classes.",
+        "If robust pooled thresholds collapse because of ties or excessive zeros, reduce the number of classes and disclose the change rather than inventing unequal breaks.",
+        "Apply exactly the same numeric thresholds and legend labels to both maps. Include the transform and cap in metadata and the legend note."
+      ],
+      "classificationSpecification": {
+        "classCountTarget": 5,
+        "sharedAcrossMeasures": true,
+        "analysisTransform": "log1p",
+        "upperDisplayCap": "pooled valid 98th percentile",
+        "outlierTreatment": "explicit top class; retain true values in data and popups",
+        "zeroTreatment": "valid explicit lowest class",
+        "missingTreatment": "separate neutral no-data style"
+      }
+    },
+    {
+      "step": 5,
+      "name": "Specify cartography and accessibility",
+      "actions": [
+        "Use the same sequential, perceptually ordered, color-vision-deficiency-safe palette on both maps; light means lower and dark means higher in both panels.",
+        "Render missing or excluded parcels in neutral light gray with a distinct legend entry, and use a thin boundary treatment that does not dominate dense parcel areas.",
+        "Keep identical map extent, scale, basemap, class breaks, and legend order. Show panel titles, units, data year 2025, and the valid denominator for each panel.",
+        "Provide text equivalents: a data table of class ranges and parcel counts for both measures, distribution summaries, exclusion counts, and a concise written comparison.",
+        "Do not rely on color alone: use explicit class labels, panel headings, focusable feature access in an interactive implementation, keyboard-operable controls, visible focus, and sufficient text and boundary contrast.",
+        "Popups should expose parcel identifier if publication policy permits, both assessed totals, TaxAcres, both per-acre values, and no-data reason; avoid owner names and addresses."
+      ]
+    },
+    {
+      "step": 6,
+      "name": "Handle CRS and countywide rendering",
+      "actions": [
+        "Treat WKID 102662 as the source spatial reference and verify its live definition before use; do not guess its datum, units, or transformation.",
+        "Perform area-related normalization only from the documented TaxAcres attribute, not from Web Mercator geometry or the empty GISAcres field.",
+        "For analysis or export, retain the verified source projected CRS when supported. For a web preview, request an explicitly supported output spatial reference and use a declared datum transformation when the service requires one.",
+        "Confirm the projected result aligns with the basemap and that the full pinned county extent is represented, including separated islands; do not use an implicit client reprojection as evidence of correctness."
+      ]
+    },
+    {
+      "step": 7,
+      "name": "Retrieve geometry only for the display",
+      "actions": [
+        "After statistics and thresholds are fixed, request only object ID, the three required source fields, and geometry for the current display extent, using spatial filtering, pagination or deterministic ID chunks, and the advertised record limit.",
+        "Use quantization or scale-appropriate generalization only if advertised, record its parameters, and preserve unsimplified source geometry outside the preview artifact.",
+        "At countywide scale, prefer a server-supported map image or generalized display representation over transferring all 51,765 full-resolution polygons. Use detailed parcel geometry only after zooming to a bounded extent.",
+        "Verify every batch count, detect duplicate or missing object IDs, and fail closed on truncation, exceeded-transfer-limit flags, timeout, or inconsistent counts."
+      ]
+    },
+    {
+      "step": 8,
+      "name": "Use a capability-gated, non-mutating preview path",
+      "actions": [
+        "If the connected environment advertises a read-only preview or map-render capability, submit the two-panel specification and bounded query plan to that capability without persisting changes to the source service.",
+        "If no such capability is advertised, create a local declarative preview specification and local derived cache from bounded query results, or provide the specification and tables for human review; do not claim that a map was rendered.",
+        "If server-side expressions cannot calculate the normalized fields safely, calculate them only in the local ephemeral preview data after bounded retrieval.",
+        "Never fall back to editing renderer definitions, creating hosted layers, overwriting items, or publishing solely to obtain a preview."
+      ],
+      "fallbackOrder": [
+        "advertised read-only preview capability",
+        "local ephemeral renderer using bounded derived data",
+        "renderer specification plus accessible tables with no rendered-preview claim"
+      ]
+    },
+    {
+      "step": 9,
+      "name": "Apply the publication gate",
+      "actions": [
+        "Require human approval of the live-schema comparison, completeness checks, normalization semantics, shared thresholds, zero and no-data handling, CRS and transformation, accessible table, cartography, and caveat text.",
+        "Verify the source license and redistribution terms before exposing parcel geometry or derived parcel-level values; the pinned profile marks license status as verify-before-redistribution.",
+        "Require review for disclosure risk even though the pinned profile contains only aggregates, because a live parcel layer may expose row-level identifiers or sensitive attributes. Exclude owner names and addresses from the proposed output.",
+        "Attach provenance: source title, item and layer identifiers, access timestamp, source modification timestamps, query predicates, valid and excluded counts, thresholds, transform, cap, CRS, datum transformation, batching method, and renderer version.",
+        "Publish only after all gates pass and an authorized user explicitly approves a destination and write operation. Otherwise retain the result as an unpublished plan or ephemeral preview."
+      ],
+      "approvalRequired": true
+    }
+  ],
+  "qualityChecks": [
+    "The two panels use identical thresholds and geographic framing.",
+    "Valid counts reconcile to query counts, and exclusions are enumerated.",
+    "No query is silently truncated and no object ID is duplicated or omitted.",
+    "Zero values remain visible and distinct from missing or invalid acreage.",
+    "Extreme values remain discoverable even when the display scale is capped.",
+    "All monetary units, acreage basis, assessment year, transform, and classification choices are disclosed.",
+    "The accessible table and narrative communicate the comparison without requiring color perception or pointer interaction."
+  ],
+  "knownProfileFacts": {
+    "featureCount": 51765,
+    "geometryType": "polygon",
+    "spatialReferenceWkid": 102662,
+    "landValueNonNullCount": 51047,
+    "buildingValueNonNullCount": 51047,
+    "taxAcresNonNullCount": 51035,
+    "gisAcresNonNullCount": 0,
+    "neighborhoodCodeDistinctNonNullCount": 522,
+    "interpretationLimits": [
+      "The pinned artifact contains aggregate schema and distribution facts, not parcel rows.",
+      "Raw value is area-confounded at county scale.",
+      "Value distributions have extreme upper tails.",
+      "The exact joint valid counts and normalized percentiles must be computed from bounded live queries before classification."
+    ]
+  }
+}

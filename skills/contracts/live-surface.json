@@ -25,7 +25,7 @@
     },
     {
       "skill": "choosing-a-visualization", "standardTool": "create_map_package", "profile": "base",
-      "requiredFields": [], "requiredProperties": ["templateId", "sourceBindings", "styleId", "themeId", "initialView"]
+      "requiredFields": [], "requiredProperties": ["templateId", "styleId", "themeId"]
     },
     {
       "skill": "choosing-a-visualization", "standardTool": "refine_map_package", "profile": "base",

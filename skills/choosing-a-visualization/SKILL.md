@@ -100,20 +100,25 @@ and reprojection after a large result has already crossed the network.
   encoding, obscures the primary evidence, or cannot remain legible at the
   target scale.
 
-Create or refine an isolated composition through `create_map_package` and,
-where advertised, `refine_map_package` or `compose_mixed_protocol_map`. Put the
-candidate `styleId` on that package and use `preview_map_package`; do not mutate
-a hosted layer merely to obtain a preview. Use `apply_style_preset` only when
-the operator explicitly approves a persistent default-style change. A direct
-`render_map` call accepts layers and an extent; it does not accept palette or
-class-break instructions. Never fabricate styling arguments on the render
-call.
+Inspect the advertised schemas before choosing a composition path. When the
+live surface exposes enough non-mutating package inputs to bind the intended
+sources and style, create an isolated package and use `preview_map_package`.
+Use `refine_map_package` or `compose_mixed_protocol_map` only for the inputs
+their live schemas advertise; do not assume a package accepts source bindings
+or an initial view. If no non-mutating package path can express the candidate,
+preview an already configured layer or return a composition plan for review.
+Do not mutate a hosted layer merely to obtain a preview. Use
+`apply_style_preset` only when the operator explicitly approves a persistent
+default-style change. A direct `render_map` call accepts layers and an extent;
+it does not accept palette or class-break instructions. Never fabricate
+styling arguments on the render call.
 
 ## Preview and publishing gate
 
-1. Preview an isolated styled package with `preview_map_package`. Use
-   `render_map` only for an already configured layer; do not first change that
-   layer's persistent style unless the operator explicitly approved it.
+1. Prefer an isolated styled package with `preview_map_package` only when the
+   advertised package schema can express it. Otherwise use `render_map` for an
+   already configured layer or stop at a reviewable plan; do not first change
+   that layer's persistent style unless the operator explicitly approved it.
 2. Inspect the full intended extent and representative dense, sparse, edge,
    missing-value, and boundary areas.
 3. Confirm title, legend, units, CRS, attribution, source date, accessibility,

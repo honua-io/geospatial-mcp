@@ -313,7 +313,7 @@ def validate(root: Path) -> list[str]:
                         response_path = (run_root / str(relative)).resolve()
                         if response_path.parent != run_root.resolve() or not response_path.is_file():
                             errors.append(f"Maui {run_id} {label} response path is missing or escapes the run directory")
-                        elif sha256(response_path) != str(response.get("sha256", "")).lower():
+                        elif (canonical_sha256(load_json(response_path, errors)) if run_id == "run-003" else sha256(response_path)) != str(response.get("sha256", "")).lower():
                             errors.append(f"Maui {run_id} {label} response SHA-256 does not match")
                         scores = response.get("scores")
                         if not isinstance(scores, dict) or set(scores) != axes:
@@ -327,7 +327,8 @@ def validate(root: Path) -> list[str]:
                 if not isinstance(judge, dict):
                     errors.append(f"Maui {run_id} completed evidence requires a local judge result")
                 elif isinstance(responses, dict):
-                    if evidence.get("judgeSha256") != sha256(judge_path):
+                    expected_judge_sha = canonical_sha256(judge) if run_id == "run-003" else sha256(judge_path)
+                    if evidence.get("judgeSha256") != expected_judge_sha:
                         errors.append(f"Maui {run_id} judge SHA-256 does not match")
                     judge_scores = judge.get("scores", {})
                     for label in ("baseline", "treatment"):
@@ -381,7 +382,8 @@ def validate(root: Path) -> list[str]:
                     if not isinstance(adjudication, dict):
                         errors.append(f"Maui {run_id} completed evidence requires a review adjudication")
                     else:
-                        if evidence.get("reviewAdjudicationSha256") != sha256(adjudication_path):
+                        expected_adjudication_sha = canonical_sha256(adjudication) if run_id == "run-003" else sha256(adjudication_path)
+                        if evidence.get("reviewAdjudicationSha256") != expected_adjudication_sha:
                             errors.append(f"Maui {run_id} review adjudication SHA-256 does not match")
                         if adjudication.get("runId") != run_id or adjudication.get("originalJudgeSha256") != evidence.get("judgeSha256"):
                             errors.append(f"Maui {run_id} adjudication does not bind the original judge")

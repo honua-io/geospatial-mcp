@@ -51,3 +51,7 @@ jobs:
         run: python3 conformance/check_manifest.py --strict conformance/manifests/honua.manifest.json
       - name: Run conformance checker regression tests
         run: python3 conformance/test_check_manifest.py
+      - name: Validate portable agent skills
+        run: python3 tools/validate_skills.py
+      - name: Run skills validator regression tests
+        run: python3 -m unittest tools.test_validate_skills

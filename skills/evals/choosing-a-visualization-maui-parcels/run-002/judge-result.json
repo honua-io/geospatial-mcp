@@ -1,0 +1,43 @@
+{
+  "judgeVersion": "2",
+  "runId": "run-002",
+  "scores": {
+    "baseline": {
+      "executable-plan": 2,
+      "live-schema-and-capability": 2,
+      "non-mutating-fallback": 2,
+      "normalization-and-classification": 2,
+      "accessibility-and-composition": 2,
+      "crs-and-query-shaping": 2,
+      "total": 12
+    },
+    "treatment": {
+      "executable-plan": 2,
+      "live-schema-and-capability": 2,
+      "non-mutating-fallback": 2,
+      "normalization-and-classification": 2,
+      "accessibility-and-composition": 2,
+      "crs-and-query-shaping": 2,
+      "total": 12
+    }
+  },
+  "hardFailures": { "baseline": [], "treatment": [] },
+  "thresholdEvaluation": {
+    "minimumTreatmentTotal": { "required": 10, "actual": 12, "passed": true },
+    "minimumTreatmentMinusBaseline": { "required": 3, "actual": 0, "passed": false },
+    "minimumTreatmentAxisScore": { "required": 1, "actual": 2, "passed": true },
+    "noHardFailure": { "required": true, "actual": true, "passed": true }
+  },
+  "judgment": {
+    "baselinePasses": true,
+    "treatmentPasses": true,
+    "materialImprovement": false,
+    "expansionGateMet": false,
+    "rationale": "Both responses score 12/12 with no hard failure. The treatment-minus-baseline delta is zero, so the predeclared minimum delta of three is not met."
+  },
+  "rubricAmbiguities": [
+    "Both responses saturate every axis at the maximum score, so this rubric cannot distinguish any quality difference above its stated anchors.",
+    "A three-point material-lift threshold cannot be met when the baseline already scores at the 12-point ceiling. This is recorded after judging and does not alter the predeclared threshold."
+  ],
+  "scoringPolicy": "The predeclared run-002 rubric, anchors, hard failures, and material-lift threshold were used unchanged."
+}

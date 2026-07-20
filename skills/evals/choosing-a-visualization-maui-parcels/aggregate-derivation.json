@@ -1,0 +1,69 @@
+{
+  "artifactVersion": "1",
+  "source": {
+    "itemMetadataRequest": {
+      "method": "GET",
+      "url": "https://www.arcgis.com/sharing/rest/content/items/edf160f9e2324714ae92fcc993a400e9",
+      "parameters": { "f": "json" }
+    },
+    "itemModifiedEpochMs": 1754329823000,
+    "layerMetadataRequest": {
+      "method": "GET",
+      "url": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4",
+      "parameters": { "f": "json" }
+    },
+    "layerLastEditEpochMs": 1766078061758
+  },
+  "queries": {
+    "featureCount": {
+      "method": "POST",
+      "url": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4/query",
+      "parameters": { "f": "json", "where": "1=1", "returnCountOnly": "true" },
+      "response": { "count": 51765 }
+    },
+    "statistics": {
+      "method": "POST",
+      "url": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4/query",
+      "parameters": {
+        "f": "json",
+        "where": "1=1",
+        "returnGeometry": "false",
+        "outStatistics": [
+          { "statisticType": "count", "onStatisticField": "LandValue", "outStatisticFieldName": "count_landvalue" },
+          { "statisticType": "min", "onStatisticField": "LandValue", "outStatisticFieldName": "min_landvalue" },
+          { "statisticType": "max", "onStatisticField": "LandValue", "outStatisticFieldName": "max_landvalue" },
+          { "statisticType": "avg", "onStatisticField": "LandValue", "outStatisticFieldName": "avg_landvalue" },
+          { "statisticType": "count", "onStatisticField": "BldgValue", "outStatisticFieldName": "count_bldgvalue" },
+          { "statisticType": "min", "onStatisticField": "BldgValue", "outStatisticFieldName": "min_bldgvalue" },
+          { "statisticType": "max", "onStatisticField": "BldgValue", "outStatisticFieldName": "max_bldgvalue" },
+          { "statisticType": "avg", "onStatisticField": "BldgValue", "outStatisticFieldName": "avg_bldgvalue" },
+          { "statisticType": "count", "onStatisticField": "TaxAcres", "outStatisticFieldName": "count_taxacres" },
+          { "statisticType": "min", "onStatisticField": "TaxAcres", "outStatisticFieldName": "min_taxacres" },
+          { "statisticType": "max", "onStatisticField": "TaxAcres", "outStatisticFieldName": "max_taxacres" },
+          { "statisticType": "avg", "onStatisticField": "TaxAcres", "outStatisticFieldName": "avg_taxacres" },
+          { "statisticType": "count", "onStatisticField": "GISAcres", "outStatisticFieldName": "count_gisacres" },
+          { "statisticType": "min", "onStatisticField": "GISAcres", "outStatisticFieldName": "min_gisacres" },
+          { "statisticType": "max", "onStatisticField": "GISAcres", "outStatisticFieldName": "max_gisacres" },
+          { "statisticType": "avg", "onStatisticField": "GISAcres", "outStatisticFieldName": "avg_gisacres" }
+        ]
+      },
+      "response": {
+        "attributes": {
+          "count_landvalue": 51047, "min_landvalue": 0, "max_landvalue": 393997200, "avg_landvalue": 860096.4189864242,
+          "count_bldgvalue": 51047, "min_bldgvalue": 0, "max_bldgvalue": 522503600, "avg_bldgvalue": 513376.3688365624,
+          "count_taxacres": 51035, "min_taxacres": 0, "max_taxacres": 69269.977, "avg_taxacres": 14.66514158518661,
+          "count_gisacres": 0, "min_gisacres": null, "max_gisacres": null, "avg_gisacres": null
+        }
+      }
+    },
+    "neighborhoodDistinctCount": {
+      "method": "POST",
+      "url": "https://services3.arcgis.com/fsrDo0QMPlK9CkZD/arcgis/rest/services/Maui_County_Certified_Parcels_2025/FeatureServer/4/query",
+      "parameters": {
+        "f": "json", "where": "1=1", "outFields": "NHoodCode",
+        "returnGeometry": "false", "returnDistinctValues": "true", "returnCountOnly": "true"
+      },
+      "response": { "count": 522 }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "scenarioVersion": "3",
+  "id": "choosing-a-visualization-maui-parcels-v3",
+  "runId": "run-003",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "635606b8fe591361da55b725d3151ce6bb606714f16aab7a84956d1d10abf0d3",
+  "status": "completed",
+  "datasetProfile": "../dataset-profile.json",
+  "rubric": "rubric.json",
+  "request": "Using the pinned Maui parcel aggregate profile, propose a map that helps county staff compare assessed land and building value countywide. Return a plan that a conformant geospatial-mcp client could follow. This is a planning exercise only; do not claim to execute tools or render a map.",
+  "comparison": {
+    "freshEmptyWorkingDirectoryPerArm": true,
+    "sameRequestProfileModelHarness": true,
+    "baselineContext": [
+      "fixed response instruction",
+      "request",
+      "dataset profile"
+    ],
+    "treatmentContext": [
+      "fixed response instruction",
+      "request",
+      "dataset profile",
+      "skill at pinned revision"
+    ],
+    "rubricHiddenFromBothArms": true,
+    "endpointUsed": false
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json",
+    "scenario.json",
+    "rubric.json",
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json",
+    "../dataset-profile.json",
+    "../aggregate-derivation.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "18e7ee3204870e2a7c667a1decebf41018bc6f7b601fc7971670268e6e8f0eba",
+        "scores": {
+          "form-and-normalization": 2,
+          "classification": 1,
+          "schema-and-capabilities": 0,
+          "query-and-crs": 1,
+          "safe-preview": 1,
+          "accessibility-and-composition": 2,
+          "publication-gate": 0,
+          "anti-pattern-rejection": 2
+        },
+        "total": 9
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "277c64e6480532fd02fe11ee4c1e28dab46f976e7991f347e9a4058eac9fd310",
+        "scores": {
+          "form-and-normalization": 2,
+          "classification": 1,
+          "schema-and-capabilities": 2,
+          "query-and-crs": 2,
+          "safe-preview": 2,
+          "accessibility-and-composition": 2,
+          "publication-gate": 2,
+          "anti-pattern-rejection": 2
+        },
+        "total": 15
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "02f590cfff8826b5f9ba284236aa3c237aeaef8024246415683657a43a22219a",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "e0f9d85f505e4a808bd4982a4a6f52bc0c77f5cac64673791f7fa643ed3fae97",
+    "materialLift": true,
+    "expansionGateMet": true,
+    "outcome": "expansion-gate-met"
+  },
+  "note": "Run 003 removes the run-002 prompt leakage while retaining the predeclared three-point lift requirement. The blinded judge scored 9/16 baseline and 15/16 treatment; independent audit reduced treatment to 13/16, preserving a +4 material lift with no hard failure."
+}

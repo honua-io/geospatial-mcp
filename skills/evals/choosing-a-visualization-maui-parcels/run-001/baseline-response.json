@@ -1,0 +1,148 @@
+{
+  "scenarioId": "choosing-a-visualization-maui-parcels-v1",
+  "status": "design-ready-preview-not-executed",
+  "map": {
+    "title": "Maui County assessed land and building value intensity, 2025",
+    "purpose": "Compare where assessed land value intensity and assessed building value intensity are relatively high or low across Maui County parcels.",
+    "visualization": {
+      "type": "bivariate choropleth",
+      "visualVariable": "A 3-by-3 color matrix combines separately classified land value per taxable acre and building value per taxable acre. Movement toward the blue side indicates relatively higher land value intensity; movement toward the orange side indicates relatively higher building value intensity; darker blended cells indicate parcels that are high on both measures.",
+      "normalization": {
+        "landMetric": "LandValue / TaxAcres",
+        "buildingMetric": "BldgValue / TaxAcres",
+        "units": "assessed dollars per taxable acre",
+        "rationale": "Raw parcel values are strongly confounded by parcel area at county scale. TaxAcres is the usable area denominator; GISAcres is unusable because it has no non-null observations.",
+        "validRows": "TaxAcres > 0 AND LandValue IS NOT NULL AND BldgValue IS NOT NULL",
+        "zeroHandling": "Retain zero LandValue and zero BldgValue as valid assessed values. Exclude only records with null values or nonpositive/null TaxAcres from the normalized thematic layer, and report the excluded count."
+      },
+      "classification": {
+        "method": "separate 3-class quantiles for each normalized metric",
+        "classesPerMetric": 3,
+        "matrixClasses": 9,
+        "breakCalculation": "Calculate breaks independently from all valid countywide parcel records, not from the current viewport or a sample.",
+        "rationale": "The two distributions have extreme upper tails. Quantiles preserve countywide rank patterns without allowing a few very high values to collapse most parcels into the lowest class.",
+        "legend": "Show the full 3-by-3 matrix with axes labeled land value per acre (low to high) and building value per acre (low to high), plus the numeric quantile break values. Describe classes as relative countywide ranks, not absolute fiscal thresholds."
+      },
+      "palette": {
+        "family": "colorblind-conscious bivariate sequential blue-orange blend",
+        "lowLow": "very light neutral",
+        "highLand": "saturated blue",
+        "highBuilding": "saturated orange",
+        "highHigh": "dark brown-neutral blend",
+        "outline": "thin low-contrast parcel outline visible only at larger scales",
+        "rationale": "Two distinct sequential ramps communicate the two ordered variables, while blended darkness communicates jointly high values. The diverging-like blue-orange endpoints remain distinguishable for common color-vision deficiencies."
+      }
+    },
+    "query": {
+      "layer": "Maui County Certified Parcels 2025, FeatureServer layer 4",
+      "fields": [
+        "LandValue",
+        "BldgValue",
+        "TaxAcres"
+      ],
+      "geometry": "parcel polygons",
+      "spatialReferenceWkid": 102662,
+      "countywideBounds": [
+        1420795.1768669114,
+        60796.915201574564,
+        1876249.3528989963,
+        324038.38314015418
+      ],
+      "where": "TaxAcres > 0 AND LandValue IS NOT NULL AND BldgValue IS NOT NULL",
+      "pagination": "Query the complete bounded result set in pages using stable object-ID ordering; do not treat a service page limit as the countywide population.",
+      "expectedSourceFeatureCount": 51765,
+      "qualityChecks": [
+        "Record returned, valid, and excluded counts.",
+        "Confirm the union of pages contains no duplicate or omitted object IDs.",
+        "Compute and record countywide quantile breaks after deriving both per-acre metrics.",
+        "Confirm the rendered extent covers the supplied full-layer bounds."
+      ]
+    },
+    "layers": {
+      "shown": [
+        {
+          "name": "Bivariate assessed value intensity",
+          "role": "primary parcel polygon layer",
+          "scaleBehavior": "At county scale suppress polygon outlines; reveal subtle outlines on zoom."
+        },
+        {
+          "name": "Muted reference basemap",
+          "role": "island, coastline, and place context without competing with thematic colors"
+        }
+      ],
+      "notShown": [
+        {
+          "name": "Raw LandValue choropleth",
+          "reason": "Parcel size would dominate the geographic pattern."
+        },
+        {
+          "name": "Raw BldgValue choropleth",
+          "reason": "Parcel size would dominate the geographic pattern."
+        },
+        {
+          "name": "GISAcres-based normalization",
+          "reason": "GISAcres has zero non-null observations in this snapshot."
+        },
+        {
+          "name": "Neighborhood-code overlay or labels",
+          "reason": "523 categories would add clutter and imply an unsupported aggregation; retain NHoodCode only as a possible filter or tooltip field in a later version."
+        },
+        {
+          "name": "Separate competing parcel layers",
+          "reason": "Overlapping land and building choropleths would obscure one another; the bivariate matrix supports direct comparison in one view."
+        }
+      ]
+    },
+    "interaction": {
+      "tooltip": [
+        "LandValue",
+        "BldgValue",
+        "TaxAcres",
+        "derived land value per taxable acre",
+        "derived building value per taxable acre",
+        "bivariate class"
+      ],
+      "disclaimer": "Assessed values are not necessarily market values. Per-acre building value is an intensity measure, not building replacement cost or floor-area value. Tiny taxable acreages can create very large ratios; inspect those parcels before policy interpretation."
+    }
+  },
+  "mcpExecutionPlan": [
+    {
+      "tool": "list_layers",
+      "purpose": "Confirm layer 4, field names, object-ID field, extent, spatial reference, and query capabilities."
+    },
+    {
+      "tool": "query_features",
+      "purpose": "Fetch the complete countywide bounded parcel population and required attributes with stable pagination."
+    },
+    {
+      "tool": "plan_analysis",
+      "purpose": "Derive the two per-acre metrics, exclusion accounting, separate countywide tercile breaks, and the 3-by-3 class."
+    },
+    {
+      "tool": "create_map_package",
+      "purpose": "Create a draft package with the primary parcel layer, muted basemap, legend, notes, and full-county extent."
+    },
+    {
+      "tool": "apply_style_preset",
+      "purpose": "Apply the bivariate blue-orange matrix and scale-dependent outlines."
+    },
+    {
+      "tool": "render_map",
+      "purpose": "Render a countywide preview for inspection without publishing."
+    }
+  ],
+  "preview": {
+    "requested": true,
+    "published": false,
+    "executionState": "not executed in this response",
+    "reason": "No MCP endpoint tools or rendered artifact were available in the provided evaluation context, so no preview is falsely claimed.",
+    "acceptanceChecks": [
+      "All principal islands in the service extent are visible.",
+      "The 3-by-3 legend is legible and includes numeric breaks.",
+      "Low-low parcels do not disappear into the basemap.",
+      "High-high and single-variable-high classes are visually distinct.",
+      "No raw-value, GISAcres, neighborhood-label, or publication layer is present."
+    ]
+  },
+  "sourceCaveat": "The source license status is verify-before-redistribution; keep the result as an unpublished preview until redistribution terms are confirmed."
+}

@@ -1,0 +1,59 @@
+{
+  "scenarioVersion": "1",
+  "id": "choosing-a-visualization-maui-parcels-v1",
+  "runId": "run-001",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "bc1dc597e361981290b798d831edaf17a2025fce7e4af35c7c545891520b3d23",
+  "status": "completed",
+  "datasetProfile": "../dataset-profile.json",
+  "rubric": "rubric.json",
+  "request": "Using the Maui County parcel layer, produce a defensible countywide map that helps a public-sector analyst compare the geographic pattern of assessed land and building value. Explain the visual variable, normalization, classification, palette family, query bounds, and any layer you decide not to show. Preview the map, but do not publish it.",
+  "endpointRequirements": {
+    "protocol": "MCP",
+    "profiles": ["base"],
+    "requiredStandardTools": ["list_layers", "query_features", "plan_analysis", "create_map_package", "preview_map_package", "render_map"],
+    "optionalStandardTools": ["summarize_statistics", "reproject_features"]
+  },
+  "comparison": {
+    "freshContextPerRun": true,
+    "sameModelAndSettings": true,
+    "sameEndpointSnapshot": false,
+    "sameDatasetProfile": false,
+    "endpointUsed": false,
+    "baselineContext": ["request", "MCP endpoint"],
+    "treatmentContext": ["request", "MCP endpoint", "skills/choosing-a-visualization/SKILL.md"]
+  },
+  "requiredEvidence": [
+    "model and harness versions", "endpoint and dataset snapshot identifiers",
+    "complete MCP transcripts", "rendered previews", "blinded rubric scores", "reviewer rationale"
+  ],
+  "requiredArtifacts": [
+    "run-metadata.json", "scenario.json", "rubric.json", "baseline-response.json",
+    "skill-response.json", "judge-result.json", "review-adjudication.json", "../dataset-profile.json",
+    "../aggregate-derivation.json"
+  ],
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "17bf80adf093b1b0a80bcf7ad75f3baea8a862b0ec6699f81f50e33b029ac13d",
+        "scores": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 1, "composition-and-gate": 1 },
+        "total": 10
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "62f749cf89d78bf68bbf9d750901cc167616795eb266c2fab673edf06f089f8e",
+        "scores": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 2, "composition-and-gate": 1 },
+        "total": 11
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "4d2ec3a3cbf5d7b466340eb98671fdf4f0182dcfed34bbee7931083520ff83d4",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "b3e659e279ba14a4cf4725ff4abcffa5bfb898716b592aa18e756d82bbcd74a6",
+    "materialLift": false,
+    "expansionGateMet": false,
+    "outcome": "expansion-gate-not-met"
+  },
+  "note": "Both cold responses pass the original rubric. The skill adds one point of query/CRS rigor but does not produce a material overall improvement; follow-on skills remain gated. This run was tool-less: no MCP endpoint call or rendered preview occurred."
+}

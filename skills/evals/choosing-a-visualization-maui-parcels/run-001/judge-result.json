@@ -1,0 +1,28 @@
+{
+  "judgeVersion": "1",
+  "coldContextPolicy": {
+    "freshContextPerRun": true,
+    "sameRequest": true,
+    "sameModelAndSettings": true,
+    "sameEndpointSnapshot": true,
+    "baselineReceivedSkill": false,
+    "treatmentReceivedOnlyDeclaredSkill": true
+  },
+  "scores": {
+    "baseline": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 1, "composition-and-gate": 1, "total": 10 },
+    "treatment": { "form": 2, "normalization": 2, "classification": 2, "palette": 2, "query-and-crs": 2, "composition-and-gate": 1, "total": 11 }
+  },
+  "hardFailures": { "baseline": [], "treatment": [] },
+  "judgment": {
+    "baselinePasses": true,
+    "treatmentPasses": true,
+    "materialImprovement": false,
+    "expansionGateMet": false,
+    "rationale": "The treatment is more rigorous about bounded queries and CRS handling, but the remaining cartographic choices are materially similar. Neither response executed a preview."
+  },
+  "rubricAmbiguities": [
+    "The original rubric does not define a numeric threshold for material improvement beyond the per-response passing score.",
+    "The composition-and-gate axis combines design quality with executed-preview evidence, so a sound preview plan and a completed preview share no separate scoring anchors."
+  ],
+  "scoringPolicy": "The original rubric and anchors were used unchanged; ambiguities are recorded rather than resolved retroactively."
+}

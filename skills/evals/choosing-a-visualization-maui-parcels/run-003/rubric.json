@@ -1,0 +1,29 @@
+{
+  "rubricVersion": "3",
+  "scoreRange": [0, 2],
+  "materialLift": {
+    "minimumTreatmentTotal": 12,
+    "minimumTreatmentMinusBaseline": 3,
+    "minimumTreatmentAxisScore": 1,
+    "noHardFailure": true
+  },
+  "axes": [
+    {"id": "form-and-normalization", "description": "Chooses a defensible comparison form and handles parcel-area confounding.", "anchors": {"0": "Maps raw totals or proposes an unsuitable primary form.", "1": "Uses a plausible form or normalization but leaves semantics or comparability unresolved.", "2": "Uses a directly comparable form, gates the denominator semantics, and distinguishes zero from missing values."}},
+    {"id": "classification", "description": "Selects and explains defensible shared class semantics for skewed measures.", "anchors": {"0": "Uses arbitrary or independently fitted breaks without disclosure.", "1": "Names a plausible classification but incompletely handles skew, ties, outliers, or cross-panel comparability.", "2": "Derives shared defensible breaks, preserves true values, handles skew and ties, and states legend semantics."}},
+    {"id": "schema-and-capabilities", "description": "Separates MCP tool discovery from layer discovery and gates optional operations.", "anchors": {"0": "Invents shapes or capabilities, or treats list_layers as MCP tool-schema discovery.", "1": "Mentions live inspection but does not distinguish discovery surfaces or bind fallbacks.", "2": "Uses MCP tools/list for operation schemas, list_layers for layer metadata, and capability-gated canonical fallbacks."}},
+    {"id": "query-and-crs", "description": "Bounds provider work and handles CRS explicitly.", "anchors": {"0": "Uses unbounded client-side work or implicit CRS.", "1": "Mentions bounds or CRS without complete pushdown and transformation decisions.", "2": "Uses projected fields, predicates, summaries before samples, paging/limits, explicit bbox/output SRIDs, and bounded reprojection."}},
+    {"id": "safe-preview", "description": "Plans a useful non-mutating preview with safe fallbacks.", "anchors": {"0": "Mutates persistent style or invents renderer inputs to obtain a preview.", "1": "Avoids mutation but lacks a capability-gated usable fallback.", "2": "Uses isolated package preview only when supported, otherwise configured rendering or a reviewable plan, without false execution claims."}},
+    {"id": "accessibility-and-composition", "description": "Creates an accessible visual hierarchy and removes distracting alternatives.", "anchors": {"0": "Provides no accessibility or hierarchy controls.", "1": "Names palette or hierarchy concerns without concrete checks or removal criteria.", "2": "Specifies ordered color semantics, contrast/color-vision and non-color checks, layer hierarchy, legend treatment, and omission criteria."}},
+    {"id": "publication-gate", "description": "Keeps publication governed and preserves provenance.", "anchors": {"0": "Publishes without approval or omits rights/privacy checks.", "1": "Requires approval but leaves provenance, visibility, rights, privacy, or verification incomplete.", "2": "Keeps work private until explicit approval and gates provenance, rights, privacy, visibility, validation, and endpoint verification."}},
+    {"id": "anti-pattern-rejection", "description": "Explicitly rejects tempting but harmful choices relevant to this dataset.", "anchors": {"0": "Does not reject harmful alternatives.", "1": "Rejects one relevant anti-pattern without explaining the consequence.", "2": "Rejects raw totals plus at least two other relevant anti-patterns and explains why each would mislead or violate constraints."}}
+  ],
+  "hardFailures": [
+    "Claims an MCP endpoint call, tool execution, or rendered preview occurred.",
+    "Treats list_layers as the discovery mechanism for MCP operation schemas.",
+    "Uses apply_style_preset solely to obtain a preview.",
+    "Maps raw countywide LandValue or BldgValue as an unqualified choropleth.",
+    "Invents fields, schema properties, or execution evidence.",
+    "Publishes or mutates persistent state without explicit approval."
+  ],
+  "predeclaration": "The request, contexts, anchors, hard failures, model, harness, and material-lift threshold are fixed before either response is generated."
+}

@@ -1,0 +1,55 @@
+{
+  "scenarioVersion": "2",
+  "id": "choosing-a-visualization-maui-parcels-v2",
+  "runId": "run-002",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "89e041a682c8c7892261ac4bf52c50ecae41725a51f03f418087ac8b86612826",
+  "status": "completed",
+  "datasetProfile": "../dataset-profile.json",
+  "rubric": "rubric.json",
+  "request": "Using only the final choosing-a-visualization skill and the pinned Maui aggregate profile, write an executable plan for a defensible countywide comparison of assessed land and building value. Specify the live-schema inspections, normalization, classification, accessibility, CRS and bounded-query choices, capability-gated non-mutating preview fallback, and publication gate. This is a tool-less judgment exercise: do not claim to call an MCP endpoint, execute tools, or render a preview.",
+  "comparison": {
+    "freshContextPerRun": true,
+    "sameRequest": true,
+    "sameModelAndSettingsWhenExposed": true,
+    "baselineContext": ["request", "dataset profile"],
+    "treatmentContext": ["request", "dataset profile", "skills/choosing-a-visualization/SKILL.md"]
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json", "scenario.json", "rubric.json",
+    "baseline-response.json", "skill-response.json", "judge-result.json", "review-adjudication.json",
+    "../dataset-profile.json", "../aggregate-derivation.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json", "skill-response.json", "judge-result.json"
+  ],
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "5a6c24376cfdcf199f97b12dfe4511a344e4410db4e4eb66de5fafc053c0add0",
+        "scores": { "executable-plan": 2, "live-schema-and-capability": 2, "non-mutating-fallback": 2, "normalization-and-classification": 2, "accessibility-and-composition": 2, "crs-and-query-shaping": 2 },
+        "total": 12
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "a25b8366bf4f1cb2141ee858afc2eae41b29924f7c5ae0e9923823922962cd9e",
+        "scores": { "executable-plan": 2, "live-schema-and-capability": 2, "non-mutating-fallback": 2, "normalization-and-classification": 2, "accessibility-and-composition": 2, "crs-and-query-shaping": 2 },
+        "total": 12
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "4644e16ad11dc0f76a3f7c8ce78a1e386bb82e3d3b9963ea907c707473907a45",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "3f7df6db69c94240e98c7b57272d22a34fcae114a104846c357005202b40d41f",
+    "materialLift": false,
+    "expansionGateMet": false,
+    "outcome": "expansion-gate-not-met"
+  },
+  "note": "Run completed as a tool-less judgment. Baseline and treatment both score 12/12 with no hard failure; delta 0 fails the predeclared delta >=3 condition, so material lift and the expansion gate are false. No endpoint connection, tool execution, or rendered preview is claimed."
+}

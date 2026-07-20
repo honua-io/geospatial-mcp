@@ -133,13 +133,13 @@ def validate_follow_on_judge(
     arms = {"baseline", "treatment"}
     skills = set(axis_groups)
     valid_range = (
-        isinstance(score_range, list)
+        type(score_range) is list
         and len(score_range) == 2
-        and all(isinstance(value, int) and not isinstance(value, bool) for value in score_range)
-        and score_range[0] <= score_range[1]
+        and all(type(value) is int for value in score_range)
+        and score_range == [0, 2]
     )
     if not valid_range:
-        errors.append("Follow-on scoreRange must contain two ordered integers")
+        errors.append("Follow-on scoreRange must be exactly [0, 2]")
         minimum_score, maximum_score = 0, -1
     else:
         minimum_score, maximum_score = score_range
@@ -620,6 +620,8 @@ def validate(root: Path) -> list[str]:
                     errors.append("Follow-on evaluation every rubric axis requires explicit 0/1/2 anchors")
             if any(len(group) != 4 for group in axis_groups.values()):
                 errors.append("Follow-on evaluation requires exactly four axes per skill")
+            if follow_rubric.get("scoreRange") != [0, 2]:
+                errors.append("Follow-on run-001 scoreRange must be exactly [0, 2]")
             lift = follow_rubric.get("materialLift", {})
             expected_lift = {"minimumTreatmentTotal": 6, "minimumTreatmentMinusBaseline": 2, "minimumTreatmentAxisScore": 1, "noHardFailure": True}
             if lift.get("perSkill") != expected_lift:
@@ -720,6 +722,8 @@ def validate(root: Path) -> list[str]:
                     errors.append("Follow-on review-correction every rubric axis requires explicit 0/1/2 anchors")
             if any(len(group) != 4 for group in rerun_axis_groups.values()):
                 errors.append("Follow-on review-correction rerun requires exactly four axes per skill")
+            if rerun_rubric.get("scoreRange") != [0, 2]:
+                errors.append("Follow-on run-002 scoreRange must be exactly [0, 2]")
             if rerun_rubric.get("materialLift", {}).get("perSkill") != expected_lift:
                 errors.append("Follow-on review-correction per-skill lift threshold drifted")
             if rerun_scenario.get("status") != "completed":

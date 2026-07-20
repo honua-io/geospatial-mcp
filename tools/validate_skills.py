@@ -230,7 +230,7 @@ def validate(root: Path) -> list[str]:
     eval_root = skills_root / "evals" / "choosing-a-visualization-maui-parcels"
     profile = load_json(eval_root / "dataset-profile.json", errors)
     derivation_path = eval_root / "aggregate-derivation.json"
-    expected_runs = {"run-001", "run-002"}
+    expected_runs = {"run-001", "run-002", "run-003"}
     actual_runs = {path.name for path in eval_root.iterdir() if path.is_dir() and path.name.startswith("run-")}
     if actual_runs != expected_runs:
         errors.append(f"Maui evaluation runs must be exactly {sorted(expected_runs)}")
@@ -252,7 +252,10 @@ def validate(root: Path) -> list[str]:
             errors.append(f"Maui {run_id} requires a full skill revision")
         for identity_key in ("modelIdentity", "harnessIdentity"):
             identity = metadata.get(identity_key)
-            if identity != {"status": "not-exposed", "value": None}:
+            if run_id == "run-003":
+                if not isinstance(identity, dict) or identity.get("status") != "exposed" or not identity.get("value"):
+                    errors.append(f"Maui {run_id} {identity_key} must record the pinned exposed identity")
+            elif identity != {"status": "not-exposed", "value": None}:
                 errors.append(f"Maui {run_id} {identity_key} must truthfully record not-exposed without an invented value")
         execution = metadata.get("execution", {})
         if execution != {"mode": "tool-less-cold-plan-judgment", "mcpEndpointConnected": False, "toolsExecuted": False, "previewRendered": False}:
@@ -271,15 +274,15 @@ def validate(root: Path) -> list[str]:
                 artifact_path = (run_root / str(relative)).resolve()
                 if eval_root.resolve() not in (artifact_path, *artifact_path.parents) or not artifact_path.is_file():
                     errors.append(f"Maui {run_id} required artifact is missing or escapes the eval root: {relative}")
-        if run_id == "run-002":
+        if run_id in {"run-002", "run-003"}:
             axes = rubric.get("axes", [])
             for axis in axes if isinstance(axes, list) else []:
                 if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
-                    errors.append("Maui run-002 every rubric axis requires explicit 0/1/2 anchors")
+                errors.append(f"Maui {run_id} every rubric axis requires explicit 0/1/2 anchors")
             lift = rubric.get("materialLift")
             required_lift = {"minimumTreatmentTotal", "minimumTreatmentMinusBaseline", "minimumTreatmentAxisScore", "noHardFailure"}
             if not isinstance(lift, dict) or set(lift) != required_lift:
-                errors.append("Maui run-002 must predeclare the complete material-lift threshold")
+                errors.append(f"Maui {run_id} must predeclare the complete material-lift threshold")
         status = scenario.get("status")
         if status not in {"not-run", "completed"}:
             errors.append(f"Maui {run_id} status must be not-run or completed")
@@ -340,7 +343,7 @@ def validate(root: Path) -> list[str]:
                     material = judge.get("judgment", {}).get("materialImprovement")
                     if evidence.get("materialLift") is not material:
                         errors.append(f"Maui {run_id} materialLift disagrees with judge result")
-                    if run_id == "run-002":
+                    if run_id in {"run-002", "run-003"}:
                         lift = rubric.get("materialLift", {})
                         baseline_total = responses.get("baseline", {}).get("total")
                         treatment_total = responses.get("treatment", {}).get("total")
@@ -369,10 +372,10 @@ def validate(root: Path) -> list[str]:
                             },
                         }
                         if judge.get("thresholdEvaluation") != conditions:
-                            errors.append("Maui run-002 judge threshold evaluation disagrees with rubric and scores")
+                            errors.append(f"Maui {run_id} judge threshold evaluation disagrees with rubric and scores")
                         expected_material = all(condition["passed"] for condition in conditions.values())
                         if material is not expected_material or gate_met is not expected_material:
-                            errors.append("Maui run-002 material and expansion results disagree with threshold conditions")
+                            errors.append(f"Maui {run_id} material and expansion results disagree with threshold conditions")
                     adjudication_path = (run_root / str(evidence.get("reviewAdjudication"))).resolve()
                     adjudication = load_json(adjudication_path, errors) if adjudication_path.parent == run_root.resolve() and adjudication_path.is_file() else None
                     if not isinstance(adjudication, dict):

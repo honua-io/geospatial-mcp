@@ -1,0 +1,27 @@
+{
+  "runId": "run-003",
+  "skillRevision": "056308e0a82728ffe75c5ef66745dbb130e0a26b",
+  "modelIdentity": { "status": "exposed", "value": "gpt-5.6-sol" },
+  "harnessIdentity": { "status": "exposed", "value": "codex-cli 0.144.6" },
+  "execution": {
+    "mode": "tool-less-cold-plan-judgment",
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false
+  },
+  "generationProtocol": {
+    "workingDirectory": "new empty temporary directory per arm",
+    "command": "codex exec --ephemeral --ignore-user-config --skip-git-repo-check -m gpt-5.6-sol -s read-only -o <output> -",
+    "baselineContext": ["fixed response instruction", "scenario request", "dataset-profile.json"],
+    "treatmentContext": ["fixed response instruction", "scenario request", "dataset-profile.json", "skills/choosing-a-visualization/SKILL.md"],
+    "responseInstruction": "Return only the proposed plan in Markdown. Do not inspect files, call tools, claim execution, or discuss this evaluation.",
+    "freshProcessPerArm": true
+  },
+  "profileSnapshot": {
+    "arcgisItemId": "edf160f9e2324714ae92fcc993a400e9",
+    "itemModifiedEpochMs": 1754329823000,
+    "layerLastEditEpochMs": 1766078061758,
+    "datasetProfileSha256": "335c1466bd4e3f745f0a0a9a763de300a0d4497471e4e32387cbf70227e19ce6",
+    "derivationArtifactSha256": "647eb8065ca8b51b1b64e3b8189a306f744e4d4b9ead393a462669f79596c192"
+  }
+}

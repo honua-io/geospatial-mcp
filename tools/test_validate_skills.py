@@ -25,6 +25,7 @@ class ValidateSkillsTests(unittest.TestCase):
         eval_root = self.root / "skills" / "evals" / "choosing-a-visualization-maui-parcels"
         (eval_root / "run-001").mkdir(parents=True)
         (eval_root / "run-002").mkdir(parents=True)
+        (eval_root / "run-003").mkdir(parents=True)
         (self.root / "spec" / "schemas" / "tools").mkdir(parents=True)
         self.write_json("spec/schemas/index.json", {"tools": [{"standardName": "query_features"}]})
         self.write_json("spec/schemas/tools/query_features.schema.json", {
@@ -75,7 +76,7 @@ class ValidateSkillsTests(unittest.TestCase):
         self.write_json("skills/evals/choosing-a-visualization-maui-parcels/aggregate-derivation.json", derivation)
         profile_hash = sha256(eval_root / "dataset-profile.json")
         derivation_hash = sha256(eval_root / "aggregate-derivation.json")
-        for run_id in ("run-001", "run-002"):
+        for run_id in ("run-001", "run-002", "run-003"):
             metadata = {
                 "runId": run_id, "skillRevision": "a" * 40,
                 "modelIdentity": {"status": "not-exposed", "value": None},
@@ -86,8 +87,11 @@ class ValidateSkillsTests(unittest.TestCase):
             rubric = {
                 "scoreRange": [0, 2], "axes": [{"id": "form", "anchors": {"0": "bad", "1": "partial", "2": "good"}}]
             }
-            if run_id == "run-002":
+            if run_id in {"run-002", "run-003"}:
                 rubric["materialLift"] = {"minimumTreatmentTotal": 1, "minimumTreatmentMinusBaseline": 1, "minimumTreatmentAxisScore": 1, "noHardFailure": True}
+            if run_id == "run-003":
+                metadata["modelIdentity"] = {"status": "exposed", "value": "test-model"}
+                metadata["harnessIdentity"] = {"status": "exposed", "value": "test-harness"}
             scenario = {
                 "runId": run_id, "runMetadata": "run-metadata.json", "runMetadataSha256": canonical_sha256(metadata),
                 "status": "not-run", "evidence": None, "request": "Make a map.", "requiredArtifacts": ["run-metadata.json", "scenario.json", "rubric.json", "../dataset-profile.json", "../aggregate-derivation.json"]

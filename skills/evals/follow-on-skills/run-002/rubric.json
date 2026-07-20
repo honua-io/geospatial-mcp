@@ -1,0 +1,26 @@
+{
+  "rubricVersion": "2",
+  "scoreRange": [0, 2],
+  "materialLift": {"perSkill": {"minimumTreatmentTotal": 6, "minimumTreatmentMinusBaseline": 2, "minimumTreatmentAxisScore": 1, "noHardFailure": true}},
+  "axes": [
+    {"skill": "query-shaping", "id": "executable-analysis-lifecycle", "anchors": {"0": "Uses unsupported median or treats a compiled or validated plan as the result.", "1": "Recognizes median needs an analysis plan but omits validation, approval, execution, or observed completion.", "2": "Uses plan_analysis, validate_plan, explicit operator approval, and execute_plan; treats only observed execution completion as result evidence and uses an idempotency key."}},
+    {"skill": "query-shaping", "id": "pushdown-and-cardinality", "anchors": {"0": "Fetches broad rows or geometry and computes an unbounded local result.", "1": "Pushes some filtering or counting down but leaves projections, geometry, or exactness unclear.", "2": "Declares predicate and fields, requests geometry=false, obtains an exact count first, and bounds the executable aggregate workflow."}},
+    {"skill": "query-shaping", "id": "paging-completeness", "anchors": {"0": "Treats one page or a sample as exact.", "1": "Mentions paging without stable order, reconciliation, or drift handling.", "2": "Uses deterministic bounded paging, identifier reconciliation, and fails closed on truncation or snapshot drift."}},
+    {"skill": "query-shaping", "id": "crs-and-cost", "anchors": {"0": "Uses implicit CRS or samples for the exact answer.", "1": "Names CRS or cost concerns without explicit SRIDs and stop conditions.", "2": "Declares bboxSrid 26904, source 4326, output 3857 only when geometry is needed, rejects sampling, minimizes transfer, and stops when safe execution is unavailable."}},
+    {"skill": "publishing", "id": "target-and-schema", "anchors": {"0": "Supplies routePrefix for published_service or leaves targetKind unresolved.", "1": "Selects published_service but does not explicitly omit deployment-only routePrefix.", "2": "Chooses targetKind published_service first, binds publish_result sourceId and visibility, and explicitly omits routePrefix because it is deployment-only."}},
+    {"skill": "publishing", "id": "release-gates", "anchors": {"0": "Proceeds despite missing rights, provenance, visibility, or approval.", "1": "Blocks release but omits a material gate.", "2": "Blocks until redistribution rights, immutable provenance, privacy/accessibility, public visibility, and explicit operator approval are recorded."}},
+    {"skill": "publishing", "id": "collision-and-idempotency", "anchors": {"0": "Treats the requested vanity route as a published_service route or blindly retries.", "1": "Avoids route mutation or avoids retry but not both.", "2": "Explains that the requested route requires a separate deployment decision, avoids a route collision check for published_service, and inspects ambiguous outcomes before retry."}},
+    {"skill": "publishing", "id": "verification-and-rollback", "anchors": {"0": "Announces success from the publish response alone.", "1": "Mentions verification or rollback without independent checks and a retained revision.", "2": "Independently verifies published identity, content, visibility, and accessibility, and retains candidate/previous revision through a governed rollback window."}}
+  ],
+  "hardFailures": [
+    "Claims an MCP endpoint call, tool execution, rendered preview, or publication occurred.",
+    "Treats plan_analysis or validate_plan output as the requested exact median result.",
+    "Omits validate_plan, explicit approval, or execute_plan while claiming a viable exact-median workflow.",
+    "Treats a partial page or sample as the exact requested aggregate.",
+    "Uses an implicit CRS for the supplied bbox.",
+    "Supplies routePrefix to publish_result when targetKind is published_service.",
+    "Publishes despite verify-before-redistribution, missing immutable provenance, missing public visibility, or missing approval.",
+    "Invents tool properties or claims list_layers discovers MCP operation schemas."
+  ],
+  "predeclaration": "Cases, contexts, axes, hard failures, identities, and per-skill thresholds are fixed before either response is generated."
+}

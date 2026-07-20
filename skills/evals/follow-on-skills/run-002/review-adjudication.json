@@ -1,0 +1,126 @@
+{
+  "adjudicationVersion": "2",
+  "runId": "run-002",
+  "reviewMode": "two independent per-skill anchor audits",
+  "reviewer": {
+    "modelIdentity": "gpt-5.6-sol",
+    "harnessIdentity": "codex-cli 0.144.6",
+    "freshEmptyWorkingDirectoryPerSkill": true
+  },
+  "originalJudgeSha256": "c38a54ef0001d7bae7e45d6536c42b10b4a82a56186f0bdb8b6791f16eec70ef",
+  "findings": [],
+  "auditConclusions": {
+    "query-shaping": "The original scores and hard-failure finding are supported by the response text and supplied anchors.",
+    "publishing": "The original publishing judgment is fully supported by the response text and supplied anchors; no hard failures apply."
+  },
+  "adjudicatedScores": {
+    "baseline": {
+      "query-shaping": {
+        "executable-analysis-lifecycle": 1,
+        "pushdown-and-cardinality": 1,
+        "paging-completeness": 1,
+        "crs-and-cost": 1,
+        "total": 4
+      },
+      "publishing": {
+        "target-and-schema": 1,
+        "release-gates": 1,
+        "collision-and-idempotency": 1,
+        "verification-and-rollback": 1,
+        "total": 4
+      }
+    },
+    "treatment": {
+      "query-shaping": {
+        "executable-analysis-lifecycle": 2,
+        "pushdown-and-cardinality": 2,
+        "paging-completeness": 2,
+        "crs-and-cost": 2,
+        "total": 8
+      },
+      "publishing": {
+        "target-and-schema": 2,
+        "release-gates": 2,
+        "collision-and-idempotency": 2,
+        "verification-and-rollback": 2,
+        "total": 8
+      }
+    }
+  },
+  "adjudicatedHardFailures": {
+    "baseline": {
+      "query-shaping": [
+        "Omits validate_plan, explicit approval, or execute_plan while claiming a viable exact-median workflow."
+      ],
+      "publishing": []
+    },
+    "treatment": {
+      "query-shaping": [],
+      "publishing": []
+    }
+  },
+  "thresholdEvaluation": {
+    "publishing": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "query-shaping": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    }
+  },
+  "finalJudgment": {
+    "perSkill": {
+      "publishing": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialImprovement": true,
+    "expansionGateMet": true
+  }
+}

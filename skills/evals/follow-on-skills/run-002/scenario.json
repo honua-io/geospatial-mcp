@@ -4,7 +4,7 @@
   "runId": "run-002",
   "runMetadata": "run-metadata.json",
   "runMetadataSha256": "08187ad801d792d2cc464a5a655e9de3c9d0e04258d4f6f4fb3e4a0067ff3f96",
-  "status": "predeclared",
+  "status": "completed",
   "cases": [
     {
       "id": "query-shaping",
@@ -50,5 +50,38 @@
     "judge-result.json",
     "review-adjudication.json"
   ],
-  "note": "Predeclared review-correction rerun for the affected query-shaping and publishing cases only; run-001 remains immutable."
+  "note": "Affected review-correction rerun completed with independent audits: query shaping 4/8 to 8/8 and publishing 4/8 to 8/8. Both treatment arms have no hard failures; both audits upheld the judgments without findings. Run-001 remains immutable.",
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "16368503b1b782484a34ad5434fc554ba56d293c05c623ee4ed64e46be00a5b0"
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "3c6768b7d2e70345af3ec27772dcc840cfe7b776ebf2e4b76e82cfb203c4fcad"
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "c38a54ef0001d7bae7e45d6536c42b10b4a82a56186f0bdb8b6791f16eec70ef",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "0fd5400f3be609a41fb293b69ea12c5e24631c8382db4efa3ecce02aea6cf6fb",
+    "perSkill": {
+      "publishing": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialLift": true,
+    "expansionGateMet": true,
+    "outcome": "expansion-gate-met"
+  }
 }

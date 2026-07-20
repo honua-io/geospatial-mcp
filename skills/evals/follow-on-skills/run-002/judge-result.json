@@ -1,0 +1,125 @@
+{
+  "judgeVersion": "2",
+  "runId": "run-002",
+  "evaluationMode": "two independent blinded per-skill judges",
+  "evaluator": {
+    "modelIdentity": "gpt-5.6-sol",
+    "harnessIdentity": "codex-cli 0.144.6",
+    "freshEmptyWorkingDirectoryPerSkill": true
+  },
+  "scores": {
+    "baseline": {
+      "query-shaping": {
+        "executable-analysis-lifecycle": 1,
+        "pushdown-and-cardinality": 1,
+        "paging-completeness": 1,
+        "crs-and-cost": 1,
+        "total": 4
+      },
+      "publishing": {
+        "target-and-schema": 1,
+        "release-gates": 1,
+        "collision-and-idempotency": 1,
+        "verification-and-rollback": 1,
+        "total": 4
+      }
+    },
+    "treatment": {
+      "query-shaping": {
+        "executable-analysis-lifecycle": 2,
+        "pushdown-and-cardinality": 2,
+        "paging-completeness": 2,
+        "crs-and-cost": 2,
+        "total": 8
+      },
+      "publishing": {
+        "target-and-schema": 2,
+        "release-gates": 2,
+        "collision-and-idempotency": 2,
+        "verification-and-rollback": 2,
+        "total": 8
+      }
+    }
+  },
+  "hardFailures": {
+    "baseline": {
+      "query-shaping": [
+        "Omits validate_plan, explicit approval, or execute_plan while claiming a viable exact-median workflow."
+      ],
+      "publishing": []
+    },
+    "treatment": {
+      "query-shaping": [],
+      "publishing": []
+    }
+  },
+  "thresholdEvaluation": {
+    "publishing": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "query-shaping": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    }
+  },
+  "judgment": {
+    "perSkill": {
+      "publishing": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialImprovement": true,
+    "expansionGateMet": true
+  },
+  "rationales": {
+    "query-shaping": "Arm A plans, validates, and executes an exact workflow, but omits explicit operator approval and an idempotency key; it also lacks a count-first contract, explicit geometry=false, snapshot-drift handling, and an explicit bboxSrid parameter/unsafe-execution stop. Arm B includes the full approved and idempotent execution lifecycle, count-first pushdown with geometry excluded, exact bounded aggregation with reconciliation and fail-closed drift/truncation handling, and explicit EPSG:26904/4326/3857 cost and CRS controls.",
+    "publishing": "Arm A selects published_service, public visibility, and omits routePrefix, but does not explicitly bind publish_result sourceId; it blocks on provenance, rights, visibility, and approval but lacks explicit pre-release privacy/accessibility gates; it separates vanity routing but does not address ambiguous publication retries; and it verifies publication without retaining candidate/previous revisions through a rollback window. Arm B fully specifies sourceId, visibility, and routePrefix omission; records every required gate; separates deployment routing and inspects ambiguous outcomes before retry; and independently verifies identity, content, visibility, and accessibility while retaining rollback revisions."
+  },
+  "scoringPolicy": "Every affected skill independently applies the predeclared anchors, hard failures, and per-skill material-lift threshold."
+}

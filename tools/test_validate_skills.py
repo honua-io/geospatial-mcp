@@ -227,6 +227,14 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual([], errors)
         self.assertTrue(all(result["expansionGateMet"] for result in per_skill.values()))
 
+    def test_follow_on_judge_allows_a_baseline_hard_failure(self) -> None:
+        scores, hard_failures, groups = self.follow_on_judge_fixture()
+        hard_failures["baseline"]["query"] = ["Baseline omitted the executable workflow."]
+        errors, thresholds, per_skill = validate_follow_on_judge(scores, hard_failures, groups, [0, 2])
+        self.assertEqual([], errors)
+        self.assertTrue(thresholds["query"]["noHardFailure"]["passed"])
+        self.assertTrue(per_skill["query"]["expansionGateMet"])
+
     def test_follow_on_judge_rejects_missing_hard_failures(self) -> None:
         scores, hard_failures, groups = self.follow_on_judge_fixture()
         del hard_failures["treatment"]["query"]

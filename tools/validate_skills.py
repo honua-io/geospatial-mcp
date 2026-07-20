@@ -278,7 +278,7 @@ def validate(root: Path) -> list[str]:
             axes = rubric.get("axes", [])
             for axis in axes if isinstance(axes, list) else []:
                 if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
-                errors.append(f"Maui {run_id} every rubric axis requires explicit 0/1/2 anchors")
+                    errors.append(f"Maui {run_id} every rubric axis requires explicit 0/1/2 anchors")
             lift = rubric.get("materialLift")
             required_lift = {"minimumTreatmentTotal", "minimumTreatmentMinusBaseline", "minimumTreatmentAxisScore", "noHardFailure"}
             if not isinstance(lift, dict) or set(lift) != required_lift:

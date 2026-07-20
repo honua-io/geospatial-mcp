@@ -14,9 +14,11 @@ server's advertised schema as authoritative and use only bare
 1. State the intended takeaway in one sentence.
 2. Identify the audience, viewing scale, and whether exact lookup or broad
    pattern recognition matters more.
-3. Inspect geometry type, field types, missingness, category cardinality,
-   numeric range, sign, skew, units, denominator, and coordinate reference
-   system. Use `list_layers` and a bounded `query_features` request. Use
+3. Discover MCP operation schemas through the protocol's `tools/list` request;
+   `list_layers` discovers geospatial layers, not MCP tool schemas. Then inspect
+   geometry type, field types, missingness, category cardinality, numeric range,
+   sign, skew, units, denominator, and coordinate reference system with
+   `list_layers` and a bounded `query_features` request. Use
    `summarize_statistics` when the optional `analysis` profile is advertised;
    otherwise request equivalent summary steps through `plan_analysis`.
 4. Ask a focused clarification instead of inferring a denominator, semantic

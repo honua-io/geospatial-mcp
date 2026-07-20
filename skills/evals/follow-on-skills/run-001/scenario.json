@@ -4,7 +4,7 @@
   "runId": "run-001",
   "runMetadata": "run-metadata.json",
   "runMetadataSha256": "fdafa8daefd31e28b6d813548de412c14b31fecfab66a363ac9b9798ca58f894",
-  "status": "not-run",
+  "status": "completed",
   "cases": [
     {
       "id": "layer-composition",
@@ -42,7 +42,11 @@
   "requiredArtifacts": [
     "run-metadata.json",
     "scenario.json",
-    "rubric.json"
+    "rubric.json",
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
   ],
   "expectedArtifactsOnCompletion": [
     "baseline-response.json",
@@ -50,6 +54,44 @@
     "judge-result.json",
     "review-adjudication.json"
   ],
-  "evidence": null,
-  "note": "Every follow-on skill must independently pass the predeclared lift gate; aggregate lift cannot hide a weak skill."
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "8eb760b738d3e4875f96b97c9ea35c780948bcff858b957927103a3fb12abc4c"
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "aa55dd252015d818704b765328a5411cfeba18bdbf9cad8fe50d3cd124110610"
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "a3e664d80314fbaedcf4e95412ff17eba5e61efaefb51e40ad9fab2123c79f25",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "38184e501a634d03cc29c4f5c315784be4583c05b2b0aa23f79161b43bd3a763",
+    "perSkill": {
+      "layer-composition": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "publishing": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialLift": true,
+    "expansionGateMet": true,
+    "outcome": "expansion-gate-met"
+  },
+  "note": "Every follow-on skill independently passes the unchanged gate after re-execution and audit: layer composition 4/8 to 8/8, query shaping 5/8 to 8/8, and publishing 5/8 to 8/8. Three independent audits upheld all scores with no hard failures."
 }

@@ -24,6 +24,10 @@ check. The preserved Maui parcel cold evaluation demonstrates material lift for
 the initial choosing-a-visualization skill; its scenario, pinned identities,
 raw responses, rubric, judge result, and stricter review adjudication live under
 [`skills/evals/choosing-a-visualization-maui-parcels`](skills/evals/choosing-a-visualization-maui-parcels/run-003/scenario.json).
+The three follow-on skills also preserve independent per-skill lift gates and
+audited evidence under
+[`skills/evals/follow-on-skills`](skills/evals/follow-on-skills/run-001/scenario.json);
+aggregate improvement cannot hide a skill that fails its own gate.
 
 ## An open invitation
 

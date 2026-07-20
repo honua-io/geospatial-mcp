@@ -565,6 +565,75 @@ def validate(root: Path) -> list[str]:
                 for relative in follow_scenario.get("expectedArtifactsOnCompletion", []):
                     if (follow_root / str(relative)).exists():
                         errors.append(f"Follow-on not-run evaluation contains output artifact {relative}")
+            if follow_status == "completed":
+                if not isinstance(follow_evidence, dict):
+                    errors.append("Follow-on completed evaluation requires evidence")
+                else:
+                    response_artifacts: dict[str, dict] = {}
+                    responses = follow_evidence.get("responses", {})
+                    for arm in ("baseline", "treatment"):
+                        response = responses.get(arm, {}) if isinstance(responses, dict) else {}
+                        response_path = follow_root / str(response.get("path"))
+                        value = load_json(response_path, errors) if response_path.parent == follow_root and response_path.is_file() else None
+                        if not isinstance(value, dict):
+                            errors.append(f"Follow-on {arm} response artifact is missing")
+                        else:
+                            response_artifacts[arm] = value
+                            if response.get("sha256") != canonical_sha256(value):
+                                errors.append(f"Follow-on {arm} response canonical SHA-256 does not match")
+                    judge_path = follow_root / str(follow_evidence.get("judgeResult"))
+                    follow_judge = load_json(judge_path, errors) if judge_path.parent == follow_root and judge_path.is_file() else None
+                    adjudication_path = follow_root / str(follow_evidence.get("reviewAdjudication"))
+                    follow_adjudication = load_json(adjudication_path, errors) if adjudication_path.parent == follow_root and adjudication_path.is_file() else None
+                    if not isinstance(follow_judge, dict) or not isinstance(follow_adjudication, dict):
+                        errors.append("Follow-on completed evaluation requires local judge and adjudication artifacts")
+                    else:
+                        judge_sha = canonical_sha256(follow_judge)
+                        if follow_evidence.get("judgeSha256") != judge_sha:
+                            errors.append("Follow-on judge canonical SHA-256 does not match")
+                        if follow_evidence.get("reviewAdjudicationSha256") != canonical_sha256(follow_adjudication):
+                            errors.append("Follow-on adjudication canonical SHA-256 does not match")
+                        if follow_adjudication.get("originalJudgeSha256") != judge_sha:
+                            errors.append("Follow-on adjudication does not bind the judge artifact")
+                        judge_scores = follow_judge.get("scores", {})
+                        hard_failures = follow_judge.get("hardFailures", {})
+                        expected_thresholds: dict[str, dict] = {}
+                        expected_per_skill: dict[str, dict] = {}
+                        for skill in expected_cases:
+                            for arm in ("baseline", "treatment"):
+                                score = judge_scores.get(arm, {}).get(skill, {})
+                                expected_keys = axis_groups[skill] | {"total"}
+                                if set(score) != expected_keys or score.get("total") != sum(score.get(axis, 0) for axis in axis_groups[skill]):
+                                    errors.append(f"Follow-on {skill} {arm} scores are incomplete or inconsistent")
+                            baseline_total = judge_scores.get("baseline", {}).get(skill, {}).get("total")
+                            treatment = judge_scores.get("treatment", {}).get(skill, {})
+                            treatment_total = treatment.get("total")
+                            treatment_axes = [treatment.get(axis) for axis in axis_groups[skill]]
+                            no_hard_failure = not hard_failures.get("baseline", {}).get(skill, []) and not hard_failures.get("treatment", {}).get(skill, [])
+                            conditions = {
+                                "minimumTreatmentTotal": {"required": 6, "actual": treatment_total, "passed": isinstance(treatment_total, int) and treatment_total >= 6},
+                                "minimumTreatmentMinusBaseline": {"required": 2, "actual": treatment_total - baseline_total if isinstance(treatment_total, int) and isinstance(baseline_total, int) else None, "passed": isinstance(treatment_total, int) and isinstance(baseline_total, int) and treatment_total - baseline_total >= 2},
+                                "minimumTreatmentAxisScore": {"required": 1, "actual": min(treatment_axes) if all(isinstance(value, int) for value in treatment_axes) else None, "passed": all(isinstance(value, int) for value in treatment_axes) and min(treatment_axes) >= 1},
+                                "noHardFailure": {"required": True, "actual": no_hard_failure, "passed": no_hard_failure},
+                            }
+                            passed = all(condition["passed"] for condition in conditions.values())
+                            expected_thresholds[skill] = conditions
+                            expected_per_skill[skill] = {"baselineTotal": baseline_total, "treatmentTotal": treatment_total, "materialImprovement": passed, "expansionGateMet": passed}
+                        if follow_judge.get("thresholdEvaluation") != expected_thresholds:
+                            errors.append("Follow-on judge threshold evaluation is inconsistent")
+                        if follow_judge.get("judgment", {}).get("perSkill") != expected_per_skill:
+                            errors.append("Follow-on judge per-skill judgment is inconsistent")
+                        if follow_adjudication.get("findings") != [] or follow_adjudication.get("adjudicatedScores") != judge_scores:
+                            errors.append("Follow-on upheld audits must preserve judge scores without findings")
+                        expected_final = {"perSkill": expected_per_skill, "materialImprovement": all(value["materialImprovement"] for value in expected_per_skill.values()), "expansionGateMet": all(value["expansionGateMet"] for value in expected_per_skill.values())}
+                        if follow_adjudication.get("thresholdEvaluation") != expected_thresholds or follow_adjudication.get("finalJudgment") != expected_final:
+                            errors.append("Follow-on final adjudication is inconsistent")
+                        if follow_evidence.get("perSkill") != expected_per_skill or follow_evidence.get("materialLift") is not expected_final["materialImprovement"] or follow_evidence.get("expansionGateMet") is not expected_final["expansionGateMet"]:
+                            errors.append("Follow-on scenario evidence disagrees with adjudication")
+                    treatment_text = json.dumps(response_artifacts.get("treatment", {}))
+                    for required_phrase in ("tools/list", "list_layers", "returnCountOnly", "publish_result"):
+                        if required_phrase not in treatment_text:
+                            errors.append(f"Follow-on treatment no longer supports required behavior: {required_phrase}")
     return sorted(errors)
 
 

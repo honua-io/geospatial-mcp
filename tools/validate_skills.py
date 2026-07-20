@@ -513,6 +513,58 @@ def validate(root: Path) -> list[str]:
                         errors.append(f"Maui {field}.{profile_key} drifted from derivation artifact")
             if neighborhood_query.get("response", {}).get("count") != profile.get("fields", {}).get("nhoodcode", {}).get("distinctNonNullCount"):
                 errors.append("Maui neighborhood count drifted from derivation artifact")
+
+    follow_on_names = {"layer-composition", "query-shaping", "publishing"}
+    if follow_on_names <= names:
+        follow_root = skills_root / "evals" / "follow-on-skills" / "run-001"
+        follow_scenario = load_json(follow_root / "scenario.json", errors)
+        follow_rubric = load_json(follow_root / "rubric.json", errors)
+        follow_metadata = load_json(follow_root / "run-metadata.json", errors)
+        if all(isinstance(value, dict) for value in (follow_scenario, follow_rubric, follow_metadata)):
+            assert isinstance(follow_scenario, dict) and isinstance(follow_rubric, dict) and isinstance(follow_metadata, dict)
+            if follow_scenario.get("runId") != "run-001" or follow_metadata.get("runId") != "run-001":
+                errors.append("Follow-on evaluation run identifiers do not agree")
+            if follow_scenario.get("runMetadataSha256") != canonical_sha256(follow_metadata):
+                errors.append("Follow-on evaluation run-metadata SHA-256 does not match")
+            if not re.fullmatch(r"[0-9a-f]{40}", str(follow_metadata.get("skillRevision", ""))):
+                errors.append("Follow-on evaluation requires a full skill revision")
+            for identity_key in ("modelIdentity", "harnessIdentity"):
+                identity = follow_metadata.get(identity_key)
+                if not isinstance(identity, dict) or identity.get("status") != "exposed" or not identity.get("value"):
+                    errors.append(f"Follow-on evaluation {identity_key} must record the pinned exposed identity")
+            expected_cases = {"layer-composition", "query-shaping", "publishing"}
+            cases = follow_scenario.get("cases", [])
+            case_ids = {case.get("id") for case in cases if isinstance(case, dict)}
+            if case_ids != expected_cases or any(not case.get("request") for case in cases if isinstance(case, dict)):
+                errors.append("Follow-on evaluation must predeclare exactly three non-empty cases")
+            axes = follow_rubric.get("axes", [])
+            axis_groups = {skill: set() for skill in expected_cases}
+            for axis in axes if isinstance(axes, list) else []:
+                skill = axis.get("skill") if isinstance(axis, dict) else None
+                if skill in axis_groups:
+                    axis_groups[skill].add(axis.get("id"))
+                if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
+                    errors.append("Follow-on evaluation every rubric axis requires explicit 0/1/2 anchors")
+            if any(len(group) != 4 for group in axis_groups.values()):
+                errors.append("Follow-on evaluation requires exactly four axes per skill")
+            lift = follow_rubric.get("materialLift", {})
+            expected_lift = {"minimumTreatmentTotal": 6, "minimumTreatmentMinusBaseline": 2, "minimumTreatmentAxisScore": 1, "noHardFailure": True}
+            if lift.get("perSkill") != expected_lift:
+                errors.append("Follow-on evaluation per-skill lift threshold drifted")
+            follow_status = follow_scenario.get("status")
+            if follow_status not in {"not-run", "completed"}:
+                errors.append("Follow-on evaluation status must be not-run or completed")
+            follow_evidence = follow_scenario.get("evidence")
+            if follow_status == "not-run" and follow_evidence is not None:
+                errors.append("Follow-on not-run evaluation must not claim evidence")
+            for relative in follow_scenario.get("requiredArtifacts", []):
+                artifact_path = (follow_root / str(relative)).resolve()
+                if follow_root.resolve() not in (artifact_path, *artifact_path.parents) or not artifact_path.is_file():
+                    errors.append(f"Follow-on required artifact is missing or escapes the run root: {relative}")
+            if follow_status == "not-run":
+                for relative in follow_scenario.get("expectedArtifactsOnCompletion", []):
+                    if (follow_root / str(relative)).exists():
+                        errors.append(f"Follow-on not-run evaluation contains output artifact {relative}")
     return sorted(errors)
 
 

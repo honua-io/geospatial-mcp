@@ -1,0 +1,28 @@
+{
+  "rubricVersion": "1",
+  "scoreRange": [0, 2],
+  "materialLift": {"perSkill": {"minimumTreatmentTotal": 6, "minimumTreatmentMinusBaseline": 2, "minimumTreatmentAxisScore": 1, "noHardFailure": true}},
+  "axes": [
+    {"skill": "layer-composition", "id": "roles-and-removal", "anchors": {"0": "Keeps layers without distinct roles or removal rules.", "1": "Assigns roles or omits clutter but leaves important scale/removal decisions implicit.", "2": "Names primary/context/reference roles, scale rules, and evidence-based drop criteria."}},
+    {"skill": "layer-composition", "id": "visual-separation", "anchors": {"0": "Relies on competing color or opacity and ignores labels/accessibility.", "1": "Improves hierarchy but lacks concrete non-color, collision, or accessibility checks.", "2": "Separates hues/lightness and non-color cues, quiets the basemap, gates labels, and tests accessibility."}},
+    {"skill": "layer-composition", "id": "mixed-source-binding", "anchors": {"0": "Assumes source equivalence or silently substitutes/reprojects.", "1": "Notes source/CRS differences without a complete binding and verification plan.", "2": "Uses tools/list plus list_layers, stable identities, explicit CRS/protocol bindings, and capability-gated composition."}},
+    {"skill": "layer-composition", "id": "preview-and-anti-patterns", "anchors": {"0": "Mutates sources or invents render styling inputs.", "1": "Uses a safe preview but omits representative inspection or relevant rejection reasons.", "2": "Uses a non-mutating advertised preview path, representative removal tests, and rejects opacity, clutter, and render-map styling inventions."}},
+    {"skill": "query-shaping", "id": "pushdown-shape", "anchors": {"0": "Fetches broad rows/geometry for local work.", "1": "Pushes some filters or summaries down but omits projections or geometry controls.", "2": "Declares predicate, fields, geometry=false, exact count and server-side grouped statistics or canonical fallback."}},
+    {"skill": "query-shaping", "id": "paging-completeness", "anchors": {"0": "Treats a page as complete or representative.", "1": "Mentions paging without stable order, identifier reconciliation, snapshot drift, or truncation failure.", "2": "Counts first, pages deterministically within limits, deduplicates/reconciles, and fails closed on drift/truncation."}},
+    {"skill": "query-shaping", "id": "crs", "anchors": {"0": "Uses implicit or mixed CRS.", "1": "Names CRS conversion without explicit bbox/output SRIDs and capability fallback.", "2": "Declares bboxSrid 26904, source interpretation, deliberate output SRID 3857 only for geometry, and bounded advertised reprojection/fallback."}},
+    {"skill": "query-shaping", "id": "sampling-and-cost", "anchors": {"0": "Samples for an exact result or ignores provider cost.", "1": "Avoids sampling or lists a cost concern without a stop condition.", "2": "Rejects sampling for exact aggregates, identifies concrete cost cliffs, minimizes fields/geometry, and stops rather than degrading to unbounded work."}},
+    {"skill": "publishing", "id": "release-gates", "anchors": {"0": "Proceeds despite missing rights, provenance, visibility, or approval.", "1": "Blocks release but omits one material gate.", "2": "Blocks until rights, immutable provenance, privacy/accessibility, exact visibility/destination, and explicit operator approval are recorded."}},
+    {"skill": "publishing", "id": "promotion-operations", "anchors": {"0": "Treats preview as publication or invents unsupported operations.", "1": "Names private preview and publish but does not bind inputs to tools/list schemas.", "2": "Uses tools/list, private candidate/preview, then one approved publish_result with explicit sourceId, targetKind, visibility, and routePrefix."}},
+    {"skill": "publishing", "id": "collision-and-idempotency", "anchors": {"0": "Overwrites or blindly retries the route.", "1": "Checks collision or avoids retry but not both.", "2": "Resolves route ownership before publish and inspects ambiguous outcomes before any retry."}},
+    {"skill": "publishing", "id": "verification-and-rollback", "anchors": {"0": "Announces success from the publish response alone.", "1": "Mentions verification or rollback without independent checks and retained revision.", "2": "Independently verifies endpoint identity/content/accessibility and retains candidate/previous revision through a governed rollback window."}}
+  ],
+  "hardFailures": [
+    "Claims an MCP endpoint call, tool execution, rendered preview, or publication occurred.",
+    "Mutates source state solely to preview a composition.",
+    "Treats a partial page or sample as the exact requested aggregate.",
+    "Uses an implicit CRS for the supplied bbox.",
+    "Publishes despite verify-before-redistribution, missing visibility, route uncertainty, or missing approval.",
+    "Invents tool properties or claims list_layers discovers MCP operation schemas."
+  ],
+  "predeclaration": "Cases, contexts, axes, hard failures, identities, and per-skill thresholds are fixed before either response is generated."
+}

@@ -1,0 +1,55 @@
+{
+  "scenarioVersion": "1",
+  "id": "follow-on-skills-cold-comparison-v1",
+  "runId": "run-001",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "fdafa8daefd31e28b6d813548de412c14b31fecfab66a363ac9b9798ca58f894",
+  "status": "not-run",
+  "cases": [
+    {
+      "id": "layer-composition",
+      "request": "Plan a countywide map for emergency managers showing flood exposure. Available sources are a saturated imagery basemap, a WMS flood-depth raster in EPSG:4326, parcel polygons with a red value renderer in EPSG:26904, roads, evacuation shelters, municipal boundaries, parcel labels, road labels, and place labels. The map must work at county overview and neighborhood inspection scales. Return a plan a conformant geospatial-mcp client could follow."
+    },
+    {
+      "id": "query-shaping",
+      "request": "Plan how to obtain exact parcel counts and median assessed value by district from a five-million-feature polygon layer with maxRecordCount 1000. The requested study bbox is supplied in EPSG:26904, the source layer is EPSG:4326, and the eventual display is EPSG:3857. The service may or may not advertise the optional analysis profile. Return a plan a conformant geospatial-mcp client could follow."
+    },
+    {
+      "id": "publishing",
+      "request": "A private Maui assessment map package has passed a visual preview and a stakeholder asks to publish it publicly at route /maui-values today. The package records its source item but not the source revision or query predicate; redistribution status is verify-before-redistribution; the route may already exist; visibility and an approving operator are not otherwise recorded. Return a plan a conformant geospatial-mcp client could follow."
+    }
+  ],
+  "comparison": {
+    "freshEmptyWorkingDirectoryPerArm": true,
+    "sameCasesModelHarness": true,
+    "rubricHiddenFromBothArms": true,
+    "baselineContext": [
+      "fixed response instruction",
+      "scenario cases"
+    ],
+    "treatmentContext": [
+      "fixed response instruction",
+      "scenario cases",
+      "three skills at pinned revision"
+    ]
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false,
+    "published": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json",
+    "scenario.json",
+    "rubric.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "evidence": null,
+  "note": "Every follow-on skill must independently pass the predeclared lift gate; aggregate lift cannot hide a weak skill."
+}

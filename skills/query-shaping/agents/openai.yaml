@@ -1,0 +1,4 @@
+interface:
+  display_name: "Query Shaping"
+  short_description: "Bound and verify geospatial provider queries"
+  default_prompt: "Use the geospatial-mcp taxonomy to shape a bounded, complete, and CRS-explicit query plan."

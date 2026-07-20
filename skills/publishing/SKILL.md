@@ -12,8 +12,9 @@ not as the final rendering step.
 
 Before creating or promoting anything, record:
 
-- intended audience, owner, destination, `targetKind`, `visibility`, and stable
-  `routePrefix`;
+- intended audience, owner, destination, `targetKind`, and `visibility`;
+- a stable `routePrefix` only when `targetKind` is `deployment`; omit it when
+  `targetKind` is `published_service`;
 - stable source and package identifiers, source revision or timestamps, query
   predicates, transformations, styles, CRS, and software revision;
 - redistribution rights, attribution, privacy review, retention, accessibility,
@@ -34,18 +35,20 @@ condition. A successful preview is not publication authorization.
    target dimensions, and performance.
 4. Reconcile the candidate against its release contract. Record validation
    results and obtain explicit human approval for the exact destination,
-   visibility, and route.
-5. Call `publish_result` once with the approved `sourceId`, `targetKind`,
-   `visibility`, and `routePrefix`. Do not retry blindly after an ambiguous
-   timeout; inspect whether the target already exists first.
+  visibility, and deployment route when applicable.
+5. Call `publish_result` once with the approved `sourceId`, `targetKind`, and
+   `visibility`. Include `routePrefix` only for a `deployment`; omit it for a
+   `published_service`. Do not retry blindly after an ambiguous timeout;
+   inspect whether the target already exists first.
 6. Verify the published endpoint independently: identity, accessibility,
    visibility, content revision, extent, feature or aggregate counts, style,
    attribution, and health. If verification fails, do not announce success.
 
 ## Collision, rollback, and audit rules
 
-Check route and destination collisions before publication. Never overwrite an
-unrelated target because its title or route is convenient. Preserve the private
+Check destination collisions before publication, and route collisions for a
+deployment. Never overwrite an unrelated target because its title or route is
+convenient. Preserve the private
 candidate and previous published revision until verification and the rollback
 window complete. Record who approved, what was published, when, where, from
 which immutable inputs, and the verification result.
@@ -66,7 +69,8 @@ visibility, verification evidence, and a rollback path.
 
 - Publishing directly from an exploratory or mutable working state.
 - Treating preview success as approval or endpoint verification.
-- Defaulting visibility to public or guessing a route prefix.
+- Choosing a route before `targetKind`, or adding deployment-only
+  `routePrefix` to a `published_service`.
 - Publishing when rights say verify-before-redistribution.
 - Omitting query predicates, transformations, source revision, or CRS from provenance.
 - Blindly retrying `publish_result` after an ambiguous timeout.
@@ -76,7 +80,7 @@ visibility, verification evidence, and a rollback path.
 
 ## Completion check
 
-Report candidate identity, destination, visibility, route, provenance, rights,
+Report candidate identity, target kind, destination, visibility, applicable deployment route, provenance, rights,
 privacy and accessibility decisions, approval identity, preview evidence,
 publication response, independent verification, collision result, rollback
 state, and any gate that remains blocked.

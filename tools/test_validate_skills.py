@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.validate_skills import REQUIRED_COVERAGE, canonical_sha256, sha256, validate
+from tools.validate_skills import REQUIRED_COVERAGE, canonical_sha256, sha256, validate, validate_follow_on_judge
 
 
 def load_json_for_test(path: Path) -> dict:
@@ -207,6 +207,41 @@ class ValidateSkillsTests(unittest.TestCase):
         scenario["runMetadataSha256"] = canonical_sha256(metadata)
         self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-003/scenario.json", scenario)
         self.assertTrue(any("run-003 modelIdentity must record the pinned exposed identity" in error for error in validate(self.root)))
+
+    @staticmethod
+    def follow_on_judge_fixture() -> tuple[dict, dict, dict[str, set[str]]]:
+        groups = {skill: {f"{skill}-axis-{index}" for index in range(4)} for skill in ("layer", "query", "publishing")}
+        scores = {
+            arm: {
+                skill: {axis: value for axis in axes} | {"total": value * 4}
+                for skill, axes in groups.items()
+            }
+            for arm, value in (("baseline", 1), ("treatment", 2))
+        }
+        hard_failures = {arm: {skill: [] for skill in groups} for arm in ("baseline", "treatment")}
+        return scores, hard_failures, groups
+
+    def test_follow_on_judge_accepts_complete_evidence(self) -> None:
+        scores, hard_failures, groups = self.follow_on_judge_fixture()
+        errors, _, per_skill = validate_follow_on_judge(scores, hard_failures, groups, [0, 2])
+        self.assertEqual([], errors)
+        self.assertTrue(all(result["expansionGateMet"] for result in per_skill.values()))
+
+    def test_follow_on_judge_rejects_missing_hard_failures(self) -> None:
+        scores, hard_failures, groups = self.follow_on_judge_fixture()
+        del hard_failures["treatment"]["query"]
+        errors, _, per_skill = validate_follow_on_judge(scores, hard_failures, groups, [0, 2])
+        self.assertTrue(any("treatment hardFailures must cover every skill exactly" in error for error in errors))
+        self.assertFalse(per_skill["query"]["expansionGateMet"])
+
+    def test_follow_on_judge_rejects_out_of_range_balanced_scores(self) -> None:
+        scores, hard_failures, groups = self.follow_on_judge_fixture()
+        query_axes = sorted(groups["query"])
+        scores["treatment"]["query"][query_axes[0]] = 3
+        scores["treatment"]["query"][query_axes[1]] = 1
+        errors, _, per_skill = validate_follow_on_judge(scores, hard_failures, groups, [0, 2])
+        self.assertTrue(any("query treatment axis score is outside the rubric range" in error for error in errors))
+        self.assertFalse(per_skill["query"]["expansionGateMet"])
 
 
 if __name__ == "__main__":

@@ -22,9 +22,12 @@ that the result is complete enough for the claim being made.
 
 - Put attribute predicates in `where` and spatial predicates in `bbox` with an
   explicit `bboxSrid`. Request only necessary `outFields`.
-- Use `returnCountOnly` or `summarize_statistics` before sampling. When the
-  optional analysis profile is absent, request equivalent server-side work
-  through `plan_analysis` rather than pulling the table locally.
+- Use `returnCountOnly` or `summarize_statistics` before sampling. The direct
+  verb cannot compute median. When the requested statistic is unsupported or
+  the optional analysis profile is absent, compile the bounded server-side work
+  with `plan_analysis`, check the returned plan with `validate_plan`, obtain
+  operator approval for its inputs and cost, and submit the validated plan with
+  `execute_plan`. Use an `idempotencyKey` when a retry could duplicate work.
 - Request `returnGeometry: false` for schema checks, counts, and statistics.
 - Set `outSrid` deliberately when geometry is required. Use
   `reproject_features` only when advertised and bounded; otherwise use
@@ -55,9 +58,10 @@ convenience first page is not a sample.
 - Excess precision, unused fields, or countywide polygons for an overview map.
 - Client-side joins or transforms that a canonical plan can execute near data.
 
-When a required bounded plan cannot be expressed by the advertised surface,
-return the unresolved plan and cost risk. Do not degrade silently to an
-unbounded read.
+An `AnalysisPlan` is not a result. Do not report counts, medians, or rows from
+`plan_analysis` alone. If the plan cannot be validated, approved, executed, or
+observed to successful completion, return the unresolved plan and cost risk.
+Do not degrade silently to an unbounded read.
 
 ## Anti-patterns
 
@@ -69,10 +73,11 @@ unbounded read.
 - Sampling when an exact aggregate is required, or presenting a sample as exact.
 - Returning sensitive identifiers that are irrelevant to the decision.
 - Retrying an expensive query unchanged after truncation or timeout.
+- Treating a compiled or validated plan as executed analysis evidence.
 
 ## Completion check
 
 Report the exact predicate, fields, bound and SRIDs, geometry and precision,
 count, page or sample strategy, completeness reconciliation, capability
-fallback, snapshot assumptions, sensitive-field exclusions, and remaining cost
-or accuracy limits.
+fallback, validation and execution state, idempotency key, snapshot assumptions,
+sensitive-field exclusions, and remaining cost or accuracy limits.

@@ -120,6 +120,80 @@ def frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
     return values
 
 
+def validate_follow_on_judge(
+    judge_scores: object,
+    hard_failures: object,
+    axis_groups: dict[str, set[str]],
+    score_range: object,
+) -> tuple[list[str], dict[str, dict], dict[str, dict]]:
+    """Validate and recompute the follow-on evaluation's per-skill gates."""
+    errors: list[str] = []
+    thresholds: dict[str, dict] = {}
+    per_skill: dict[str, dict] = {}
+    arms = {"baseline", "treatment"}
+    skills = set(axis_groups)
+    valid_range = (
+        isinstance(score_range, list)
+        and len(score_range) == 2
+        and all(isinstance(value, int) and not isinstance(value, bool) for value in score_range)
+        and score_range[0] <= score_range[1]
+    )
+    if not valid_range:
+        errors.append("Follow-on scoreRange must contain two ordered integers")
+        minimum_score, maximum_score = 0, -1
+    else:
+        minimum_score, maximum_score = score_range
+    if not isinstance(judge_scores, dict) or set(judge_scores) != arms:
+        errors.append("Follow-on judge scores must contain exactly baseline and treatment")
+        judge_scores = {}
+    if not isinstance(hard_failures, dict) or set(hard_failures) != arms:
+        errors.append("Follow-on hardFailures must contain exactly baseline and treatment")
+        hard_failures = {}
+    for arm in arms:
+        arm_scores = judge_scores.get(arm, {}) if isinstance(judge_scores, dict) else {}
+        arm_failures = hard_failures.get(arm, {}) if isinstance(hard_failures, dict) else {}
+        if not isinstance(arm_scores, dict) or set(arm_scores) != skills:
+            errors.append(f"Follow-on {arm} scores must cover every skill exactly")
+            arm_scores = {}
+        if not isinstance(arm_failures, dict) or set(arm_failures) != skills:
+            errors.append(f"Follow-on {arm} hardFailures must cover every skill exactly")
+            arm_failures = {}
+        for skill in skills:
+            failures = arm_failures.get(skill)
+            if not isinstance(failures, list) or any(not isinstance(value, str) for value in failures):
+                errors.append(f"Follow-on {skill} {arm} hardFailures must be a string array")
+            score = arm_scores.get(skill, {})
+            expected_keys = axis_groups[skill] | {"total"}
+            if not isinstance(score, dict) or set(score) != expected_keys:
+                errors.append(f"Follow-on {skill} {arm} scores must cover every axis and total exactly")
+                continue
+            axis_values = [score.get(axis) for axis in axis_groups[skill]]
+            if any(not isinstance(value, int) or isinstance(value, bool) or not minimum_score <= value <= maximum_score for value in axis_values):
+                errors.append(f"Follow-on {skill} {arm} axis score is outside the rubric range")
+            if not isinstance(score.get("total"), int) or isinstance(score.get("total"), bool) or score.get("total") != sum(value for value in axis_values if isinstance(value, int) and not isinstance(value, bool)):
+                errors.append(f"Follow-on {skill} {arm} total is inconsistent")
+    for skill in skills:
+        baseline = judge_scores.get("baseline", {}).get(skill, {}) if isinstance(judge_scores, dict) else {}
+        treatment = judge_scores.get("treatment", {}).get(skill, {}) if isinstance(judge_scores, dict) else {}
+        baseline_total = baseline.get("total") if isinstance(baseline, dict) else None
+        treatment_total = treatment.get("total") if isinstance(treatment, dict) else None
+        treatment_axes = [treatment.get(axis) for axis in axis_groups[skill]] if isinstance(treatment, dict) else []
+        baseline_failures = hard_failures.get("baseline", {}).get(skill) if isinstance(hard_failures, dict) and isinstance(hard_failures.get("baseline"), dict) else None
+        treatment_failures = hard_failures.get("treatment", {}).get(skill) if isinstance(hard_failures, dict) and isinstance(hard_failures.get("treatment"), dict) else None
+        no_hard_failure = isinstance(baseline_failures, list) and isinstance(treatment_failures, list) and not baseline_failures and not treatment_failures
+        valid_axes = len(treatment_axes) == len(axis_groups[skill]) and all(isinstance(value, int) and not isinstance(value, bool) and minimum_score <= value <= maximum_score for value in treatment_axes)
+        conditions = {
+            "minimumTreatmentTotal": {"required": 6, "actual": treatment_total, "passed": isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and treatment_total >= 6},
+            "minimumTreatmentMinusBaseline": {"required": 2, "actual": treatment_total - baseline_total if isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and isinstance(baseline_total, int) and not isinstance(baseline_total, bool) else None, "passed": isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and isinstance(baseline_total, int) and not isinstance(baseline_total, bool) and treatment_total - baseline_total >= 2},
+            "minimumTreatmentAxisScore": {"required": 1, "actual": min(treatment_axes) if valid_axes else None, "passed": valid_axes and min(treatment_axes) >= 1},
+            "noHardFailure": {"required": True, "actual": no_hard_failure, "passed": no_hard_failure},
+        }
+        passed = not errors and all(condition["passed"] for condition in conditions.values())
+        thresholds[skill] = conditions
+        per_skill[skill] = {"baselineTotal": baseline_total, "treatmentTotal": treatment_total, "materialImprovement": passed, "expansionGateMet": passed}
+    return errors, thresholds, per_skill
+
+
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
     skills_root = root / "skills"
@@ -597,28 +671,13 @@ def validate(root: Path) -> list[str]:
                             errors.append("Follow-on adjudication does not bind the judge artifact")
                         judge_scores = follow_judge.get("scores", {})
                         hard_failures = follow_judge.get("hardFailures", {})
-                        expected_thresholds: dict[str, dict] = {}
-                        expected_per_skill: dict[str, dict] = {}
-                        for skill in expected_cases:
-                            for arm in ("baseline", "treatment"):
-                                score = judge_scores.get(arm, {}).get(skill, {})
-                                expected_keys = axis_groups[skill] | {"total"}
-                                if set(score) != expected_keys or score.get("total") != sum(score.get(axis, 0) for axis in axis_groups[skill]):
-                                    errors.append(f"Follow-on {skill} {arm} scores are incomplete or inconsistent")
-                            baseline_total = judge_scores.get("baseline", {}).get(skill, {}).get("total")
-                            treatment = judge_scores.get("treatment", {}).get(skill, {})
-                            treatment_total = treatment.get("total")
-                            treatment_axes = [treatment.get(axis) for axis in axis_groups[skill]]
-                            no_hard_failure = not hard_failures.get("baseline", {}).get(skill, []) and not hard_failures.get("treatment", {}).get(skill, [])
-                            conditions = {
-                                "minimumTreatmentTotal": {"required": 6, "actual": treatment_total, "passed": isinstance(treatment_total, int) and treatment_total >= 6},
-                                "minimumTreatmentMinusBaseline": {"required": 2, "actual": treatment_total - baseline_total if isinstance(treatment_total, int) and isinstance(baseline_total, int) else None, "passed": isinstance(treatment_total, int) and isinstance(baseline_total, int) and treatment_total - baseline_total >= 2},
-                                "minimumTreatmentAxisScore": {"required": 1, "actual": min(treatment_axes) if all(isinstance(value, int) for value in treatment_axes) else None, "passed": all(isinstance(value, int) for value in treatment_axes) and min(treatment_axes) >= 1},
-                                "noHardFailure": {"required": True, "actual": no_hard_failure, "passed": no_hard_failure},
-                            }
-                            passed = all(condition["passed"] for condition in conditions.values())
-                            expected_thresholds[skill] = conditions
-                            expected_per_skill[skill] = {"baselineTotal": baseline_total, "treatmentTotal": treatment_total, "materialImprovement": passed, "expansionGateMet": passed}
+                        score_errors, expected_thresholds, expected_per_skill = validate_follow_on_judge(
+                            judge_scores,
+                            hard_failures,
+                            axis_groups,
+                            follow_rubric.get("scoreRange"),
+                        )
+                        errors.extend(score_errors)
                         if follow_judge.get("thresholdEvaluation") != expected_thresholds:
                             errors.append("Follow-on judge threshold evaluation is inconsistent")
                         if follow_judge.get("judgment", {}).get("perSkill") != expected_per_skill:

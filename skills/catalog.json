@@ -35,7 +35,7 @@
       "coverage": ["query-shaping", "anti-patterns"],
       "standardTools": [
         "list_layers", "query_features", "summarize_statistics",
-        "plan_analysis", "reproject_features"
+        "plan_analysis", "validate_plan", "execute_plan", "reproject_features"
       ]
     },
     {

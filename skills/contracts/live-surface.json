@@ -97,6 +97,14 @@
       "requiredFields": ["intent"], "requiredProperties": ["context"]
     },
     {
+      "skill": "query-shaping", "standardTool": "validate_plan", "profile": "base",
+      "requiredFields": ["plan"], "requiredProperties": ["plan"]
+    },
+    {
+      "skill": "query-shaping", "standardTool": "execute_plan", "profile": "base",
+      "requiredFields": ["plan"], "requiredProperties": ["plan", "idempotencyKey"]
+    },
+    {
       "skill": "query-shaping", "standardTool": "reproject_features", "profile": "analysis", "fallbackTool": "plan_analysis",
       "requiredFields": ["source", "targetSrid"], "requiredProperties": ["sourceSrid", "where"]
     },

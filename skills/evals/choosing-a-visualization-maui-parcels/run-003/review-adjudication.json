@@ -1,0 +1,77 @@
+{
+    "adjudicationVersion":  "1",
+    "runId":  "run-003",
+    "reviewer":  {
+                     "modelIdentity":  "gpt-5.6-sol",
+                     "harnessIdentity":  "codex-cli 0.144.6",
+                     "freshEmptyWorkingDirectory":  true
+                 },
+    "originalJudgeSha256":  "28ed8eb15b3e1d36acbb3e3bc4b76d7a234151913dcc1762fc5db94820d0649b",
+    "findings":  [
+                     {
+                         "response":  "treatment",
+                         "axis":  "query-and-crs",
+                         "originalScore":  2,
+                         "adjudicatedScore":  1,
+                         "rationale":  "The 2-point anchor requires summaries before samples and explicit bbox/output SRIDs. The plan places a small query_features sample before its summary/profile operations and specifies bboxSrid 102662 but leaves the output/display SRID to later capability-dependent selection. This satisfies the 1-point anchorâ€™s partial CRS/bounding requirements, not the complete 2-point anchor."
+                     },
+                     {
+                         "response":  "treatment",
+                         "axis":  "publication-gate",
+                         "originalScore":  2,
+                         "adjudicatedScore":  1,
+                         "rationale":  "The plan keeps the result private and gates provenance, privacy, visibility, endpoint verification, and redistribution rights, but it never requires explicit approval before publication. Explicit approval is a stated element of the 2-point anchor, so the score must be reduced to 1."
+                     }
+                 ],
+    "auditConclusion":  "Two concrete treatment over-scores were found; all other scores and both hard-failure determinations are upheld.",
+    "adjudicatedScores":  {
+                              "baseline":  {
+                                               "form-and-normalization":  2,
+                                               "classification":  1,
+                                               "schema-and-capabilities":  0,
+                                               "query-and-crs":  1,
+                                               "safe-preview":  1,
+                                               "accessibility-and-composition":  2,
+                                               "publication-gate":  0,
+                                               "anti-pattern-rejection":  2,
+                                               "total":  9
+                                           },
+                              "treatment":  {
+                                                "form-and-normalization":  2,
+                                                "classification":  1,
+                                                "schema-and-capabilities":  2,
+                                                "query-and-crs":  1,
+                                                "safe-preview":  2,
+                                                "accessibility-and-composition":  2,
+                                                "publication-gate":  1,
+                                                "anti-pattern-rejection":  2,
+                                                "total":  13
+                                            }
+                          },
+    "thresholdEvaluation":  {
+                                "minimumTreatmentTotal":  {
+                                                              "required":  12,
+                                                              "actual":  13,
+                                                              "passed":  true
+                                                          },
+                                "minimumTreatmentMinusBaseline":  {
+                                                                      "required":  3,
+                                                                      "actual":  4,
+                                                                      "passed":  true
+                                                                  },
+                                "minimumTreatmentAxisScore":  {
+                                                                  "required":  1,
+                                                                  "actual":  1,
+                                                                  "passed":  true
+                                                              },
+                                "noHardFailure":  {
+                                                      "required":  true,
+                                                      "actual":  true,
+                                                      "passed":  true
+                                                  }
+                            },
+    "finalJudgment":  {
+                          "materialImprovement":  true,
+                          "expansionGateMet":  true
+                      }
+}

@@ -198,6 +198,16 @@ class ValidateSkillsTests(unittest.TestCase):
         self.write_json("skills/contracts/live-surface.json", contract)
         self.assertTrue(any("lack live-surface assertions" in error for error in validate(self.root)))
 
+    def test_third_run_requires_exposed_identity(self) -> None:
+        metadata_path = self.root / "skills/evals/choosing-a-visualization-maui-parcels/run-003/run-metadata.json"
+        metadata = load_json_for_test(metadata_path)
+        metadata["modelIdentity"] = {"status": "not-exposed", "value": None}
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-003/run-metadata.json", metadata)
+        scenario = load_json_for_test(self.root / "skills/evals/choosing-a-visualization-maui-parcels/run-003/scenario.json")
+        scenario["runMetadataSha256"] = canonical_sha256(metadata)
+        self.write_json("skills/evals/choosing-a-visualization-maui-parcels/run-003/scenario.json", scenario)
+        self.assertTrue(any("run-003 modelIdentity must record the pinned exposed identity" in error for error in validate(self.root)))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -446,6 +446,39 @@ def validate(root: Path) -> list[str]:
                             if final_judgment != {"materialImprovement": expected_final, "expansionGateMet": expected_final}:
                                 errors.append("Maui run-002 adjudicated final judgment is inconsistent")
 
+                        if scenario.get("id") == "choosing-a-visualization-maui-parcels-v3":
+                            original_scores = judge.get("scores", {})
+                            expected_scores = json.loads(json.dumps(original_scores))
+                            for finding in adjudication.get("findings", []):
+                                label = finding.get("response")
+                                axis = finding.get("axis")
+                                if expected_scores.get(label, {}).get(axis) != finding.get("originalScore"):
+                                    errors.append("Maui run-003 adjudication original score does not match the judge")
+                                    continue
+                                expected_scores[label][axis] = finding.get("adjudicatedScore")
+                                expected_scores[label]["total"] = sum(value for key, value in expected_scores[label].items() if key != "total")
+                            if adjudicated_scores != expected_scores:
+                                errors.append("Maui run-003 adjudicated scores do not follow the declared findings")
+                            treatment_text = (run_root / "skill-response.json").read_text(encoding="utf-8")
+                            if "`tools/list`" not in treatment_text or "`list_layers`" not in treatment_text:
+                                errors.append("Maui run-003 treatment no longer supports distinct tool and layer discovery")
+                            lift = rubric.get("materialLift", {})
+                            baseline_total = adjudicated_scores.get("baseline", {}).get("total")
+                            treatment = adjudicated_scores.get("treatment", {})
+                            treatment_total = treatment.get("total")
+                            hard_failures = judge.get("hardFailures", {})
+                            adjudicated_conditions = {
+                                "minimumTreatmentTotal": {"required": lift.get("minimumTreatmentTotal"), "actual": treatment_total, "passed": treatment_total >= lift.get("minimumTreatmentTotal")},
+                                "minimumTreatmentMinusBaseline": {"required": lift.get("minimumTreatmentMinusBaseline"), "actual": treatment_total - baseline_total, "passed": treatment_total - baseline_total >= lift.get("minimumTreatmentMinusBaseline")},
+                                "minimumTreatmentAxisScore": {"required": lift.get("minimumTreatmentAxisScore"), "actual": min(value for key, value in treatment.items() if key != "total"), "passed": min(value for key, value in treatment.items() if key != "total") >= lift.get("minimumTreatmentAxisScore")},
+                                "noHardFailure": {"required": lift.get("noHardFailure"), "actual": not any(hard_failures.get(label, []) for label in ("baseline", "treatment")), "passed": not any(hard_failures.get(label, []) for label in ("baseline", "treatment"))},
+                            }
+                            if adjudication.get("thresholdEvaluation") != adjudicated_conditions:
+                                errors.append("Maui run-003 adjudicated threshold evaluation is inconsistent")
+                            expected_final = all(condition["passed"] for condition in adjudicated_conditions.values())
+                            if final_judgment != {"materialImprovement": expected_final, "expansionGateMet": expected_final}:
+                                errors.append("Maui run-003 adjudicated final judgment is inconsistent")
+
     if isinstance(profile, dict):
         artifact_name = profile.get("derivationArtifact")
         artifact = load_json(eval_root / str(artifact_name), errors) if artifact_name else None

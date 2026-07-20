@@ -1,0 +1,75 @@
+{
+    "judgeVersion":  "3",
+    "runId":  "run-003",
+    "evaluator":  {
+                      "modelIdentity":  "gpt-5.6-sol",
+                      "harnessIdentity":  "codex-cli 0.144.6",
+                      "freshEmptyWorkingDirectory":  true
+                  },
+    "scores":  {
+                   "baseline":  {
+                                    "form-and-normalization":  2,
+                                    "classification":  1,
+                                    "schema-and-capabilities":  0,
+                                    "query-and-crs":  1,
+                                    "safe-preview":  1,
+                                    "accessibility-and-composition":  2,
+                                    "publication-gate":  0,
+                                    "anti-pattern-rejection":  2,
+                                    "total":  9
+                                },
+                   "treatment":  {
+                                     "form-and-normalization":  2,
+                                     "classification":  1,
+                                     "schema-and-capabilities":  2,
+                                     "query-and-crs":  2,
+                                     "safe-preview":  2,
+                                     "accessibility-and-composition":  2,
+                                     "publication-gate":  2,
+                                     "anti-pattern-rejection":  2,
+                                     "total":  15
+                                 }
+               },
+    "hardFailures":  {
+                         "baseline":  [
+
+                                      ],
+                         "treatment":  [
+
+                                       ]
+                     },
+    "thresholdEvaluation":  {
+                                "minimumTreatmentTotal":  {
+                                                              "required":  12,
+                                                              "actual":  15,
+                                                              "passed":  true
+                                                          },
+                                "minimumTreatmentMinusBaseline":  {
+                                                                      "required":  3,
+                                                                      "actual":  6,
+                                                                      "passed":  true
+                                                                  },
+                                "minimumTreatmentAxisScore":  {
+                                                                  "required":  1,
+                                                                  "actual":  1,
+                                                                  "passed":  true
+                                                              },
+                                "noHardFailure":  {
+                                                      "required":  true,
+                                                      "actual":  true,
+                                                      "passed":  true
+                                                  }
+                            },
+    "judgment":  {
+                     "baselinePasses":  false,
+                     "treatmentPasses":  true,
+                     "materialImprovement":  true,
+                     "expansionGateMet":  true,
+                     "rationale":  "The blinded judge scored baseline 9/16 and treatment 15/16. The +6 delta passes the predeclared +3 threshold with no hard failure."
+                 },
+    "rationale":  {
+                      "baseline":  "Uses comparable neighborhood medians, gates area normalization concerns, and distinguishes zero from missing. Classification is plausible and disclosed but independently fitted, leaving cross-measure semantics weaker. It does not distinguish MCP operation-schema discovery from layer discovery, gives incomplete CRS/pushdown decisions, and lacks a capability-gated preview path. Composition and anti-pattern rejection are strong. Publication controls omit explicit approval, privacy, visibility, and endpoint verification.",
+                      "treatment":  "Gates taxable-acre denominator semantics and separates zero, missing, and invalid denominators. Uses pooled shared breaks, preserves original-unit legends, and handles skew, but does not explicitly address tied values, limiting classification to 1. Correctly separates tools/list from list_layers, gates canonical fallbacks, bounds and pushes down provider work with explicit CRS handling, provides safe non-mutating preview fallbacks, specifies accessible composition, rejects multiple misleading alternatives with consequences, and keeps publication private pending comprehensive approval checks."
+                  },
+    "scoringPolicy":  "The predeclared run-003 anchors, hard failures, and material-lift thresholds were applied unchanged."
+}

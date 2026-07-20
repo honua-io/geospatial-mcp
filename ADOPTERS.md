@@ -20,8 +20,10 @@ tool-shape assumption made by a skill; adopters should evaluate those
 assertions against their live advertised schemas, not only vendored docs.
 
 Honua is the first implementation targeted by that downstream live-schema
-check. This statement does not claim that the unexecuted cold-model evaluation
-scaffold is proof of model-quality improvement.
+check. The preserved Maui parcel cold evaluation demonstrates material lift for
+the initial choosing-a-visualization skill; its scenario, pinned identities,
+raw responses, rubric, judge result, and stricter review adjudication live under
+[`skills/evals/choosing-a-visualization-maui-parcels`](skills/evals/choosing-a-visualization-maui-parcels/run-003/scenario.json).
 
 ## An open invitation
 

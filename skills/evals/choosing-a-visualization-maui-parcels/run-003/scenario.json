@@ -1,24 +1,92 @@
 {
-  "scenarioVersion": "3",
-  "id": "choosing-a-visualization-maui-parcels-v3",
-  "runId": "run-003",
-  "runMetadata": "run-metadata.json",
-  "runMetadataSha256": "635606b8fe591361da55b725d3151ce6bb606714f16aab7a84956d1d10abf0d3",
-  "status": "not-run",
-  "datasetProfile": "../dataset-profile.json",
-  "rubric": "rubric.json",
-  "request": "Using the pinned Maui parcel aggregate profile, propose a map that helps county staff compare assessed land and building value countywide. Return a plan that a conformant geospatial-mcp client could follow. This is a planning exercise only; do not claim to execute tools or render a map.",
-  "comparison": {
-    "freshEmptyWorkingDirectoryPerArm": true,
-    "sameRequestProfileModelHarness": true,
-    "baselineContext": ["fixed response instruction", "request", "dataset profile"],
-    "treatmentContext": ["fixed response instruction", "request", "dataset profile", "skill at pinned revision"],
-    "rubricHiddenFromBothArms": true,
-    "endpointUsed": false
-  },
-  "claims": {"mcpEndpointConnected": false, "toolsExecuted": false, "previewRendered": false},
-  "requiredArtifacts": ["run-metadata.json", "scenario.json", "rubric.json", "../dataset-profile.json", "../aggregate-derivation.json"],
-  "expectedArtifactsOnCompletion": ["baseline-response.json", "skill-response.json", "judge-result.json", "review-adjudication.json"],
-  "evidence": null,
-  "note": "Run 003 removes the run-002 prompt leakage while retaining the predeclared three-point lift requirement. Prior failed runs remain immutable evidence."
+    "scenarioVersion":  "3",
+    "id":  "choosing-a-visualization-maui-parcels-v3",
+    "runId":  "run-003",
+    "runMetadata":  "run-metadata.json",
+    "runMetadataSha256":  "635606b8fe591361da55b725d3151ce6bb606714f16aab7a84956d1d10abf0d3",
+    "status":  "completed",
+    "datasetProfile":  "../dataset-profile.json",
+    "rubric":  "rubric.json",
+    "request":  "Using the pinned Maui parcel aggregate profile, propose a map that helps county staff compare assessed land and building value countywide. Return a plan that a conformant geospatial-mcp client could follow. This is a planning exercise only; do not claim to execute tools or render a map.",
+    "comparison":  {
+                       "freshEmptyWorkingDirectoryPerArm":  true,
+                       "sameRequestProfileModelHarness":  true,
+                       "baselineContext":  [
+                                               "fixed response instruction",
+                                               "request",
+                                               "dataset profile"
+                                           ],
+                       "treatmentContext":  [
+                                                "fixed response instruction",
+                                                "request",
+                                                "dataset profile",
+                                                "skill at pinned revision"
+                                            ],
+                       "rubricHiddenFromBothArms":  true,
+                       "endpointUsed":  false
+                   },
+    "claims":  {
+                   "mcpEndpointConnected":  false,
+                   "toolsExecuted":  false,
+                   "previewRendered":  false
+               },
+    "requiredArtifacts":  [
+                              "run-metadata.json",
+                              "scenario.json",
+                              "rubric.json",
+                              "baseline-response.json",
+                              "skill-response.json",
+                              "judge-result.json",
+                              "review-adjudication.json",
+                              "../dataset-profile.json",
+                              "../aggregate-derivation.json"
+                          ],
+    "expectedArtifactsOnCompletion":  [
+                                          "baseline-response.json",
+                                          "skill-response.json",
+                                          "judge-result.json",
+                                          "review-adjudication.json"
+                                      ],
+    "evidence":  {
+                     "responses":  {
+                                       "baseline":  {
+                                                        "path":  "baseline-response.json",
+                                                        "sha256":  "f0b0077c704c089bb3c1a1d4d2b6ef7380e1455755ec9d962019f1402ec6b92a",
+                                                        "scores":  {
+                                                                       "form-and-normalization":  2,
+                                                                       "classification":  1,
+                                                                       "schema-and-capabilities":  0,
+                                                                       "query-and-crs":  1,
+                                                                       "safe-preview":  1,
+                                                                       "accessibility-and-composition":  2,
+                                                                       "publication-gate":  0,
+                                                                       "anti-pattern-rejection":  2
+                                                                   },
+                                                        "total":  9
+                                                    },
+                                       "treatment":  {
+                                                         "path":  "skill-response.json",
+                                                         "sha256":  "7b02258a39d3b91a7f8c7f60057cbdbff21890c357a2b40f401b4d286aeee523",
+                                                         "scores":  {
+                                                                        "form-and-normalization":  2,
+                                                                        "classification":  1,
+                                                                        "schema-and-capabilities":  2,
+                                                                        "query-and-crs":  2,
+                                                                        "safe-preview":  2,
+                                                                        "accessibility-and-composition":  2,
+                                                                        "publication-gate":  2,
+                                                                        "anti-pattern-rejection":  2
+                                                                    },
+                                                         "total":  15
+                                                     }
+                                   },
+                     "judgeResult":  "judge-result.json",
+                     "judgeSha256":  "28ed8eb15b3e1d36acbb3e3bc4b76d7a234151913dcc1762fc5db94820d0649b",
+                     "reviewAdjudication":  "review-adjudication.json",
+                     "reviewAdjudicationSha256":  "828940e8bcd0612edd8b14046d32e1033b1cd5fc91dcafaef88a6a3502fccf1c",
+                     "materialLift":  true,
+                     "expansionGateMet":  true,
+                     "outcome":  "expansion-gate-met"
+                 },
+    "note":  "Run 003 removes the run-002 prompt leakage while retaining the predeclared three-point lift requirement. The blinded judge scored 9/16 baseline and 15/16 treatment; independent audit reduced treatment to 13/16, preserving a +4 material lift with no hard failure."
 }

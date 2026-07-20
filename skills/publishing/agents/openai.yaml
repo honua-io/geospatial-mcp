@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publishing"
+  short_description: "Promote geospatial results through governed release gates"
+  default_prompt: "Use the geospatial-mcp taxonomy to assess shareability and plan a governed private-to-published promotion."

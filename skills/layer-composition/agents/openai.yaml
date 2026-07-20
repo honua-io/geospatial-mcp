@@ -1,0 +1,4 @@
+interface:
+  display_name: "Layer Composition"
+  short_description: "Compose legible multi-layer geospatial maps"
+  default_prompt: "Use the geospatial-mcp taxonomy to compose, simplify, and safely preview these layers."

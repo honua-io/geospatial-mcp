@@ -120,6 +120,79 @@ def frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
     return values
 
 
+def validate_follow_on_judge(
+    judge_scores: object,
+    hard_failures: object,
+    axis_groups: dict[str, set[str]],
+    score_range: object,
+) -> tuple[list[str], dict[str, dict], dict[str, dict]]:
+    """Validate and recompute the follow-on evaluation's per-skill gates."""
+    errors: list[str] = []
+    thresholds: dict[str, dict] = {}
+    per_skill: dict[str, dict] = {}
+    arms = {"baseline", "treatment"}
+    skills = set(axis_groups)
+    valid_range = (
+        type(score_range) is list
+        and len(score_range) == 2
+        and all(type(value) is int for value in score_range)
+        and score_range == [0, 2]
+    )
+    if not valid_range:
+        errors.append("Follow-on scoreRange must be exactly [0, 2]")
+        minimum_score, maximum_score = 0, -1
+    else:
+        minimum_score, maximum_score = score_range
+    if not isinstance(judge_scores, dict) or set(judge_scores) != arms:
+        errors.append("Follow-on judge scores must contain exactly baseline and treatment")
+        judge_scores = {}
+    if not isinstance(hard_failures, dict) or set(hard_failures) != arms:
+        errors.append("Follow-on hardFailures must contain exactly baseline and treatment")
+        hard_failures = {}
+    for arm in arms:
+        arm_scores = judge_scores.get(arm, {}) if isinstance(judge_scores, dict) else {}
+        arm_failures = hard_failures.get(arm, {}) if isinstance(hard_failures, dict) else {}
+        if not isinstance(arm_scores, dict) or set(arm_scores) != skills:
+            errors.append(f"Follow-on {arm} scores must cover every skill exactly")
+            arm_scores = {}
+        if not isinstance(arm_failures, dict) or set(arm_failures) != skills:
+            errors.append(f"Follow-on {arm} hardFailures must cover every skill exactly")
+            arm_failures = {}
+        for skill in skills:
+            failures = arm_failures.get(skill)
+            if not isinstance(failures, list) or any(not isinstance(value, str) for value in failures):
+                errors.append(f"Follow-on {skill} {arm} hardFailures must be a string array")
+            score = arm_scores.get(skill, {})
+            expected_keys = axis_groups[skill] | {"total"}
+            if not isinstance(score, dict) or set(score) != expected_keys:
+                errors.append(f"Follow-on {skill} {arm} scores must cover every axis and total exactly")
+                continue
+            axis_values = [score.get(axis) for axis in axis_groups[skill]]
+            if any(not isinstance(value, int) or isinstance(value, bool) or not minimum_score <= value <= maximum_score for value in axis_values):
+                errors.append(f"Follow-on {skill} {arm} axis score is outside the rubric range")
+            if not isinstance(score.get("total"), int) or isinstance(score.get("total"), bool) or score.get("total") != sum(value for value in axis_values if isinstance(value, int) and not isinstance(value, bool)):
+                errors.append(f"Follow-on {skill} {arm} total is inconsistent")
+    for skill in skills:
+        baseline = judge_scores.get("baseline", {}).get(skill, {}) if isinstance(judge_scores, dict) else {}
+        treatment = judge_scores.get("treatment", {}).get(skill, {}) if isinstance(judge_scores, dict) else {}
+        baseline_total = baseline.get("total") if isinstance(baseline, dict) else None
+        treatment_total = treatment.get("total") if isinstance(treatment, dict) else None
+        treatment_axes = [treatment.get(axis) for axis in axis_groups[skill]] if isinstance(treatment, dict) else []
+        treatment_failures = hard_failures.get("treatment", {}).get(skill) if isinstance(hard_failures, dict) and isinstance(hard_failures.get("treatment"), dict) else None
+        no_hard_failure = isinstance(treatment_failures, list) and not treatment_failures
+        valid_axes = len(treatment_axes) == len(axis_groups[skill]) and all(isinstance(value, int) and not isinstance(value, bool) and minimum_score <= value <= maximum_score for value in treatment_axes)
+        conditions = {
+            "minimumTreatmentTotal": {"required": 6, "actual": treatment_total, "passed": isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and treatment_total >= 6},
+            "minimumTreatmentMinusBaseline": {"required": 2, "actual": treatment_total - baseline_total if isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and isinstance(baseline_total, int) and not isinstance(baseline_total, bool) else None, "passed": isinstance(treatment_total, int) and not isinstance(treatment_total, bool) and isinstance(baseline_total, int) and not isinstance(baseline_total, bool) and treatment_total - baseline_total >= 2},
+            "minimumTreatmentAxisScore": {"required": 1, "actual": min(treatment_axes) if valid_axes else None, "passed": valid_axes and min(treatment_axes) >= 1},
+            "noHardFailure": {"required": True, "actual": no_hard_failure, "passed": no_hard_failure},
+        }
+        passed = not errors and all(condition["passed"] for condition in conditions.values())
+        thresholds[skill] = conditions
+        per_skill[skill] = {"baselineTotal": baseline_total, "treatmentTotal": treatment_total, "materialImprovement": passed, "expansionGateMet": passed}
+    return errors, thresholds, per_skill
+
+
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
     skills_root = root / "skills"
@@ -513,6 +586,206 @@ def validate(root: Path) -> list[str]:
                         errors.append(f"Maui {field}.{profile_key} drifted from derivation artifact")
             if neighborhood_query.get("response", {}).get("count") != profile.get("fields", {}).get("nhoodcode", {}).get("distinctNonNullCount"):
                 errors.append("Maui neighborhood count drifted from derivation artifact")
+
+    follow_on_names = {"layer-composition", "query-shaping", "publishing"}
+    if follow_on_names <= names:
+        follow_root = skills_root / "evals" / "follow-on-skills" / "run-001"
+        follow_scenario = load_json(follow_root / "scenario.json", errors)
+        follow_rubric = load_json(follow_root / "rubric.json", errors)
+        follow_metadata = load_json(follow_root / "run-metadata.json", errors)
+        if all(isinstance(value, dict) for value in (follow_scenario, follow_rubric, follow_metadata)):
+            assert isinstance(follow_scenario, dict) and isinstance(follow_rubric, dict) and isinstance(follow_metadata, dict)
+            if follow_scenario.get("runId") != "run-001" or follow_metadata.get("runId") != "run-001":
+                errors.append("Follow-on evaluation run identifiers do not agree")
+            if follow_scenario.get("runMetadataSha256") != canonical_sha256(follow_metadata):
+                errors.append("Follow-on evaluation run-metadata SHA-256 does not match")
+            if not re.fullmatch(r"[0-9a-f]{40}", str(follow_metadata.get("skillRevision", ""))):
+                errors.append("Follow-on evaluation requires a full skill revision")
+            for identity_key in ("modelIdentity", "harnessIdentity"):
+                identity = follow_metadata.get(identity_key)
+                if not isinstance(identity, dict) or identity.get("status") != "exposed" or not identity.get("value"):
+                    errors.append(f"Follow-on evaluation {identity_key} must record the pinned exposed identity")
+            expected_cases = {"layer-composition", "query-shaping", "publishing"}
+            cases = follow_scenario.get("cases", [])
+            case_ids = {case.get("id") for case in cases if isinstance(case, dict)}
+            if case_ids != expected_cases or any(not case.get("request") for case in cases if isinstance(case, dict)):
+                errors.append("Follow-on evaluation must predeclare exactly three non-empty cases")
+            axes = follow_rubric.get("axes", [])
+            axis_groups = {skill: set() for skill in expected_cases}
+            for axis in axes if isinstance(axes, list) else []:
+                skill = axis.get("skill") if isinstance(axis, dict) else None
+                if skill in axis_groups:
+                    axis_groups[skill].add(axis.get("id"))
+                if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
+                    errors.append("Follow-on evaluation every rubric axis requires explicit 0/1/2 anchors")
+            if any(len(group) != 4 for group in axis_groups.values()):
+                errors.append("Follow-on evaluation requires exactly four axes per skill")
+            if follow_rubric.get("scoreRange") != [0, 2]:
+                errors.append("Follow-on run-001 scoreRange must be exactly [0, 2]")
+            lift = follow_rubric.get("materialLift", {})
+            expected_lift = {"minimumTreatmentTotal": 6, "minimumTreatmentMinusBaseline": 2, "minimumTreatmentAxisScore": 1, "noHardFailure": True}
+            if lift.get("perSkill") != expected_lift:
+                errors.append("Follow-on evaluation per-skill lift threshold drifted")
+            follow_status = follow_scenario.get("status")
+            if follow_status not in {"not-run", "completed"}:
+                errors.append("Follow-on evaluation status must be not-run or completed")
+            follow_evidence = follow_scenario.get("evidence")
+            if follow_status == "not-run" and follow_evidence is not None:
+                errors.append("Follow-on not-run evaluation must not claim evidence")
+            for relative in follow_scenario.get("requiredArtifacts", []):
+                artifact_path = (follow_root / str(relative)).resolve()
+                if follow_root.resolve() not in (artifact_path, *artifact_path.parents) or not artifact_path.is_file():
+                    errors.append(f"Follow-on required artifact is missing or escapes the run root: {relative}")
+            if follow_status == "not-run":
+                for relative in follow_scenario.get("expectedArtifactsOnCompletion", []):
+                    if (follow_root / str(relative)).exists():
+                        errors.append(f"Follow-on not-run evaluation contains output artifact {relative}")
+            if follow_status == "completed":
+                if not isinstance(follow_evidence, dict):
+                    errors.append("Follow-on completed evaluation requires evidence")
+                else:
+                    response_artifacts: dict[str, dict] = {}
+                    responses = follow_evidence.get("responses", {})
+                    for arm in ("baseline", "treatment"):
+                        response = responses.get(arm, {}) if isinstance(responses, dict) else {}
+                        response_path = follow_root / str(response.get("path"))
+                        value = load_json(response_path, errors) if response_path.parent == follow_root and response_path.is_file() else None
+                        if not isinstance(value, dict):
+                            errors.append(f"Follow-on {arm} response artifact is missing")
+                        else:
+                            response_artifacts[arm] = value
+                            if response.get("sha256") != canonical_sha256(value):
+                                errors.append(f"Follow-on {arm} response canonical SHA-256 does not match")
+                    judge_path = follow_root / str(follow_evidence.get("judgeResult"))
+                    follow_judge = load_json(judge_path, errors) if judge_path.parent == follow_root and judge_path.is_file() else None
+                    adjudication_path = follow_root / str(follow_evidence.get("reviewAdjudication"))
+                    follow_adjudication = load_json(adjudication_path, errors) if adjudication_path.parent == follow_root and adjudication_path.is_file() else None
+                    if not isinstance(follow_judge, dict) or not isinstance(follow_adjudication, dict):
+                        errors.append("Follow-on completed evaluation requires local judge and adjudication artifacts")
+                    else:
+                        judge_sha = canonical_sha256(follow_judge)
+                        if follow_evidence.get("judgeSha256") != judge_sha:
+                            errors.append("Follow-on judge canonical SHA-256 does not match")
+                        if follow_evidence.get("reviewAdjudicationSha256") != canonical_sha256(follow_adjudication):
+                            errors.append("Follow-on adjudication canonical SHA-256 does not match")
+                        if follow_adjudication.get("originalJudgeSha256") != judge_sha:
+                            errors.append("Follow-on adjudication does not bind the judge artifact")
+                        judge_scores = follow_judge.get("scores", {})
+                        hard_failures = follow_judge.get("hardFailures", {})
+                        score_errors, expected_thresholds, expected_per_skill = validate_follow_on_judge(
+                            judge_scores,
+                            hard_failures,
+                            axis_groups,
+                            follow_rubric.get("scoreRange"),
+                        )
+                        errors.extend(score_errors)
+                        if follow_judge.get("thresholdEvaluation") != expected_thresholds:
+                            errors.append("Follow-on judge threshold evaluation is inconsistent")
+                        if follow_judge.get("judgment", {}).get("perSkill") != expected_per_skill:
+                            errors.append("Follow-on judge per-skill judgment is inconsistent")
+                        if follow_adjudication.get("findings") != [] or follow_adjudication.get("adjudicatedScores") != judge_scores:
+                            errors.append("Follow-on upheld audits must preserve judge scores without findings")
+                        expected_final = {"perSkill": expected_per_skill, "materialImprovement": all(value["materialImprovement"] for value in expected_per_skill.values()), "expansionGateMet": all(value["expansionGateMet"] for value in expected_per_skill.values())}
+                        if follow_adjudication.get("thresholdEvaluation") != expected_thresholds or follow_adjudication.get("finalJudgment") != expected_final:
+                            errors.append("Follow-on final adjudication is inconsistent")
+                        if follow_evidence.get("perSkill") != expected_per_skill or follow_evidence.get("materialLift") is not expected_final["materialImprovement"] or follow_evidence.get("expansionGateMet") is not expected_final["expansionGateMet"]:
+                            errors.append("Follow-on scenario evidence disagrees with adjudication")
+                    treatment_text = json.dumps(response_artifacts.get("treatment", {}))
+                    for required_phrase in ("tools/list", "list_layers", "returnCountOnly", "publish_result"):
+                        if required_phrase not in treatment_text:
+                            errors.append(f"Follow-on treatment no longer supports required behavior: {required_phrase}")
+
+        rerun_root = skills_root / "evals" / "follow-on-skills" / "run-002"
+        rerun_scenario = load_json(rerun_root / "scenario.json", errors)
+        rerun_rubric = load_json(rerun_root / "rubric.json", errors)
+        rerun_metadata = load_json(rerun_root / "run-metadata.json", errors)
+        if all(isinstance(value, dict) for value in (rerun_scenario, rerun_rubric, rerun_metadata)):
+            assert isinstance(rerun_scenario, dict) and isinstance(rerun_rubric, dict) and isinstance(rerun_metadata, dict)
+            if rerun_scenario.get("runId") != "run-002" or rerun_metadata.get("runId") != "run-002":
+                errors.append("Follow-on review-correction rerun identifiers do not agree")
+            if rerun_scenario.get("runMetadataSha256") != canonical_sha256(rerun_metadata):
+                errors.append("Follow-on review-correction run-metadata SHA-256 does not match")
+            if rerun_metadata.get("skillRevision") != "fc178631befecdffe87ba96e4bd0d79f4fd77726":
+                errors.append("Follow-on review-correction rerun must remain pinned to the reviewed skill revision")
+            expected_rerun_cases = {"query-shaping", "publishing"}
+            rerun_cases = rerun_scenario.get("cases", [])
+            rerun_case_ids = {case.get("id") for case in rerun_cases if isinstance(case, dict)}
+            if rerun_case_ids != expected_rerun_cases or any(not case.get("request") for case in rerun_cases if isinstance(case, dict)):
+                errors.append("Follow-on review-correction rerun must contain exactly the two affected cases")
+            rerun_axes = rerun_rubric.get("axes", [])
+            rerun_axis_groups = {skill: set() for skill in expected_rerun_cases}
+            for axis in rerun_axes if isinstance(rerun_axes, list) else []:
+                skill = axis.get("skill") if isinstance(axis, dict) else None
+                if skill in rerun_axis_groups:
+                    rerun_axis_groups[skill].add(axis.get("id"))
+                if not isinstance(axis, dict) or set(axis.get("anchors", {})) != {"0", "1", "2"}:
+                    errors.append("Follow-on review-correction every rubric axis requires explicit 0/1/2 anchors")
+            if any(len(group) != 4 for group in rerun_axis_groups.values()):
+                errors.append("Follow-on review-correction rerun requires exactly four axes per skill")
+            if rerun_rubric.get("scoreRange") != [0, 2]:
+                errors.append("Follow-on run-002 scoreRange must be exactly [0, 2]")
+            if rerun_rubric.get("materialLift", {}).get("perSkill") != expected_lift:
+                errors.append("Follow-on review-correction per-skill lift threshold drifted")
+            if rerun_scenario.get("status") != "completed":
+                errors.append("Follow-on review-correction rerun must preserve completed evidence")
+            for relative in rerun_scenario.get("requiredArtifacts", []):
+                artifact_path = (rerun_root / str(relative)).resolve()
+                if rerun_root.resolve() not in (artifact_path, *artifact_path.parents) or not artifact_path.is_file():
+                    errors.append(f"Follow-on review-correction required artifact is missing or escapes the run root: {relative}")
+            rerun_evidence = rerun_scenario.get("evidence")
+            if not isinstance(rerun_evidence, dict):
+                errors.append("Follow-on review-correction completed rerun requires evidence")
+            else:
+                rerun_responses: dict[str, dict] = {}
+                response_evidence = rerun_evidence.get("responses", {})
+                for arm in ("baseline", "treatment"):
+                    response = response_evidence.get(arm, {}) if isinstance(response_evidence, dict) else {}
+                    response_path = rerun_root / str(response.get("path"))
+                    value = load_json(response_path, errors) if response_path.parent == rerun_root and response_path.is_file() else None
+                    if not isinstance(value, dict):
+                        errors.append(f"Follow-on review-correction {arm} response artifact is missing")
+                    else:
+                        rerun_responses[arm] = value
+                        if response.get("sha256") != canonical_sha256(value):
+                            errors.append(f"Follow-on review-correction {arm} response canonical SHA-256 does not match")
+                judge_path = rerun_root / str(rerun_evidence.get("judgeResult"))
+                rerun_judge = load_json(judge_path, errors) if judge_path.parent == rerun_root and judge_path.is_file() else None
+                adjudication_path = rerun_root / str(rerun_evidence.get("reviewAdjudication"))
+                rerun_adjudication = load_json(adjudication_path, errors) if adjudication_path.parent == rerun_root and adjudication_path.is_file() else None
+                if not isinstance(rerun_judge, dict) or not isinstance(rerun_adjudication, dict):
+                    errors.append("Follow-on review-correction rerun requires local judge and adjudication artifacts")
+                else:
+                    rerun_judge_sha = canonical_sha256(rerun_judge)
+                    if rerun_evidence.get("judgeSha256") != rerun_judge_sha:
+                        errors.append("Follow-on review-correction judge canonical SHA-256 does not match")
+                    if rerun_evidence.get("reviewAdjudicationSha256") != canonical_sha256(rerun_adjudication):
+                        errors.append("Follow-on review-correction adjudication canonical SHA-256 does not match")
+                    if rerun_adjudication.get("originalJudgeSha256") != rerun_judge_sha:
+                        errors.append("Follow-on review-correction adjudication does not bind the judge artifact")
+                    rerun_scores = rerun_judge.get("scores", {})
+                    rerun_hard_failures = rerun_judge.get("hardFailures", {})
+                    score_errors, rerun_thresholds, rerun_per_skill = validate_follow_on_judge(
+                        rerun_scores,
+                        rerun_hard_failures,
+                        rerun_axis_groups,
+                        rerun_rubric.get("scoreRange"),
+                    )
+                    errors.extend(score_errors)
+                    if rerun_judge.get("thresholdEvaluation") != rerun_thresholds:
+                        errors.append("Follow-on review-correction judge threshold evaluation is inconsistent")
+                    if rerun_judge.get("judgment", {}).get("perSkill") != rerun_per_skill:
+                        errors.append("Follow-on review-correction judge per-skill judgment is inconsistent")
+                    if rerun_adjudication.get("findings") != [] or rerun_adjudication.get("adjudicatedScores") != rerun_scores or rerun_adjudication.get("adjudicatedHardFailures") != rerun_hard_failures:
+                        errors.append("Follow-on review-correction upheld audits must preserve scores and hard failures")
+                    rerun_final = {"perSkill": rerun_per_skill, "materialImprovement": all(value["materialImprovement"] for value in rerun_per_skill.values()), "expansionGateMet": all(value["expansionGateMet"] for value in rerun_per_skill.values())}
+                    if rerun_adjudication.get("thresholdEvaluation") != rerun_thresholds or rerun_adjudication.get("finalJudgment") != rerun_final:
+                        errors.append("Follow-on review-correction final adjudication is inconsistent")
+                    if rerun_evidence.get("perSkill") != rerun_per_skill or rerun_evidence.get("materialLift") is not rerun_final["materialImprovement"] or rerun_evidence.get("expansionGateMet") is not rerun_final["expansionGateMet"]:
+                        errors.append("Follow-on review-correction scenario evidence disagrees with adjudication")
+                rerun_treatment_text = json.dumps(rerun_responses.get("treatment", {}))
+                for required_phrase in ("validate_plan", "execute_plan", "published_service", "routePrefix"):
+                    if required_phrase not in rerun_treatment_text:
+                        errors.append(f"Follow-on review-correction treatment no longer supports required behavior: {required_phrase}")
     return sorted(errors)
 
 

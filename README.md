@@ -116,12 +116,14 @@ runs the same commands plus markdownlint and a relative-link/anchor check
 ([`tools/check_links.py`](tools/check_links.py)).
 
 The Apache-2.0 [`skills` corpus](skills/catalog.json) adds portable operational
-judgment without introducing vendor tool names. Each skill declares when it
-applies, maps only to canonical taxonomy operations, and carries explicit
-anti-patterns. `python3 tools/validate_skills.py` checks catalog integrity and
-the skill's schema assertions against the published contracts. Implementations
-must additionally check those assertions against their live advertised MCP
-schemas; static documentation alone is not evidence of compatibility.
+judgment without introducing vendor tool names. It covers visualization choice,
+layer composition, query shaping, and governed publishing. Each skill declares
+when it applies, maps only to canonical taxonomy operations, and carries
+explicit anti-patterns. `python3 tools/validate_skills.py` checks catalog
+integrity, live-surface assertions, and preserved cold-evaluation evidence.
+Implementations must additionally check those assertions against their live
+advertised MCP schemas; static documentation alone is not evidence of
+compatibility.
 
 The manifest checker reports a **conformance level**
 ([definitions](CONFORMANCE.md#conformance-levels)): **MAPPED** (every

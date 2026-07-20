@@ -1,0 +1,21 @@
+{
+  "runId": "run-002",
+  "skillRevision": "fc178631befecdffe87ba96e4bd0d79f4fd77726",
+  "modelIdentity": {"status": "exposed", "value": "gpt-5.6-sol"},
+  "harnessIdentity": {"status": "exposed", "value": "codex-cli 0.144.6"},
+  "execution": {
+    "mode": "tool-less-cold-plan-judgment",
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false,
+    "published": false
+  },
+  "generationProtocol": {
+    "workingDirectory": "new empty temporary directory per arm",
+    "command": "codex exec --ephemeral --ignore-user-config --skip-git-repo-check -m gpt-5.6-sol -s read-only -o <output> -",
+    "baselineContext": ["fixed response instruction", "scenario cases"],
+    "treatmentContext": ["fixed response instruction", "scenario cases", "query-shaping and publishing skills at pinned revision"],
+    "responseInstruction": "Return one Markdown plan per case. Do not inspect files, call tools, claim execution, or discuss this evaluation.",
+    "freshProcessPerArm": true
+  }
+}

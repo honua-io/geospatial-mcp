@@ -1,0 +1,87 @@
+{
+  "scenarioVersion": "2",
+  "id": "follow-on-review-corrections-cold-comparison-v2",
+  "runId": "run-002",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "08187ad801d792d2cc464a5a655e9de3c9d0e04258d4f6f4fb3e4a0067ff3f96",
+  "status": "completed",
+  "cases": [
+    {
+      "id": "query-shaping",
+      "request": "Plan how to obtain exact parcel counts and exact median assessed value by district from a five-million-feature polygon layer with maxRecordCount 1000. The requested study bbox is supplied in EPSG:26904, the source layer is EPSG:4326, and the eventual display is EPSG:3857. The service advertises plan_analysis, validate_plan, and execute_plan, while summarize_statistics does not support median. Return a plan a conformant geospatial-mcp client could follow."
+    },
+    {
+      "id": "publishing",
+      "request": "A private Maui assessment map package has passed a visual preview and must be published as targetKind published_service with public visibility. A stakeholder also asks for vanity route /maui-values, but routePrefix is deployment-only. The package records its source item but not the source revision or query predicate; redistribution status is verify-before-redistribution; visibility and an approving operator are not otherwise recorded. Return a plan a conformant geospatial-mcp client could follow."
+    }
+  ],
+  "comparison": {
+    "freshEmptyWorkingDirectoryPerArm": true,
+    "sameCasesModelHarness": true,
+    "rubricHiddenFromBothArms": true,
+    "baselineContext": [
+      "fixed response instruction",
+      "scenario cases"
+    ],
+    "treatmentContext": [
+      "fixed response instruction",
+      "scenario cases",
+      "query-shaping and publishing skills at pinned revision"
+    ]
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false,
+    "published": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json",
+    "scenario.json",
+    "rubric.json",
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "note": "Affected review-correction rerun completed with independent audits: query shaping 4/8 to 8/8 and publishing 4/8 to 8/8. Both treatment arms have no hard failures; both audits upheld the judgments without findings. Run-001 remains immutable.",
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "16368503b1b782484a34ad5434fc554ba56d293c05c623ee4ed64e46be00a5b0"
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "3c6768b7d2e70345af3ec27772dcc840cfe7b776ebf2e4b76e82cfb203c4fcad"
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "c38a54ef0001d7bae7e45d6536c42b10b4a82a56186f0bdb8b6791f16eec70ef",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "0fd5400f3be609a41fb293b69ea12c5e24631c8382db4efa3ecce02aea6cf6fb",
+    "perSkill": {
+      "publishing": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialLift": true,
+    "expansionGateMet": true,
+    "outcome": "expansion-gate-met"
+  }
+}

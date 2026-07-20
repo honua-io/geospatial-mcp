@@ -1,0 +1,157 @@
+{
+  "adjudicationVersion": "1",
+  "runId": "run-001",
+  "reviewMode": "three independent per-skill anchor audits",
+  "reviewer": {
+    "modelIdentity": "gpt-5.6-sol",
+    "harnessIdentity": "codex-cli 0.144.6",
+    "freshEmptyWorkingDirectoryPerSkill": true
+  },
+  "originalJudgeSha256": "a3e664d80314fbaedcf4e95412ff17eba5e61efaefb51e40ad9fab2123c79f25",
+  "findings": [],
+  "auditConclusions": {
+    "layer-composition": "Uphold. The judge\u2019s scores and hard-failure determinations match the written anchors and preserved responses.",
+    "query-shaping": "Uphold. The judge\u2019s axis scores and hard-failure determinations are consistent with the written anchors and preserved responses.",
+    "publishing": "Uphold. The judge\u2019s scores and hard-failure determinations match the written anchors and preserved responses."
+  },
+  "adjudicatedScores": {
+    "baseline": {
+      "layer-composition": {
+        "roles-and-removal": 1,
+        "visual-separation": 1,
+        "mixed-source-binding": 1,
+        "preview-and-anti-patterns": 1,
+        "total": 4
+      },
+      "query-shaping": {
+        "pushdown-shape": 2,
+        "paging-completeness": 1,
+        "crs": 1,
+        "sampling-and-cost": 1,
+        "total": 5
+      },
+      "publishing": {
+        "release-gates": 2,
+        "promotion-operations": 1,
+        "collision-and-idempotency": 1,
+        "verification-and-rollback": 1,
+        "total": 5
+      }
+    },
+    "treatment": {
+      "layer-composition": {
+        "roles-and-removal": 2,
+        "visual-separation": 2,
+        "mixed-source-binding": 2,
+        "preview-and-anti-patterns": 2,
+        "total": 8
+      },
+      "query-shaping": {
+        "pushdown-shape": 2,
+        "paging-completeness": 2,
+        "crs": 2,
+        "sampling-and-cost": 2,
+        "total": 8
+      },
+      "publishing": {
+        "release-gates": 2,
+        "promotion-operations": 2,
+        "collision-and-idempotency": 2,
+        "verification-and-rollback": 2,
+        "total": 8
+      }
+    }
+  },
+  "thresholdEvaluation": {
+    "layer-composition": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "query-shaping": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 3,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "publishing": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 3,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    }
+  },
+  "finalJudgment": {
+    "perSkill": {
+      "layer-composition": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "publishing": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialImprovement": true,
+    "expansionGateMet": true
+  }
+}

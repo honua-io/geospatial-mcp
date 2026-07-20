@@ -1,0 +1,168 @@
+{
+  "judgeVersion": "1",
+  "runId": "run-001",
+  "evaluationMode": "three independent blinded per-skill judges",
+  "evaluator": {
+    "modelIdentity": "gpt-5.6-sol",
+    "harnessIdentity": "codex-cli 0.144.6",
+    "freshEmptyWorkingDirectoryPerSkill": true
+  },
+  "scores": {
+    "baseline": {
+      "layer-composition": {
+        "roles-and-removal": 1,
+        "visual-separation": 1,
+        "mixed-source-binding": 1,
+        "preview-and-anti-patterns": 1,
+        "total": 4
+      },
+      "query-shaping": {
+        "pushdown-shape": 2,
+        "paging-completeness": 1,
+        "crs": 1,
+        "sampling-and-cost": 1,
+        "total": 5
+      },
+      "publishing": {
+        "release-gates": 2,
+        "promotion-operations": 1,
+        "collision-and-idempotency": 1,
+        "verification-and-rollback": 1,
+        "total": 5
+      }
+    },
+    "treatment": {
+      "layer-composition": {
+        "roles-and-removal": 2,
+        "visual-separation": 2,
+        "mixed-source-binding": 2,
+        "preview-and-anti-patterns": 2,
+        "total": 8
+      },
+      "query-shaping": {
+        "pushdown-shape": 2,
+        "paging-completeness": 2,
+        "crs": 2,
+        "sampling-and-cost": 2,
+        "total": 8
+      },
+      "publishing": {
+        "release-gates": 2,
+        "promotion-operations": 2,
+        "collision-and-idempotency": 2,
+        "verification-and-rollback": 2,
+        "total": 8
+      }
+    }
+  },
+  "hardFailures": {
+    "baseline": {
+      "layer-composition": [],
+      "query-shaping": [],
+      "publishing": []
+    },
+    "treatment": {
+      "layer-composition": [],
+      "query-shaping": [],
+      "publishing": []
+    }
+  },
+  "thresholdEvaluation": {
+    "layer-composition": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 4,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "query-shaping": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 3,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    },
+    "publishing": {
+      "minimumTreatmentTotal": {
+        "required": 6,
+        "actual": 8,
+        "passed": true
+      },
+      "minimumTreatmentMinusBaseline": {
+        "required": 2,
+        "actual": 3,
+        "passed": true
+      },
+      "minimumTreatmentAxisScore": {
+        "required": 1,
+        "actual": 2,
+        "passed": true
+      },
+      "noHardFailure": {
+        "required": true,
+        "actual": true,
+        "passed": true
+      }
+    }
+  },
+  "judgment": {
+    "perSkill": {
+      "layer-composition": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "publishing": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialImprovement": true,
+    "expansionGateMet": true
+  },
+  "rationales": {
+    "layer-composition": "Response A provides useful scale rules, hierarchy, CRS handling, and representative previews, but it does not explicitly assign primary/context/reference roles, define evidence-based layer removal, test accessibility, establish stable source identities and capability-gated protocol bindings, or clearly require a non-mutating advertised preview path. Response B explicitly covers roles, scale-dependent removal criteria, visual and non-color separation, basemap quieting, label gating, accessibility tests, tools/list plus list_layers verification, stable identities, explicit CRS/protocol bindings, capability gating, isolated non-mutating preview, representative inspection, removal tests, and rejection of opacity-only and invented render styling inputs. Neither response claims that execution or publication occurred or triggers another listed hard failure.",
+    "query-shaping": "Response A provides strong pushdown and exact fallbacks, but it does not explicitly count first, permits reporting non-snapshot-consistent results instead of failing closed, transforms the bbox rather than declaring bboxSrid 26904 in the query contract, and lacks a firm cost-based stop condition for potentially very large lossless retrieval. Response B explicitly defines predicates, projections, geometry suppression, exact grouped statistics and fallback; counts first; pages deterministically with reconciliation and fail-closed drift handling; declares bboxSrid 26904, EPSG:4326 source interpretation, and geometry-only output SRID 3857; and rejects sampling while bounding or stopping costly fallback work.",
+    "publishing": "Response A fully blocks on the required release gates, but it does not use tools/list or bind a single publish_result call to the required fields; it resolves route ownership without specifying inspection after an ambiguous publish outcome, and it lacks an explicit governed rollback window retaining the candidate or previous revision. Response B satisfies every gate, discovers operation schemas through tools/list, keeps and previews a private immutable candidate, specifies one approved publish_result call with sourceId, targetKind, visibility, and routePrefix, handles collisions and ambiguous outcomes without blind retries, independently verifies the endpoint, and retains revisions through a governed rollback window."
+  },
+  "scoringPolicy": "Every skill independently applies the predeclared anchors, hard failures, and per-skill material-lift threshold."
+}

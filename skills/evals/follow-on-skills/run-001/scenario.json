@@ -1,0 +1,97 @@
+{
+  "scenarioVersion": "1",
+  "id": "follow-on-skills-cold-comparison-v1",
+  "runId": "run-001",
+  "runMetadata": "run-metadata.json",
+  "runMetadataSha256": "fdafa8daefd31e28b6d813548de412c14b31fecfab66a363ac9b9798ca58f894",
+  "status": "completed",
+  "cases": [
+    {
+      "id": "layer-composition",
+      "request": "Plan a countywide map for emergency managers showing flood exposure. Available sources are a saturated imagery basemap, a WMS flood-depth raster in EPSG:4326, parcel polygons with a red value renderer in EPSG:26904, roads, evacuation shelters, municipal boundaries, parcel labels, road labels, and place labels. The map must work at county overview and neighborhood inspection scales. Return a plan a conformant geospatial-mcp client could follow."
+    },
+    {
+      "id": "query-shaping",
+      "request": "Plan how to obtain exact parcel counts and median assessed value by district from a five-million-feature polygon layer with maxRecordCount 1000. The requested study bbox is supplied in EPSG:26904, the source layer is EPSG:4326, and the eventual display is EPSG:3857. The service may or may not advertise the optional analysis profile. Return a plan a conformant geospatial-mcp client could follow."
+    },
+    {
+      "id": "publishing",
+      "request": "A private Maui assessment map package has passed a visual preview and a stakeholder asks to publish it publicly at route /maui-values today. The package records its source item but not the source revision or query predicate; redistribution status is verify-before-redistribution; the route may already exist; visibility and an approving operator are not otherwise recorded. Return a plan a conformant geospatial-mcp client could follow."
+    }
+  ],
+  "comparison": {
+    "freshEmptyWorkingDirectoryPerArm": true,
+    "sameCasesModelHarness": true,
+    "rubricHiddenFromBothArms": true,
+    "baselineContext": [
+      "fixed response instruction",
+      "scenario cases"
+    ],
+    "treatmentContext": [
+      "fixed response instruction",
+      "scenario cases",
+      "three skills at pinned revision"
+    ]
+  },
+  "claims": {
+    "mcpEndpointConnected": false,
+    "toolsExecuted": false,
+    "previewRendered": false,
+    "published": false
+  },
+  "requiredArtifacts": [
+    "run-metadata.json",
+    "scenario.json",
+    "rubric.json",
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "expectedArtifactsOnCompletion": [
+    "baseline-response.json",
+    "skill-response.json",
+    "judge-result.json",
+    "review-adjudication.json"
+  ],
+  "evidence": {
+    "responses": {
+      "baseline": {
+        "path": "baseline-response.json",
+        "sha256": "8eb760b738d3e4875f96b97c9ea35c780948bcff858b957927103a3fb12abc4c"
+      },
+      "treatment": {
+        "path": "skill-response.json",
+        "sha256": "aa55dd252015d818704b765328a5411cfeba18bdbf9cad8fe50d3cd124110610"
+      }
+    },
+    "judgeResult": "judge-result.json",
+    "judgeSha256": "a3e664d80314fbaedcf4e95412ff17eba5e61efaefb51e40ad9fab2123c79f25",
+    "reviewAdjudication": "review-adjudication.json",
+    "reviewAdjudicationSha256": "38184e501a634d03cc29c4f5c315784be4583c05b2b0aa23f79161b43bd3a763",
+    "perSkill": {
+      "layer-composition": {
+        "baselineTotal": 4,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "query-shaping": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      },
+      "publishing": {
+        "baselineTotal": 5,
+        "treatmentTotal": 8,
+        "materialImprovement": true,
+        "expansionGateMet": true
+      }
+    },
+    "materialLift": true,
+    "expansionGateMet": true,
+    "outcome": "expansion-gate-met"
+  },
+  "note": "Every follow-on skill independently passes the unchanged gate after re-execution and audit: layer composition 4/8 to 8/8, query shaping 5/8 to 8/8, and publishing 5/8 to 8/8. Three independent audits upheld all scores with no hard failures."
+}

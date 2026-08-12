@@ -52,7 +52,8 @@ independent version; consumers pin against `SPEC_VERSION`.
 
 Conformance is scoped by profile (see
 [CONFORMANCE.md §Conformance Profiles](CONFORMANCE.md#conformance-profiles)).
-`base` is the read-only floor; additive profiles (currently `mutation`) gate only
+`base` is the read-only floor; additive profiles (`mutation`, `analysis`,
+`composition`) gate only
 against implementations that declare them. A new profile is introduced by ADR,
 carries at least one tool with a `profile` tag in
 [`index.json`](spec/schemas/index.json), and must not make an existing

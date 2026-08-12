@@ -1,0 +1,19 @@
+{
+  "id": "bind_interaction.parcel_select_filters_chart",
+  "schemaRef": "tools/bind_interaction.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "mapPackageId": "map_maui_parcels",
+    "interaction": {
+      "id": "select-parcel-filters-chart",
+      "on": { "ref": "layer:parcels", "event": "featureSelect" },
+      "do": {
+        "ref": "widget:area-chart",
+        "verb": "setFilter",
+        "args": { "field": "parcelId", "value": "$event.featureId" }
+      }
+    }
+  },
+  "expected": "tool_result",
+  "canonicalRefs": []
+}

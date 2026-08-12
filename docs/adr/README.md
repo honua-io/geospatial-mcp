@@ -22,3 +22,4 @@ Each ADR follows the same shape as the honua-server records: `Status`,
 |---|---|---|
 | [0028](0028-governed-feature-mutation.md) | Governed feature mutation belongs in the standard (mutation profile) | Accepted |
 | [0029](0029-direct-geoprocessing-verbs.md) | Direct geoprocessing verbs belong in the standard (analysis profile) | Accepted |
+| [0030](0030-declarative-interactions-and-layout.md) | Declarative interactions and layout for composition documents (composition profile) | Proposed |

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "geospatial-mcp JSON Schema index",
   "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only. 'profile' (optional; default 'base') assigns a tool to a conformance profile: 'base' tools are required for the base FULL verdict; tools in an additive profile such as 'mutation' are required for FULL only when a manifest declares that profile, and are otherwise reported as informational notes (see /CONFORMANCE.md §Conformance Profiles).",
-  "date": "2026-07-06",
+  "date": "2026-08-11",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
   "tools": [
     {
@@ -98,6 +98,24 @@
       "family": "App composition",
       "schema": "tools/preview_app_package.schema.json",
       "implementationStatus": "known-gap"
+    },
+    {
+      "standardName": "bind_interaction",
+      "referenceToolName": null,
+      "family": "Composition interactions",
+      "schema": "tools/bind_interaction.schema.json",
+      "implementationStatus": "known-gap",
+      "profile": "composition",
+      "notes": "Adds or replaces one declarative event→action binding in a composition document; member of the opt-in composition conformance profile (docs/adr/0030-declarative-interactions-and-layout.md). Bindings are data-only ($event.* substitution, no expression language); actions never emit events. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the composition profile."
+    },
+    {
+      "standardName": "remove_interaction",
+      "referenceToolName": null,
+      "family": "Composition interactions",
+      "schema": "tools/remove_interaction.schema.json",
+      "implementationStatus": "known-gap",
+      "profile": "composition",
+      "notes": "Removes one declarative binding, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0030-declarative-interactions-and-layout.md)."
     },
     {
       "standardName": "publish_result",
@@ -451,6 +469,11 @@
       "name": "GeoprocessingError",
       "schema": "common/geoprocessing-error.schema.json",
       "role": "Canonical error envelope reused by all tool/resource failure paths."
+    },
+    {
+      "name": "CompositionInteractions",
+      "schema": "common/interactions.schema.json",
+      "role": "Standard-owned interactions and layout blocks for composition documents (MapPackage/AppPackage); referenced by both resource schemas and by bind_interaction. See docs/adr/0030-declarative-interactions-and-layout.md."
     }
   ],
   "conformance": [

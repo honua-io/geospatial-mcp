@@ -411,6 +411,7 @@ not read `v1` in this matrix as "available in the reference".
 | Artifact publishing | v1 | v1 | v1 | deferred |
 | Deployment orchestration | -- | -- | -- | deferred |
 | Direct geoprocessing verbs (analysis profile) | analysis | analysis | -- | -- |
+| Declarative interactions and layout (composition profile) | -- | -- | composition | -- |
 | Autonomous source-data mutation | excluded | excluded | excluded | excluded |
 | Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
 

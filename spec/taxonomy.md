@@ -400,6 +400,9 @@ not read `v1` in this matrix as "available in the reference".
 - **analysis** -- available only under the opt-in `analysis` conformance
   profile (direct geoprocessing verbs; see
   [Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile))
+- **composition** -- available only under the opt-in `composition` conformance
+  profile (declarative interaction and control authoring; see
+  [`/CONFORMANCE.md` §Conformance Profiles](../CONFORMANCE.md#conformance-profiles))
 
 ### By Workflow Family
 
@@ -416,6 +419,7 @@ not read `v1` in this matrix as "available in the reference".
 | Deployment orchestration | -- | -- | -- | deferred |
 | Direct geoprocessing verbs (analysis profile) | analysis | analysis | -- | -- |
 | Declarative interactions and layout (composition profile) | -- | -- | composition | -- |
+| Composition controls (`add_control`/`remove_control`, composition profile) | -- | -- | composition | -- |
 | Autonomous source-data mutation | excluded | excluded | excluded | excluded |
 | Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
 

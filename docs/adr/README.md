@@ -24,3 +24,4 @@ Each ADR follows the same shape as the honua-server records: `Status`,
 | [0029](0029-direct-geoprocessing-verbs.md) | Direct geoprocessing verbs belong in the standard (analysis profile) | Accepted |
 | [0030](0030-declarative-interactions-and-layout.md) | Declarative interactions and layout for composition documents (composition profile) | Proposed |
 | [0031](0031-composition-controls.md) | Composition controls collection (`add_control` / `remove_control`, composition profile) | Proposed |
+| [0032](0032-shared-exploration-contexts.md) | Shared exploration contexts as the composition interaction model (amends 0030) | Proposed |

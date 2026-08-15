@@ -136,6 +136,33 @@
       "notes": "Removes one control, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0031-composition-controls.md). Interactions bound to the removed control must be removed with it or the call rejected — no dangling control: references."
     },
     {
+      "standardName": "create_exploration_context",
+      "referenceToolName": null,
+      "family": "Composition exploration",
+      "schema": "tools/create_exploration_context.schema.json",
+      "implementationStatus": "known-gap",
+      "profile": "composition",
+      "notes": "Adds or replaces (by id) one exploration context in a composition document's explorationContexts collection; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). A context is a named unit of shared interaction state (filters, spatial filter, extent, selection, sort, page, visible fields, grouping, aggregation) governed by a closed preset vocabulary. Contexts are data-only: no expression language and no $event.* substitution. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the composition profile."
+    },
+    {
+      "standardName": "remove_exploration_context",
+      "referenceToolName": null,
+      "family": "Composition exploration",
+      "schema": "tools/remove_exploration_context.schema.json",
+      "implementationStatus": "known-gap",
+      "profile": "composition",
+      "notes": "Removes one exploration context, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). Components bound to the removed context must be unbound with it or the call rejected — no orphaned explorationContextId."
+    },
+    {
+      "standardName": "bind_component_context",
+      "referenceToolName": null,
+      "family": "Composition exploration",
+      "schema": "tools/bind_component_context.schema.json",
+      "implementationStatus": "known-gap",
+      "profile": "composition",
+      "notes": "Sets or clears one component's exploration-context membership and role, addressed by the ADR-0030 ref grammar; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). Linking N components into one shared-state workspace is N calls, not one per component pair — the authoring-cost difference that motivates ADR-0032."
+    },
+    {
       "standardName": "publish_result",
       "referenceToolName": "honua_publish_result",
       "family": "Publishing",
@@ -497,6 +524,11 @@
       "name": "CompositionControls",
       "schema": "common/controls.schema.json",
       "role": "Standard-owned controls collection for composition documents (MapPackage/AppPackage) — the closed input-affordance vocabulary that control:{id} references resolve against; referenced by both resource schemas and by add_control. See docs/adr/0031-composition-controls.md."
+    },
+    {
+      "name": "CompositionExplorationContexts",
+      "schema": "common/exploration.schema.json",
+      "role": "Standard-owned explorationContexts collection for composition documents (MapPackage/AppPackage) — named units of shared interaction state that components join by id, making cross-filtering context membership rather than an event→action edge; referenced by both resource schemas, by the controls schema's component binding, and by create_exploration_context / bind_component_context. See docs/adr/0032-shared-exploration-contexts.md."
     }
   ],
   "conformance": [

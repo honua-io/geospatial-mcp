@@ -1,0 +1,12 @@
+{
+  "id": "remove_control.parcel_year_filter_select",
+  "schemaRef": "tools/remove_control.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "mapPackageId": "map_maui_parcels",
+    "controlId": "year-built-filter",
+    "cascadeInteractions": true
+  },
+  "expected": "tool_result",
+  "canonicalRefs": []
+}

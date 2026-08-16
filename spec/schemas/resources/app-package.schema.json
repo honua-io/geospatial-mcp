@@ -16,6 +16,10 @@
     "mapPackageId": { "type": "string" },
     "bundleArtifactId": { "type": "string" },
     "boundArtifactIds": { "type": "array", "items": { "type": "string" } },
+    "controls": {
+      "$ref": "../common/controls.schema.json#/properties/controls",
+      "description": "Standard-owned input affordances; the collection `control:{id}` references resolve against (ADR-0031)."
+    },
     "interactions": {
       "$ref": "../common/interactions.schema.json#/properties/interactions",
       "description": "Standard-owned declarative event→action bindings (ADR-0030)."

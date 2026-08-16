@@ -1,0 +1,21 @@
+{
+  "id": "add_control.parcel_year_filter_select",
+  "schemaRef": "tools/add_control.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "mapPackageId": "map_maui_parcels",
+    "control": {
+      "id": "year-built-filter",
+      "kind": "filterSelect",
+      "title": "Year built",
+      "sourceId": "parcels",
+      "config": {
+        "field": "yearBuilt",
+        "multiple": false,
+        "includeAllOption": true
+      }
+    }
+  },
+  "expected": "tool_result",
+  "canonicalRefs": []
+}

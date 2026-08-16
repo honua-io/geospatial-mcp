@@ -3,12 +3,15 @@
 ## Status
 
 Proposed (2026-08-15). Standalone standard decision that **amends
-[ADR-0030](0030-declarative-interactions-and-layout.md)**: it replaces
+[ADR-0030](0030-declarative-interactions-and-layout.md) and
+[ADR-0031](0031-composition-controls.md)**: it replaces
 pairwise `interactions` as the *primary* interaction model with a shared-state
 model, and retains a narrowed `interactions` block for one-shot gestures.
-ADR-0030 and [ADR-0031](0031-composition-controls.md) are both still Proposed
-and unmerged on `trunk`, so this ADR corrects the model before the standard
-publishes it. The reference implementation phase is tracked in honua-server;
+ADR-0031 is amended because two of its normative statements are false once a
+control can join an exploration context: that the dynamic surface is exactly
+interaction arguments, and that a control without an interaction is inert. A
+context-bound filter control changes peer state with no interaction at all.
+Both statements defer to this ADR. The reference implementation phase is tracked in honua-server;
 see [Reference implementation status](#reference-implementation-status).
 
 ## Context
@@ -225,13 +228,19 @@ work is in the reference implementation.
   use only `interactions` remain schema-valid; the one new rejection is the
   redundant-writer case above, which no existing document can hit because no
   existing document declares a context.
-- **Mechanical upgrade for the motivating pattern.** A document whose
-  interactions form a connected component over
+- **Assisted upgrade for the motivating pattern — not a lossless rewrite.** A
+  document whose interactions form a connected component over
   (`featureSelect` | `selection`) → (`setFilter` | `selectFeature`) among
-  components sharing a source is rewritten as one context with those
-  components bound and `preset: "globalLinked"`. This is lossless for exactly
-  the example ADR-0030 opens with. Implementations SHOULD offer it as a
-  one-shot migration.
+  components sharing a source can be rewritten as one context with those
+  components bound. **`globalLinked` is deliberately not prescribed here**: a
+  single directed edge becomes bidirectional under it, and every other shared
+  slice — selection, sort, page, extent, grouping, aggregation — starts
+  propagating too. That broadens behaviour rather than preserving it.
+  Implementations MAY offer the rewrite as an assisted migration, but it MUST
+  be surfaced for review rather than applied silently, and the preset MUST be
+  chosen to match the original edge direction (`mapDriven`, `gridDriven`, or
+  `chartDriven`, per the source component's role). Only a complete, symmetric
+  edge set across every shared slice is equivalent to `globalLinked`.
 - **Reference implementation surface** to change in honua-server:
   `StudioCompositionModels.cs`, `StudioJsonContext.cs`,
   `StudioCompositionBodyEditor.cs`, `StudioPackageValidator.cs`,

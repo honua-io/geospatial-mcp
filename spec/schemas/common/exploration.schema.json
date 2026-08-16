@@ -7,23 +7,39 @@
   "$defs": {
     "presetName": {
       "type": "string",
-      "enum": ["globalLinked", "mapDriven", "gridDriven", "chartDriven", "decoupled"],
+      "enum": [
+        "globalLinked",
+        "mapDriven",
+        "gridDriven",
+        "chartDriven",
+        "decoupled"
+      ],
       "description": "Closed linked-view preset vocabulary, naming which bound components propagate state outward. globalLinked: every bound component contributes and receives every shared slice. mapDriven: only the map's extent and selection propagate outward, though filter components still contribute filter state. gridDriven: only the grid's selection, sort, and page propagate outward. chartDriven: only the chart's grouping, aggregation, and selection propagate outward. decoupled: nothing propagates and each component is independent. Extending this set requires a standard ADR (ADR-0032)."
     },
     "viewRole": {
       "type": "string",
-      "enum": ["map", "grid", "chart", "filter", "detail", "form", "custom"],
+      "enum": [
+        "map",
+        "grid",
+        "chart",
+        "filter",
+        "detail",
+        "form",
+        "custom"
+      ],
       "description": "Coarse role a bound component plays in its context. The preset's propagation policy is keyed on this value, not on the component's kind, so two chart widgets of different kinds behave identically when both are bound as `chart`. `form` is retained for compatibility with older detail/filter integrations; new documents should prefer the more precise `filter` and `detail` roles."
     },
     "explorationStateSnapshot": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["version"],
+      "required": [
+        "version"
+      ],
       "properties": {
         "version": {
           "type": "integer",
-          "minimum": 1,
-          "description": "Snapshot format version. Required so that adding a shared-state slice in a later ADR does not silently reinterpret an existing document's initial state."
+          "const": 1,
+          "description": "Snapshot format version. Pinned to 1: this ADR defines only the initial format and gives implementations no semantics for any later value, so admitting `version: 2` would produce a schema-valid document no runtime could interpret portably. Later versions join through explicit versioned branches in a follow-on ADR."
         },
         "filters": {
           "type": "object",
@@ -42,12 +58,21 @@
         },
         "selection": {
           "type": "array",
-          "items": { "type": ["string", "number", "object"] },
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "object"
+            ]
+          },
           "description": "Shared feature selection. Raw ids are permitted for single-source documents; multi-source documents should use source-qualified targets."
         },
         "sort": {
           "type": "array",
-          "items": { "type": "object", "additionalProperties": true },
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "description": "Shared sort order."
         },
         "page": {
@@ -57,12 +82,16 @@
         },
         "visibleFields": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Shared field visibility for tabular and form components. An empty array means all fields."
         },
         "grouping": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Shared group-by keys for chart and pivot components."
         },
         "aggregation": {
@@ -76,7 +105,9 @@
     "explorationContext": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id"],
+      "required": [
+        "id"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -86,7 +117,10 @@
         },
         "sourceIds": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "description": "Identifiers of the sources whose records this context's shared state addresses. Each must resolve within the document; resolution is a validation-gate responsibility, as for layer references."
         },
         "preset": {
@@ -122,7 +156,9 @@
   "properties": {
     "explorationContexts": {
       "type": "array",
-      "items": { "$ref": "#/$defs/explorationContext" },
+      "items": {
+        "$ref": "#/$defs/explorationContext"
+      },
       "description": "Units of shared interaction state declared by this composition document. Optional and additive: a document without exploration contexts is valid, and one whose components are all unbound behaves exactly as it did before this block existed. Ids must be unique within the collection, and a declared context with no bound components is valid but should warn (validation-gate checks)."
     }
   }

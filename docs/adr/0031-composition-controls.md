@@ -7,6 +7,13 @@ to [ADR-0030](0030-declarative-interactions-and-layout.md) (the reference
 implementation phase is tracked in honua-server; see
 [Reference implementation status](#reference-implementation-status)).
 
+**Amended by [ADR-0032](0032-shared-exploration-contexts.md) (2026-08-15).**
+Two statements below are superseded: that a composition document's dynamic
+surface is exactly `$event.*` substitution inside interaction arguments, and
+that a control no interaction binds is inert. A control may now join an
+exploration context, and a context-bound control changes peer state with no
+interaction involved. Both defer to ADR-0032.
+
 ## Context
 
 ADR-0030 admitted declarative `interactions` and `layout` blocks on the
@@ -101,10 +108,16 @@ shape so agents author both the same way.
   control grants no capability the composition surface does not already have.
   The dynamic surface of a composition document remains exactly what ADR-0030
   defined: `$event.*` path substitution inside interaction arguments.
+  **Superseded by ADR-0032**, which adds a second, larger dynamic surface —
+  shared exploration state — that is likewise data rather than code.
 - **Controls emit `change` and nothing else.** A control that a host renders as
   interactive but that no interaction binds is inert-by-design (map chrome such
   as `navigation`, `scale`, `fullscreen`, `attribution` is typically exactly
   that, acting on the map directly through the host).
+  **Superseded by ADR-0032**: a control bound to an exploration context is not
+  inert without an interaction. It contributes its state to every component in
+  that context, which is how a filter control narrows peer widgets with no
+  edge authored per target.
 
 ### `control:{id}` resolution (normative)
 

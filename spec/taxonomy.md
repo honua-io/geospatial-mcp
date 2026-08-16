@@ -162,6 +162,11 @@ Geospatial tool families:
   authors presentation metadata on the hosted service and never edits feature
   records (ADR-0028).
 - **App composition** -- `create_app_package`, `preview_app_package`
+- **Composition exploration contexts (composition profile)** --
+  `create_exploration_context`, `remove_exploration_context`,
+  `bind_component_context`. Named units of shared interaction state that
+  components join by id, making cross-filtering context membership rather than
+  an event->action edge (ADR-0032).
 - **Composition controls (composition profile)** -- `add_control`,
   `remove_control`. The closed input-affordance vocabulary that `control:{id}`
   interaction references resolve against; presentation only (ADR-0031).
@@ -422,6 +427,7 @@ not read `v1` in this matrix as "available in the reference".
 | Deployment orchestration | -- | -- | -- | deferred |
 | Direct geoprocessing verbs (analysis profile) | analysis | analysis | -- | -- |
 | Declarative interactions and layout (composition profile) | -- | -- | composition | -- |
+| Shared exploration contexts (composition profile) | -- | -- | composition | -- |
 | Composition controls (`add_control`/`remove_control`, composition profile) | -- | -- | composition | -- |
 | Autonomous source-data mutation | excluded | excluded | excluded | excluded |
 | Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
@@ -459,6 +465,9 @@ not read `v1` in this matrix as "available in the reference".
 | `reproject_features` (analysis profile) | analysis | analysis | -- |
 | `join_features` (analysis profile) | analysis | analysis | -- |
 | `export_dataset` (analysis profile) | analysis | analysis | -- |
+| `create_exploration_context` (composition profile) | -- | -- | composition |
+| `remove_exploration_context` (composition profile) | -- | -- | composition |
+| `bind_component_context` (composition profile) | -- | -- | composition |
 | `add_control` (composition profile) | -- | -- | composition |
 | `remove_control` (composition profile) | -- | -- | composition |
 | `bind_interaction` (composition profile) | -- | -- | composition |
@@ -469,7 +478,9 @@ Automate / Deploy tools are deferred and not listed. The direct geoprocessing
 verbs (`buffer_features` … `export_dataset`) are the members of the opt-in
 `analysis` conformance profile, and `edit_features` is the sole member of the
 opt-in `mutation` conformance profile; each is `v1` only for implementations that
-declare its profile. `add_control`, `remove_control`, `bind_interaction`, and `remove_interaction` are the members of
+declare its profile. `add_control`, `remove_control`, `bind_interaction`, `remove_interaction`,
+`create_exploration_context`, `remove_exploration_context`, and
+`bind_component_context` are the members of
 the opt-in `composition` conformance profile (ADR-0030) and follow the same rule: a
 cell reading `composition` means the tool is required for FULL conformance only when
 an implementation declares that profile, exactly as `analysis` and `mutation` behave

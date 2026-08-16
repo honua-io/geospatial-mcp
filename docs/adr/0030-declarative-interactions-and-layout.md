@@ -6,6 +6,14 @@ Proposed (2026-08-11). Standalone standard decision (the reference
 implementation phase is tracked in honua-server; see
 [Reference implementation status](#reference-implementation-status)).
 
+**Amended by [ADR-0032](0032-shared-exploration-contexts.md) (2026-08-15)**,
+which replaces this ADR's pairwise `interactions` block as the *primary*
+interaction model with shared exploration contexts, and narrows `interactions`
+to one-shot gestures. The `layout` block below is unaffected. Read this record
+for the event/verb/`$event.*` grammar and the `composition` profile rationale,
+both of which ADR-0032 preserves; read ADR-0032 for how components share
+filter, selection, and viewport state.
+
 ## Context
 
 The standard's composition documents — `MapPackage` and `AppPackage`

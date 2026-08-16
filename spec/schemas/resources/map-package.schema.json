@@ -21,9 +21,13 @@
       "$ref": "../common/controls.schema.json#/properties/controls",
       "description": "Standard-owned input affordances; the collection `control:{id}` references resolve against (ADR-0031)."
     },
+    "explorationContexts": {
+      "$ref": "../common/exploration.schema.json#/properties/explorationContexts",
+      "description": "Standard-owned units of shared interaction state; the primary interaction model, which components join by naming a context (ADR-0032)."
+    },
     "interactions": {
       "$ref": "../common/interactions.schema.json#/properties/interactions",
-      "description": "Standard-owned declarative event→action bindings (ADR-0030)."
+      "description": "Standard-owned declarative event→action bindings, narrowed by ADR-0032 to one-shot gestures (ADR-0030)."
     },
     "layout": {
       "$ref": "../common/interactions.schema.json#/properties/layout",

@@ -56,6 +56,14 @@
         "config": {
           "type": "object",
           "description": "Per-kind configuration (e.g. the field a filterSelect filters on, a slider's bounds and step, a bookmark list). Host-interpreted and intentionally open, matching the widget entry's `config`; it carries no expression language and grants no capability the composition surface does not already have."
+        },
+        "explorationContextId": {
+          "$ref": "exploration.schema.json#/$defs/componentBinding/properties/explorationContextId",
+          "description": "Exploration context this control joins (ADR-0032). A data-binding control bound to a context contributes its state to every component in that context, which is how a filter dropdown narrows peer widgets without an interactions edge per target."
+        },
+        "role": {
+          "$ref": "exploration.schema.json#/$defs/componentBinding/properties/role",
+          "description": "Role this control plays in its exploration context (ADR-0032); data-binding kinds normally bind as `filter`."
         }
       },
       "description": "One control entry. The shape mirrors the composition widget entry ({ id, kind, title?, sourceId?, config? }) so agents author both collections the same way."

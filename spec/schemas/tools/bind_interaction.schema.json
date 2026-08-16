@@ -2,10 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/bind_interaction.schema.json",
   "title": "bind_interaction inputSchema",
-  "description": "Argument shape for bind_interaction (composition profile, ADR-0030). Adds or replaces (by interaction id) one declarative event→action binding in a composition document. The standard-level target is a composition document (mapPackageId or appPackageId). The reference implementation authors compositions through a draft lifecycle; its optimistic-concurrency draft spelling (draftId + generation) is admitted as x-honua-reference-shape, consistent with ADR-0029's admission of reference spellings. Validation gate: the interaction's on.ref and do.ref must resolve to components declared in the target document, and the per-(on.ref, on.event) fan-out cap applies (recommended 8). See docs/adr/0030-declarative-interactions-and-layout.md and common/interactions.schema.json.",
+  "description": "Argument shape for bind_interaction (composition profile, ADR-0030). Adds or replaces (by interaction id) one declarative event→action binding in a composition document. The standard-level target is a composition document (mapPackageId or appPackageId). The reference implementation authors compositions through a draft lifecycle; its optimistic-concurrency draft spelling (draftId + generation) is admitted as x-honua-reference-shape, consistent with ADR-0029's admission of reference spellings. Validation gate: the interaction's on.ref and do.ref must resolve to components declared in the target document, and the per-(on.ref, on.event) fan-out cap applies (recommended 8). See docs/adr/0030-declarative-interactions-and-layout.md and common/interactions.schema.json. Exactly one target must be supplied: mapPackageId, appPackageId, or the x-honua-reference-shape draftId (which requires generation). The oneOf below enforces that; without it a call with no target, with both package ids, or with draftId and no generation validated against a contract no server can route.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["interaction"],
+  "required": [
+    "interaction"
+  ],
   "properties": {
     "mapPackageId": {
       "type": "string",
@@ -31,5 +33,65 @@
       "$ref": "../common/interactions.schema.json#/$defs/interaction",
       "description": "The binding to add or replace. Replacement matches on interaction.id."
     }
-  }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "mapPackageId"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "appPackageId"
+            ]
+          },
+          {
+            "required": [
+              "draftId"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "required": [
+        "appPackageId"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "mapPackageId"
+            ]
+          },
+          {
+            "required": [
+              "draftId"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "required": [
+        "draftId",
+        "generation"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "mapPackageId"
+            ]
+          },
+          {
+            "required": [
+              "appPackageId"
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

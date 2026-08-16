@@ -162,6 +162,10 @@ Geospatial tool families:
   authors presentation metadata on the hosted service and never edits feature
   records (ADR-0028).
 - **App composition** -- `create_app_package`, `preview_app_package`
+- **Composition interactions (composition profile)** -- `bind_interaction`,
+  `remove_interaction`. Declarative event->action bindings over components already
+  declared in a composition document; presentation wiring only, never source
+  records (ADR-0028 unaffected).
 - **Publishing** -- `publish_result`
 
 ### Prompts
@@ -448,13 +452,19 @@ not read `v1` in this matrix as "available in the reference".
 | `reproject_features` (analysis profile) | analysis | analysis | -- |
 | `join_features` (analysis profile) | analysis | analysis | -- |
 | `export_dataset` (analysis profile) | analysis | analysis | -- |
+| `bind_interaction` (composition profile) | -- | -- | composition |
+| `remove_interaction` (composition profile) | -- | -- | composition |
 | `edit_features` (mutation profile) | mutation | mutation | mutation |
 
 Automate / Deploy tools are deferred and not listed. The direct geoprocessing
 verbs (`buffer_features` … `export_dataset`) are the members of the opt-in
 `analysis` conformance profile, and `edit_features` is the sole member of the
 opt-in `mutation` conformance profile; each is `v1` only for implementations that
-declare its profile (see
+declare its profile. `bind_interaction` and `remove_interaction` are the members of
+the opt-in `composition` conformance profile (ADR-0030) and follow the same rule: a
+cell reading `composition` means the tool is required for FULL conformance only when
+an implementation declares that profile, exactly as `analysis` and `mutation` behave
+elsewhere in this table (see
 [Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile),
 [Edit Data (Mutation Profile)](#edit-data-mutation-profile), and
 [/CONFORMANCE.md §Conformance Profiles](../CONFORMANCE.md#conformance-profiles)).

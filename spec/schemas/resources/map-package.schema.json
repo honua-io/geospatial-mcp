@@ -16,6 +16,14 @@
     "styleId": { "type": "string" },
     "themeId": { "type": "string" },
     "initialView": { "type": "object", "additionalProperties": true },
-    "previewArtifactId": { "type": "string" }
+    "previewArtifactId": { "type": "string" },
+    "interactions": {
+      "$ref": "../common/interactions.schema.json#/properties/interactions",
+      "description": "Standard-owned declarative event→action bindings (ADR-0030)."
+    },
+    "layout": {
+      "$ref": "../common/interactions.schema.json#/properties/layout",
+      "description": "Standard-owned grid placement for widgets (ADR-0030)."
+    }
   }
 }

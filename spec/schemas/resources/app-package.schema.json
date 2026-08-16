@@ -15,6 +15,14 @@
     "targetSdk": { "type": "string" },
     "mapPackageId": { "type": "string" },
     "bundleArtifactId": { "type": "string" },
-    "boundArtifactIds": { "type": "array", "items": { "type": "string" } }
+    "boundArtifactIds": { "type": "array", "items": { "type": "string" } },
+    "interactions": {
+      "$ref": "../common/interactions.schema.json#/properties/interactions",
+      "description": "Standard-owned declarative event→action bindings (ADR-0030)."
+    },
+    "layout": {
+      "$ref": "../common/interactions.schema.json#/properties/layout",
+      "description": "Standard-owned grid placement for widgets (ADR-0030)."
+    }
   }
 }

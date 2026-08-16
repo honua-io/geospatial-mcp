@@ -1,0 +1,11 @@
+{
+  "id": "remove_interaction.parcel_select_filters_chart",
+  "schemaRef": "tools/remove_interaction.schema.json",
+  "validates": "inputs",
+  "inputs": {
+    "mapPackageId": "map_maui_parcels",
+    "interactionId": "select-parcel-filters-chart"
+  },
+  "expected": "tool_result",
+  "canonicalRefs": []
+}

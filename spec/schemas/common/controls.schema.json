@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/common/controls.schema.json",
   "title": "Composition controls",
-  "description": "Standard-owned `controls` collection for composition documents (MapPackage/AppPackage). A control is an input affordance the user operates; it emits the `change` event of the ADR-0030 interaction vocabulary and is the target a `control:{id}` reference resolves against. The kind vocabulary is closed — extending it requires a standard ADR — and deliberately excludes a feature-editing draw control (ADR-0028). Controls declare presentation and data binding only; behaviour is wired declaratively through the `interactions` block (common/interactions.schema.json). See docs/adr/0031-composition-controls.md.",
+  "description": "Standard-owned `controls` collection for composition documents (MapPackage/AppPackage). A control is an input affordance the user operates; it emits the `change` event of the ADR-0030 interaction vocabulary and is the target a `control:{id}` reference resolves against. The kind vocabulary is closed — extending it requires a standard ADR — and deliberately excludes a feature-editing draw control (ADR-0028). Controls declare presentation and data binding only; behaviour is wired declaratively through the `interactions` block (common/interactions.schema.json). Controls never appear in `layout`: grid placement is restricted to `map` and `widget:{id}` by that schema's layoutRef. See docs/adr/0031-composition-controls.md.",
   "type": "object",
   "$defs": {
     "controlKind": {
@@ -28,13 +28,16 @@
     "control": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "kind"],
+      "required": [
+        "id",
+        "kind"
+      ],
       "properties": {
         "id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 200,
-          "description": "Stable identifier, unique within the document's controls block. `control:{id}` references in the interactions and layout blocks resolve against this value; add_control replaces an existing control with the same id."
+          "description": "Stable identifier, unique within the document's controls block. `control:{id}` references in the **interactions** block resolve against this value; add_control replaces an existing control with the same id. Controls are deliberately NOT layout grammar — ADR-0031 treats them as chrome the host positions, and `layoutItem.ref` is constrained to `map` and `widget:{id}` so a control can never claim a grid cell."
         },
         "kind": {
           "$ref": "#/$defs/controlKind",
@@ -61,7 +64,9 @@
   "properties": {
     "controls": {
       "type": "array",
-      "items": { "$ref": "#/$defs/control" },
+      "items": {
+        "$ref": "#/$defs/control"
+      },
       "description": "Input affordances declared by this composition document. Optional and additive: a document without controls is valid. Ids must be unique within the collection (validation-gate check)."
     }
   }

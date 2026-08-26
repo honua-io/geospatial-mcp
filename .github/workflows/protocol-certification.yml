@@ -122,6 +122,8 @@ jobs:
           npm ci --ignore-scripts
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
+          # the default checkout is shallow; materialize the pinned corpus revision before verifying against it
+          git fetch --quiet --depth=1 origin "${CONFORMANCE_CORPUS_REVISION}"
           test "$(git rev-parse "${CONFORMANCE_CORPUS_REVISION}^{commit}")" = "${CONFORMANCE_CORPUS_REVISION}"
           git diff --quiet "${CONFORMANCE_CORPUS_REVISION}" -- ../conformance ../spec
         working-directory: certification

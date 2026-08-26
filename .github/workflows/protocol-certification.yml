@@ -1,0 +1,209 @@
+name: MCP Protocol Certification
+
+on:
+  pull_request:
+    branches: [trunk]
+    paths:
+      - "certification/**"
+      - "conformance/**"
+      - "spec/**"
+      - ".github/workflows/protocol-certification.yml"
+  push:
+    branches: [trunk]
+    paths:
+      - "certification/**"
+      - "conformance/**"
+      - "spec/**"
+      - ".github/workflows/protocol-certification.yml"
+  schedule:
+    - cron: "15 16 * * *"
+  workflow_dispatch:
+    inputs:
+      tier:
+        type: choice
+        options: [release, nightly, pr]
+        default: release
+        required: true
+      server_image:
+        description: Immutable Honua candidate image (required for release)
+        required: false
+      server_source_sha:
+        description: Full source SHA that produced the candidate image
+        required: false
+      server_seed_ref:
+        description: Exact honua-server seed revision
+        required: false
+      release_cut:
+        description: Independently frozen RFC 3339 release cut
+        required: false
+
+env:
+  NODE_VERSION: "22.19.0"
+  MCP_SDK_VERSION: "1.30.0"
+  MCP_INSPECTOR_VERSION: "2.3.0"
+  CONFORMANCE_CORPUS_REVISION: "5e052a76b6485edbe78c3482488c58f66700bd59"
+  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:d7a45c871bf318b4882ec8e1c32004803e6d0210246be30120751f05dee1a14d"
+  PINNED_SERVER_SOURCE_SHA: "e3ab87cebb7bf2d32c4e8cdb145f8d626b864d8e"
+
+permissions:
+  attestations: read
+  contents: read
+  packages: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4@sha256:44126d872ac91993766c341e369c539e8196614321765d36a6f1bab0419a5fa5
+        env:
+          POSTGRES_USER: honua
+          POSTGRES_PASSWORD: honua
+          POSTGRES_DB: honua_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Resolve tier and exact candidate identity
+        id: identity
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TIER: ${{ inputs.tier }}
+          INPUT_IMAGE: ${{ inputs.server_image }}
+          INPUT_SOURCE_SHA: ${{ inputs.server_source_sha }}
+          INPUT_SEED_REF: ${{ inputs.server_seed_ref }}
+          INPUT_RELEASE_CUT: ${{ inputs.release_cut }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tier="${INPUT_TIER:-pr}"
+          [[ "${EVENT_NAME}" == schedule ]] && tier=nightly
+          [[ "${EVENT_NAME}" == pull_request || "${EVENT_NAME}" == push ]] && tier=pr
+          image="${INPUT_IMAGE:-${PINNED_SERVER_IMAGE}}"
+          source_sha="${INPUT_SOURCE_SHA:-${PINNED_SERVER_SOURCE_SHA}}"
+          seed_ref="${INPUT_SEED_REF:-${source_sha}}"
+          release_cut="${INPUT_RELEASE_CUT:-}"
+          if [[ "${tier}" == release ]]; then
+            [[ -n "${INPUT_IMAGE}" && -n "${INPUT_SOURCE_SHA}" && -n "${release_cut}" ]] || { echo '::error::Release image, source SHA, and cut are required.'; exit 1; }
+            [[ "${seed_ref}" == "${source_sha}" ]] || { echo '::error::Release seed must equal candidate source SHA.'; exit 1; }
+          fi
+          metadata="$(docker buildx imagetools inspect "${image}" --format '{{json .}}')"
+          resolved="$(jq -er '.manifest.digest' <<< "${metadata}")"
+          [[ "${image##*@}" == "${resolved}" && "${image}" =~ @sha256:[0-9a-f]{64}$ ]] || { echo '::error::Image is not bound to its resolved digest.'; exit 1; }
+          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || { echo '::error::Source SHA must be a full lowercase commit.'; exit 1; }
+          created="$(jq -er '.image["linux/amd64"].created // .image.created // .image["linux/amd64"].config.created // .image.config.created' <<< "${metadata}")"
+          echo "${GH_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin >/dev/null
+          gh attestation verify "oci://${image}" --repo honua-io/honua-server --source-digest "${source_sha}" --deny-self-hosted-runners --format json > server-attestation.json
+          {
+            echo "tier=${tier}"
+            echo "image=${image}"
+            echo "source-sha=${source_sha}"
+            echo "seed-ref=${seed_ref}"
+            echo "cut-at=${release_cut:-${created}}"
+            echo "started-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: certification/package-lock.json
+
+      - name: Verify pinned clients and corpus
+        run: |
+          npm ci --ignore-scripts
+          test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
+          test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
+          test "$(git rev-parse "${CONFORMANCE_CORPUS_REVISION}^{commit}")" = "${CONFORMANCE_CORPUS_REVISION}"
+          git diff --quiet "${CONFORMANCE_CORPUS_REVISION}" -- ../conformance ../spec
+        working-directory: certification
+
+      - name: Fetch and apply exact seed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEED_REF: ${{ steps.identity.outputs.seed-ref }}
+          PGPASSWORD: honua
+        run: |
+          mkdir -p .certification
+          gh api "repos/honua-io/honua-server/contents/tests/seed/base-schema.sql?ref=${SEED_REF}" -H "Accept: application/vnd.github.raw" > .certification/base-schema.sql
+          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
+
+      - name: Start exact Honua server image
+        env:
+          SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+        run: |
+          key="$(head -c 32 /dev/urandom | base64)"
+          salt="$(head -c 16 /dev/urandom | base64)"
+          docker run -d --name honua-server --network host \
+            -e ASPNETCORE_ENVIRONMENT=Development \
+            -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=honua" \
+            -e Security__ConnectionEncryption__MasterKey="${key}" \
+            -e Security__ConnectionEncryption__Salt="${salt}" \
+            -e HONUA_ADMIN_PASSWORD="ci-protocol-api-key" \
+            -e Kestrel__Endpoints__Http__Url="http://+:8080" \
+            -e Kestrel__Endpoints__Http__Protocols="Http1" \
+            "${SERVER_IMAGE}"
+          for i in $(seq 1 60); do
+            [[ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
+            sleep 3
+          done
+          docker logs honua-server || true
+          exit 1
+
+      - name: Exercise MCP through the real official SDK
+        id: sdk
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_URL: http://localhost:8080/mcp
+          CERT_RESULTS: artifacts/sdk-results.json
+        run: mkdir -p artifacts && node run-sdk.mjs
+
+      - name: Exercise MCP through the real Inspector
+        id: inspector
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_URL: http://localhost:8080/mcp
+          CERT_RESULTS: artifacts/inspector-results.json
+        run: node run-inspector.mjs
+
+      - name: Emit normalized digest-bound fragment
+        if: always()
+        env:
+          SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          CUT_AT: ${{ steps.identity.outputs.cut-at }}
+          STARTED_AT: ${{ steps.identity.outputs.started-at }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/mcp
+          jq -n \
+            --arg sourceSha "${SERVER_SOURCE_SHA}" \
+            --arg producerSourceSha "${GITHUB_SHA}" \
+            --arg imageDigest "${SERVER_IMAGE##*@}" \
+            --arg cutAt "${CUT_AT}" \
+            --arg startedAt "${STARTED_AT}" \
+            --arg requestUrl "http://localhost:8080/mcp" \
+            --slurpfile sdk certification/artifacts/sdk-results.json \
+            --slurpfile inspector certification/artifacts/inspector-results.json \
+            '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
+            > artifacts/mcp/builder-input.json
+          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json
+
+      - name: Upload governed producer artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-protocol-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/mcp/protocol-certification-fragment.json
+          if-no-files-found: error
+          retention-days: 90

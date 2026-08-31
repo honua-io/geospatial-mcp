@@ -49,7 +49,12 @@
       "type": "integer",
       "minimum": 0,
       "default": 0,
-      "description": "Number of matching features to skip before returning results (pagination). Pair with limit to page mechanically through large result sets: when a response reports exceededTransferLimit=true, re-issue the same query with resultOffset set to the returned nextOffset until exceededTransferLimit is false."
+      "description": "Reference implementation pagination offset. Pair with limit to page mechanically through large result sets: when a response reports exceededTransferLimit=true, re-issue the same query with resultOffset set to the returned nextOffset until exceededTransferLimit is false. SDK and standard-facing clients should prefer cursor/nextCursor when available."
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Continuation token from a prior page's nextCursor. For the Honua reference implementation this token encodes the same zero-based offset as resultOffset; clients should treat it as opaque and follow nextCursor until absent."
     },
     "returnGeometry": {
       "type": "boolean",

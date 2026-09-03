@@ -140,8 +140,11 @@ Before choosing choropleth symbology, rule out these disqualifiers.
 | Line symbology (width/color) | The feature is a **network or flow** |
 | Unclassed continuous fill | A rate/ratio where you want to preserve **all** variation and reading exact class values matters less |
 
-If, after this, you have a **normalized areal rate/ratio on meaningful units**,
-a choropleth is appropriate — continue to Step 4.
+If, after this, you have an **areal attribute on meaningful enumeration units**
+that is not a raw count confounded by unequal unit size, a choropleth may be
+appropriate — continue to Step 4. Normalize counts when unit sizes differ;
+meaningful per-feature measurements such as assessed value can be mapped
+directly when the polygons themselves are the units of interest.
 
 ## Step 4 — Choose a classification method (and know how it fails)
 
@@ -282,8 +285,10 @@ Before you call the map-composition tool, confirm:
       cyclic is **not** on a linear ramp — Step 2.
 - [ ] For a diverging palette, the midpoint is the **critical value**, not just
       the data median — Step 2.
-- [ ] If it's a choropleth, the attribute is a **normalized rate/ratio on
-      meaningful units**, not a raw count — Step 3.
+- [ ] If it's a choropleth, the attribute is appropriate for area fill: a
+      **normalized rate/ratio when unit sizes differ**, or a meaningful
+      per-feature measurement on comparable units — not a raw count on unequal
+      or arbitrary units — Step 3.
 - [ ] I looked at the distribution and picked a classification method that fits
       it; class count is 3–7 — Step 4.
 - [ ] If this is one of a comparison set (time series / small multiples), the

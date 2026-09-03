@@ -11,13 +11,18 @@ const canonical = (value) => Array.isArray(value)
     : JSON.stringify(value);
 
 export function buildFragment({ identity, results, now = new Date().toISOString() }) {
-  for (const key of ["sourceSha", "producerSourceSha", "imageDigest", "cutAt", "startedAt"]) {
+  for (const key of ["sourceSha", "producerSourceSha", "imageDigest", "cutAt", "startedAt", "runtimeEnvironment"]) {
     if (!identity[key]) throw new Error(`missing identity.${key}`);
   }
   if (!/^[0-9a-f]{40}$/.test(identity.sourceSha) || !/^[0-9a-f]{40}$/.test(identity.producerSourceSha)) {
     throw new Error("source revisions must be full lowercase commit SHAs");
   }
   if (!/^sha256:[0-9a-f]{64}$/.test(identity.imageDigest)) throw new Error("image digest must be immutable");
+  const protocolVersions = Object.fromEntries(Object.entries(CLIENTS).map(([clientKey]) => {
+    const version = results[clientKey]?.protocolVersion;
+    if (!version) throw new Error(`missing negotiated protocol version for ${clientKey}`);
+    return [clientKey, version];
+  }));
 
   const observations = Object.entries(CLIENTS).flatMap(([clientKey, client]) =>
     OPERATIONS.map(([capabilityKey, operation]) => {
@@ -25,7 +30,11 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
       const executable = ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass");
-      const result = executable && execution?.result === "pass" && behaviorPassed ? "pass" : "skip";
+      const result = execution?.result === "fail"
+        ? "fail"
+        : executable && execution?.result === "pass" && behaviorPassed
+          ? "pass"
+          : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
       const receipt = result === "pass" ? {
         schema: "honua.certification-evidence-receipt/v1",
@@ -39,6 +48,8 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
           source_sha: identity.sourceSha,
           producer_source_sha: identity.producerSourceSha,
           image_digest: identity.imageDigest,
+          runtime_environment: identity.runtimeEnvironment,
+          protocol_version: protocolVersions[clientKey],
           fixture_revision: FIXTURE_REVISION,
           contract_revision: CONTRACT_REVISION,
           auth_policy_revision: "anonymous-public-v1",
@@ -57,7 +68,7 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
         canonical_client: client.canonicalClient,
         client_id: client.clientId,
         runner_lane: client.lane,
-        protocol_version: "2025-03-26",
+        protocol_version: protocolVersions[clientKey],
         protocol_profile: "Streamable HTTP",
         performed_by: client.canonicalClient,
         request_url: results[clientKey]?.requestUrl ?? identity.requestUrl,
@@ -71,6 +82,7 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
         source_sha: identity.sourceSha,
         producer_source_sha: identity.producerSourceSha,
         image_digest: identity.imageDigest,
+        runtime_environment: identity.runtimeEnvironment,
         fixture_revision: FIXTURE_REVISION,
         contract_revision: CONTRACT_REVISION,
         auth_policy_revision: "anonymous-public-v1",

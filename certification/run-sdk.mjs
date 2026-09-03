@@ -10,9 +10,7 @@ const client = new Client({ name: "geospatial-mcp-certification", version: "1.0.
 const transport = new StreamableHTTPClientTransport(url, { requestInit: { headers } });
 const checks = {};
 
-const negotiatedProtocolVersion = () => client.getProtocolVersion?.()
-  ?? client.protocolVersion
-  ?? client._protocolVersion;
+const negotiatedProtocolVersion = () => transport.protocolVersion;
 
 async function record(name, call) {
   const startedAt = new Date().toISOString();

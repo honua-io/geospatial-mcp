@@ -19,9 +19,11 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
   }
   if (!/^sha256:[0-9a-f]{64}$/.test(identity.imageDigest)) throw new Error("image digest must be immutable");
   const protocolVersions = Object.fromEntries(Object.entries(CLIENTS).map(([clientKey]) => {
-    const version = results[clientKey]?.protocolVersion;
-    if (!version) throw new Error(`missing negotiated protocol version for ${clientKey}`);
-    return [clientKey, version];
+    const clientResults = results[clientKey];
+    const version = clientResults?.protocolVersion;
+    const initializationFailed = clientResults?.checks?.initialize?.result === "fail";
+    if (!version && !initializationFailed) throw new Error(`missing negotiated protocol version for ${clientKey}`);
+    return [clientKey, version ?? null];
   }));
 
   const observations = Object.entries(CLIENTS).flatMap(([clientKey, client]) =>

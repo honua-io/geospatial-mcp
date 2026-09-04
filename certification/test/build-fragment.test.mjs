@@ -72,3 +72,19 @@ test("preserves failed checks as fail", () => {
   assert.equal(initializeRow.evidence_receipt, null);
   assert.equal(initializeRow.evidence_digest, null);
 });
+
+test("preserves failed initialization when negotiation did not complete", () => {
+  const failing = {
+    ...passing,
+    initialize: { ...passing.initialize, result: "fail", error: "initialize transport down" },
+  };
+  const fragment = buildFragment({ identity, results: {
+    sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: null, checks: failing },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing },
+  }});
+  const initializeRow = fragment.observations.find((row) =>
+    row.canonical_client === "Official MCP TypeScript SDK" && row.operation === "initialize",
+  );
+  assert.equal(initializeRow.result, "fail");
+  assert.equal(initializeRow.protocol_version, null);
+});

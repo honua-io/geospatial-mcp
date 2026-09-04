@@ -10,6 +10,8 @@ const client = new Client({ name: "geospatial-mcp-certification", version: "1.0.
 const transport = new StreamableHTTPClientTransport(url, { requestInit: { headers } });
 const checks = {};
 
+const negotiatedProtocolVersion = () => transport.protocolVersion;
+
 async function record(name, call) {
   const startedAt = new Date().toISOString();
   try {
@@ -22,6 +24,8 @@ async function record(name, call) {
 
 await record("initialize", () => client.connect(transport));
 if (checks.initialize.result === "pass") {
+  const protocolVersion = negotiatedProtocolVersion();
+  if (!protocolVersion) throw new Error("SDK did not expose the negotiated MCP protocol version");
   await record("ping", () => client.ping());
   await record("tools/list", async () => {
     const names = [];
@@ -72,7 +76,8 @@ if (checks.initialize.result === "pass") {
     }
   });
   await record("behavior/auth", () => client.ping());
+  checks.protocolVersion = protocolVersion;
   await client.close();
 }
-await writeFile(process.env.CERT_RESULTS ?? "sdk-results.json", `${JSON.stringify({ performedBy: "Official MCP TypeScript SDK", requestUrl: url.href, checks }, null, 2)}\n`);
+await writeFile(process.env.CERT_RESULTS ?? "sdk-results.json", `${JSON.stringify({ performedBy: "Official MCP TypeScript SDK", requestUrl: url.href, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
 if (Object.values(checks).some(({ result }) => result === "fail")) process.exitCode = 1;

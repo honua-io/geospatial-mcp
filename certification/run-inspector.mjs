@@ -5,6 +5,12 @@ const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
 const binary = new URL("./node_modules/.bin/mcp-inspector", import.meta.url).pathname;
 const checks = {};
 
+const findProtocolVersion = (value) => {
+  if (!value || typeof value !== "object") return undefined;
+  if (typeof value.protocolVersion === "string") return value.protocolVersion;
+  return Object.values(value).map(findProtocolVersion).find(Boolean);
+};
+
 async function invoke(operation, method, extra = [], expectedCode = 0) {
   const startedAt = new Date().toISOString();
   const args = ["--cli", requestUrl, "--transport", "http", "--method", method, "--format", "json", ...extra];
@@ -25,6 +31,8 @@ async function invoke(operation, method, extra = [], expectedCode = 0) {
     output: result.stdout.trim(),
     error: result.stderr.trim(),
   };
+  const parsed = (() => { try { return JSON.parse(result.stdout); } catch { return undefined; } })();
+  if (operation === "initialize") checks.protocolVersion = findProtocolVersion(parsed);
 }
 
 await invoke("initialize", "initialize");
@@ -49,5 +57,5 @@ await invoke("behavior/auth", "initialize", ["--stored-auth-only"]);
     signal: outcome.signal,
   };
 }
-await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, checks }, null, 2)}\n`);
+await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
 if (Object.values(checks).some(({ result }) => result === "fail")) process.exitCode = 1;

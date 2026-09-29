@@ -118,6 +118,7 @@ referenced by name in these specs, not redefined here.
 └── spec/                     # The normative specification (single source of truth)
     ├── taxonomy.md           # Vocabulary baseline, v1 capability matrix, MCP-vs-gRPC boundary, non-goals
     ├── resources.md          # Per-family resource URIs (honua:// grammar), inspection fields, lifecycle, relationship graph
+    ├── transport.md          # Session/streaming transport: protocol revision, Mcp-Session-Id, SSE, progress + list_changed notifications
     ├── planning.md           # Clarification, elicitation, planning, and handoff semantics
     ├── corpus.md             # Canonical dataset corpus, fixture conventions, scenario-pack taxonomy
     ├── conformance.md        # Conformance fixtures, evaluation rubric, pass/fail, runtime portability

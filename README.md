@@ -79,6 +79,7 @@ boundary is normative ([taxonomy](spec/taxonomy.md)).
 |---|---|
 | [Taxonomy, Capability Matrix, and Non-Goals](spec/taxonomy.md) | Vocabulary baseline, `SPEC_VERSION`, v1 coverage matrix, MCP vs gRPC boundary, explicit non-goals |
 | [MCP Resource Contracts](spec/resources.md) | Per-family resource URIs, inspection fields, lifecycle visibility, relationship graph for results, maps, apps, styles, themes, templates, and promotion surfaces |
+| [Session and Streaming Transport](spec/transport.md) | Supported protocol revision (2025-06-18), `Mcp-Session-Id` sessions, streamable-HTTP/SSE and stdio transports, `notifications/progress`, and `notifications/*/list_changed` capability notifications |
 | [Clarification, Elicitation, Planning, and Handoff Semantics](spec/planning.md) | Clarification and elicitation semantics, assumption policies, per-family planning step kinds, boundary-crossing handoff contract |
 | [Canonical Dataset Corpus and Scenario Packs](spec/corpus.md) | Corpus layout, fixture descriptor conventions, canonical and dirty-data packs, scenario-pack taxonomy |
 | [JSON Schemas](spec/schemas/README.md) | Machine-readable JSON Schema bindings for each tool `inputSchema` and resource payload, plus the `index.json` vocabulary map |

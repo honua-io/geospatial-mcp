@@ -47,7 +47,7 @@
       "family": "Map composition",
       "schema": "tools/create_map_package.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference implementation (#1951): routes through the canonical IMapGenerationService pipeline."
+      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft MapPackage directly from the structured inputs defined in this schema (template, source bindings, style/theme selection, initial view) and returns its stable map package identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the composition is then refined through the fine-grained composition element operations."
     },
     {
       "standardName": "refine_map_package",
@@ -90,7 +90,7 @@
       "family": "App composition",
       "schema": "tools/create_app_package.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference implementation (#1951): routes through the canonical IAppGenerationService pipeline."
+      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft AppPackage directly from the structured inputs defined in this schema (app template, target SDK, bound map package and artifacts, runtime config) and returns its stable app package identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the composition is then refined through the fine-grained composition element operations."
     },
     {
       "standardName": "preview_app_package",

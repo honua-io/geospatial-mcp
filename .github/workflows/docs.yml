@@ -13,9 +13,9 @@ jobs:
     name: Markdown lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run markdownlint-cli2
-        uses: DavidAnson/markdownlint-cli2-action@v23
+        uses: DavidAnson/markdownlint-cli2-action@ded1f9488f68a970bc66ea5619e13e9b52e601cd # v23
         with:
           globs: "**/*.md"
 
@@ -23,8 +23,8 @@ jobs:
     name: Relative link check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.x"
       - name: Verify internal relative links and #anchor fragments resolve
@@ -34,12 +34,13 @@ jobs:
     name: Conformance checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.x"
       - name: Install validation dependencies
-        run: python3 -m pip install -r conformance/requirements.txt
+        run: |
+          python3 -m pip install --require-hashes --only-binary=:all: -r .github/requirements/conformance.lock
       - name: Validate fixtures against published schemas
         run: python3 conformance/fixtures/validate.py --strict
       - name: Check reference manifest conformance

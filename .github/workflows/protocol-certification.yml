@@ -145,11 +145,11 @@ jobs:
           key="$(head -c 32 /dev/urandom | base64)"
           salt="$(head -c 16 /dev/urandom | base64)"
           docker run -d --name honua-server --network host \
-            -e ASPNETCORE_ENVIRONMENT=Development \
+            -e ASPNETCORE_ENVIRONMENT=Production \
             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=honua" \
             -e Security__ConnectionEncryption__MasterKey="${key}" \
             -e Security__ConnectionEncryption__Salt="${salt}" \
-            -e HONUA_ADMIN_PASSWORD="ci-protocol-api-key" \
+            -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!" \
             -e Kestrel__Endpoints__Http__Url="http://+:8080" \
             -e Kestrel__Endpoints__Http__Protocols="Http1" \
             "${SERVER_IMAGE}"
@@ -185,6 +185,7 @@ jobs:
           SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           CUT_AT: ${{ steps.identity.outputs.cut-at }}
           STARTED_AT: ${{ steps.identity.outputs.started-at }}
+          RUNTIME_ENVIRONMENT: Production
         shell: bash
         run: |
           mkdir -p artifacts/mcp
@@ -194,10 +195,11 @@ jobs:
             --arg imageDigest "${SERVER_IMAGE##*@}" \
             --arg cutAt "${CUT_AT}" \
             --arg startedAt "${STARTED_AT}" \
+            --arg runtimeEnvironment "${RUNTIME_ENVIRONMENT}" \
             --arg requestUrl "http://localhost:8080/mcp" \
             --slurpfile sdk certification/artifacts/sdk-results.json \
             --slurpfile inspector certification/artifacts/inspector-results.json \
-            '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
+            '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
             > artifacts/mcp/builder-input.json
           node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json
 
@@ -209,3 +211,11 @@ jobs:
           path: artifacts/mcp/protocol-certification-fragment.json
           if-no-files-found: error
           retention-days: 90
+
+      - name: Enforce MCP certification failure semantics
+        if: always()
+        run: |
+          if [[ "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
+            echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
+            exit 1
+          fi

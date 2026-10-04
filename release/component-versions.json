@@ -1,0 +1,10 @@
+{
+  "format": "honua.component-versions/v1",
+  "component": "geospatial-mcp",
+  "contractVersions": {
+    "geospatial-mcp": "1.0"
+  },
+  "schemaVersions": {
+    "geospatial-mcp-schemas": "1.0"
+  }
+}

@@ -509,7 +509,7 @@ standard MCP tools:
 | `geocode_addresses` | Analysis and geoprocessing (reference shape) | a batched `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
 | `solve_route` | Analysis and geoprocessing (reference shape) | a `Geoprocess` plan step bound to a `ProcessDefinition` ([planning.md §4](planning.md#4-per-family-planning-behavior)) |
 | `cancel_job` | Execution (reference shape) | post-handoff `ExecutionJob` lifecycle, owned by `ProcessService` ([planning.md §5.3](planning.md#53-post-handoff-execution--orchestration-plane)) |
-| `propose_operation` | Control-plane proposal (reference shape) | a control-plane proposal; no v1 standard MCP tool |
+| `propose_operation` | Control-plane proposal (reference shape) | a control-plane proposal; no v1 standard MCP tool. `known-gap`: retired from the reference by honua-server#3782 and replaced by typed proposal tools (see [§Platform Operations](#platform-operations-reference-shape)) |
 | `propose_rollback` | Control-plane proposal (reference shape) | a control-plane rollback proposal (a new forward Deploy to the prior revision); no v1 standard MCP tool |
 | `ops_health` | Platform operations (reference shape) | admin observability roll-up read; no v1 standard MCP tool |
 | `ops_findings` | Platform operations (reference shape) | deterministic-findings read (list/get); no v1 standard MCP tool |
@@ -558,8 +558,8 @@ in sync with the vendored schema copy per
 - **Action tool** (approval-gated, never autonomously executed):
   - `propose_rollback` — proposes rolling a deploy target back to its prior
     revision **as a new forward Deploy operation to that prior revision** (not an
-    in-flight-operation abort); returns a proposal id / `honua://proposals/{id}`
-    like `propose_operation`. It states the honua-server ADR-0028 posture
+    in-flight-operation abort); returns a proposal id / `honua://proposals/{id}`.
+    It states the honua-server ADR-0028 posture
     (deterministic server, approval-gated mutation, no autonomous AI data edits)
     in its description; approve/reject/submit/promote stay human-only through the
     console inbox.
@@ -568,9 +568,15 @@ These use `platform_release` / `server_upgrade` vocabulary throughout;
 **"deployment"** always refers to the distinct hosted-content
 [`honua://deployments/{deployment_id}`](resources.md#honuadeploymentsdeployment_id)
 family. Like the other reference-shape tools they are not v1 standard vocabulary.
-`propose_operation` additionally records an `x-honua-supported-kinds` runtime
-capability-discovery annotation (the `kind` enum stays wire-compatible; `Seed`
-is currently not routable in the reference).
+`propose_operation` is retired from the reference by
+[`honua-server#3782`](https://github.com/honua-io/honua-server/pull/3782) and
+is now a `known-gap` in the index (no `referenceToolName`). The reference
+replaces the generic proposal with typed proposal tools —
+`honua_propose_finding`, `honua_propose_deploy_operation`,
+`honua_propose_rollback`, `honua_propose_platform_release_convergence`, and
+`honua_propose_metadata_release` — each approval-gated in the same way. The
+`propose_operation` schema (including its historical `x-honua-supported-kinds`
+annotation) is kept for wire compatibility only.
 
 ## Non-Goals
 

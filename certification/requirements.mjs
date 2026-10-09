@@ -31,13 +31,13 @@ export const CLIENTS = {
   sdk: {
     canonicalClient: "Official MCP TypeScript SDK",
     clientId: "Official MCP TypeScript SDK",
-    version: "1.30.0",
+    version: "1.32.1",
     lane: "mcp-typescript-sdk",
   },
   inspector: {
     canonicalClient: "MCP Inspector",
     clientId: "MCP Inspector",
-    version: "2.3.0",
+    version: "2.10.1",
     lane: "mcp-inspector",
   },
 };

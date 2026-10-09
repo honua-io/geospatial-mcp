@@ -39,9 +39,13 @@ on:
 
 env:
   NODE_VERSION: "22.19.0"
-  MCP_SDK_VERSION: "1.30.0"
-  MCP_INSPECTOR_VERSION: "2.3.0"
-  CONFORMANCE_CORPUS_REVISION: "5e052a76b6485edbe78c3482488c58f66700bd59"
+  MCP_SDK_VERSION: "1.32.1"
+  MCP_INSPECTOR_VERSION: "2.10.1"
+  # Content-addressed corpus pins: git tree hashes of conformance/ and spec/.
+  # A change to either directory must update these in the same PR
+  # (certification/test/corpus-trees.test.mjs recomputes them).
+  CONFORMANCE_CORPUS_TREE: "80d6f93e4bf85519aa014ccf2a9357faf0378d68"
+  SPEC_TREE: "909c19a94d735eacc840eb7f40d1ce266e2ac551"
   PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:d7a45c871bf318b4882ec8e1c32004803e6d0210246be30120751f05dee1a14d"
   PINNED_SERVER_SOURCE_SHA: "e3ab87cebb7bf2d32c4e8cdb145f8d626b864d8e"
 
@@ -122,11 +126,40 @@ jobs:
           npm ci --ignore-scripts
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
-          # the default checkout is shallow; materialize the pinned corpus revision before verifying against it
-          git fetch --quiet --depth=1 origin "${CONFORMANCE_CORPUS_REVISION}"
-          test "$(git rev-parse "${CONFORMANCE_CORPUS_REVISION}^{commit}")" = "${CONFORMANCE_CORPUS_REVISION}"
-          git diff --quiet "${CONFORMANCE_CORPUS_REVISION}" -- ../conformance ../spec
+          # content-addressed corpus check: no fetch, no dependency on a reachable commit
+          actual_conformance="$(git rev-parse HEAD:conformance)"
+          actual_spec="$(git rev-parse HEAD:spec)"
+          [[ "${actual_conformance}" == "${CONFORMANCE_CORPUS_TREE}" ]] || { echo "::error::conformance/ tree ${actual_conformance} != pinned CONFORMANCE_CORPUS_TREE ${CONFORMANCE_CORPUS_TREE}"; exit 1; }
+          [[ "${actual_spec}" == "${SPEC_TREE}" ]] || { echo "::error::spec/ tree ${actual_spec} != pinned SPEC_TREE ${SPEC_TREE}"; exit 1; }
         working-directory: certification
+
+      - name: Check MCP tool roster parity against the server source SHA
+        id: roster
+        env:
+          SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://raw.githubusercontent.com/honua-io/honua-server/${SERVER_SOURCE_SHA}/docs/gis/data/mcp-tool-roster.v1.json"
+          mkdir -p .certification
+          code="$(curl -sS -o .certification/mcp-tool-roster.v1.json -w '%{http_code}' "${url}")"
+          if [[ "${code}" == 404 ]]; then
+            # The roster artifact lands server-side separately; never treat its absence as parity.
+            node certification/check-roster-parity.mjs spec/schemas/index.json - --absent > .certification/roster-parity.json || rc=$?
+            [[ "${rc:-0}" == 3 ]] || { echo '::error::Roster parity checker did not report blocked for an absent roster.'; exit 1; }
+            echo "::warning title=MCP roster parity blocked::blocked: roster not published at pinned sha ${SERVER_SOURCE_SHA}"
+            echo "status=blocked" >> "${GITHUB_OUTPUT}"
+            { echo '### MCP tool roster parity'; echo; echo "**blocked: roster not published at pinned sha** \`${SERVER_SOURCE_SHA}\`"; } >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          [[ "${code}" == 200 ]] || { echo "::error::Fetching the MCP tool roster returned HTTP ${code}."; exit 1; }
+          rc=0
+          node certification/check-roster-parity.mjs spec/schemas/index.json .certification/mcp-tool-roster.v1.json > .certification/roster-parity.json || rc=$?
+          cat .certification/roster-parity.json
+          status="$(jq -r .status .certification/roster-parity.json)"
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          { echo '### MCP tool roster parity'; echo; echo "**${status}** at \`${SERVER_SOURCE_SHA}\`"; echo; echo '```json'; cat .certification/roster-parity.json; echo '```'; } >> "${GITHUB_STEP_SUMMARY}"
+          [[ "${rc}" == 0 && "${status}" == pass ]] || { echo '::error::Implemented index tools are missing from the server roster (static ∪ projectedAdmin).'; exit 1; }
 
       - name: Fetch and apply exact seed
         env:

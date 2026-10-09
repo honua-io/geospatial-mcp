@@ -1,3 +1,6 @@
 # Python bytecode from running the conformance/link checkers locally.
 __pycache__/
 *.py[cod]
+
+# certification/ npm install output.
+node_modules/

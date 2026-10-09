@@ -161,37 +161,50 @@ jobs:
           { echo '### MCP tool roster parity'; echo; echo "**${status}** at \`${SERVER_SOURCE_SHA}\`"; echo; echo '```json'; cat .certification/roster-parity.json; echo '```'; } >> "${GITHUB_STEP_SUMMARY}"
           [[ "${rc}" == 0 && "${status}" == pass ]] || { echo '::error::Implemented index tools are missing from the server roster (static ∪ projectedAdmin).'; exit 1; }
 
-      - name: Fetch and apply exact seed
+      - name: Fetch exact seed and provision the database
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEED_REF: ${{ steps.identity.outputs.seed-ref }}
           PGPASSWORD: honua
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p .certification
           gh api "repos/honua-io/honua-server/contents/tests/seed/base-schema.sql?ref=${SEED_REF}" -H "Accept: application/vnd.github.raw" > .certification/base-schema.sql
-          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
+          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1             -c "CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS postgis_raster;"
+          # A Production server refuses credential literals that ship in honua-server's harness
+          # files (including the `honua` database password), so rotate the service role to a
+          # per-run secret before the candidate connects.
+          db_password="$(openssl rand -hex 24)"
+          echo "::add-mask::${db_password}"
+          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -c "ALTER ROLE honua PASSWORD '${db_password}'"
+          echo "HONUA_CERT_DB_PASSWORD=${db_password}" >> "${GITHUB_ENV}"
 
       - name: Start exact Honua server image
         env:
           SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+        shell: bash
         run: |
+          set -euo pipefail
           key="$(head -c 32 /dev/urandom | base64)"
           salt="$(head -c 16 /dev/urandom | base64)"
-          docker run -d --name honua-server --network host \
-            -e ASPNETCORE_ENVIRONMENT=Production \
-            -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=honua" \
-            -e Security__ConnectionEncryption__MasterKey="${key}" \
-            -e Security__ConnectionEncryption__Salt="${salt}" \
-            -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!" \
-            -e Kestrel__Endpoints__Http__Url="http://+:8080" \
-            -e Kestrel__Endpoints__Http__Protocols="Http1" \
-            "${SERVER_IMAGE}"
+          # Boot against the extension-only database so the server's own migrations own the
+          # schema; the seed is applied afterwards (as honua-server's setup-honua-server does).
+          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
           for i in $(seq 1 60); do
-            [[ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
+            [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
+            if [[ "$(docker inspect -f '{{.State.Running}}' honua-server 2>/dev/null || true)" != true ]]; then
+              echo '::error::Honua server container exited before becoming ready.'
+              break
+            fi
             sleep 3
           done
           docker logs honua-server || true
           exit 1
+
+      - name: Apply exact seed after migrations
+        shell: bash
+        run: PGPASSWORD="${HONUA_CERT_DB_PASSWORD}" psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
 
       - name: Exercise MCP through the real official SDK
         id: sdk

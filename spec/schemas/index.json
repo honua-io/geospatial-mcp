@@ -285,11 +285,11 @@
     },
     {
       "standardName": "propose_operation",
-      "referenceToolName": "honua_propose_operation",
+      "referenceToolName": null,
       "family": "Control-plane proposal (reference shape)",
       "schema": "tools/propose_operation.schema.json",
-      "implementationStatus": "implemented",
-      "notes": "Amended with x-honua-supported-kinds runtime capability discovery (geospatial-mcp#57): the kind enum stays the full wire-compatible OperationClass set, but the routable subset is discoverable at runtime (Seed is currently not routable in the reference)."
+      "implementationStatus": "known-gap",
+      "notes": "Retired by honua-server#3782; typed proposal tools (`honua_propose_finding`, `honua_propose_deploy_operation`, `honua_propose_rollback`, `honua_propose_platform_release_convergence`, `honua_propose_metadata_release`) replace it. The reference no longer advertises honua_propose_operation. Historical: amended with x-honua-supported-kinds runtime capability discovery (geospatial-mcp#57)."
     },
     {
       "standardName": "ops_health",

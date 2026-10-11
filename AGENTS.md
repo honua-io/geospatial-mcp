@@ -169,3 +169,7 @@ This machine runs many agents concurrently (**Codex + Claude**, often via agentf
 (`geospatial-mcp` tracks `SPEC_VERSION` in `spec/taxonomy.md`). The honua-release nightly resolver
 reads it at the exact selected commit and refuses the component when it is missing or invalid, so
 any contract or schema version bump must change this file in the same PR.
+
+## SDK capability baseline
+
+`release/sdk-capability-baseline.json` (`honua.sdk-capability-baseline/v1`, defined by honua-release `schemas/sdk-capability-baseline.v1.schema.json` and `docs/SDK-SERVER-BASELINE-RULE.md`) declares the honua-server capabilities this repository requires and the `minimumServerVersion` derived from them. The honua-release nightly resolver reads it at the same selected trunk commit as `release/component-versions.json`, so the baseline takes effect as soon as that commit is selected. Every required capability must be a key in honua-server `docs/gis/data/capability-keys.v1.json`, and `capabilities` must hold exactly one introduction entry per required capability. Add or remove a required capability in the same PR that starts or stops depending on it.

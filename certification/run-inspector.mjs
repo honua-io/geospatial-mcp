@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
+import { authenticationDenial, assertToolRoster } from "./probes.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
 const binary = new URL("./node_modules/.bin/mcp-inspector", import.meta.url).pathname;
@@ -11,17 +12,19 @@ const findProtocolVersion = (value) => {
   return Object.values(value).map(findProtocolVersion).find(Boolean);
 };
 
-async function invoke(operation, method, extra = [], expectedCode = 0) {
+async function invoke(operation, method, extra = [], expectedCode = 0, authenticated = true) {
   const startedAt = new Date().toISOString();
   const args = ["--cli", requestUrl, "--transport", "http", "--method", method, "--format", "json", ...extra];
-  if (process.env.HONUA_MCP_API_KEY) args.push("--header", `Authorization: Bearer ${process.env.HONUA_MCP_API_KEY}`);
+  if (authenticated && process.env.HONUA_MCP_API_KEY) args.push("--header", `X-API-Key: ${process.env.HONUA_MCP_API_KEY}`);
   const result = await new Promise((resolve) => {
     const child = spawn(binary, args, { env: { ...process.env, MCP_AUTO_OPEN_ENABLED: "false" } });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("close", (code) => resolve({ code, stdout, stderr }));
+    const timeout = setTimeout(() => child.kill("SIGTERM"), 30_000);
+    child.on("error", (error) => { clearTimeout(timeout); resolve({ code: null, stdout, stderr: String(error) }); });
+    child.on("close", (code) => { clearTimeout(timeout); resolve({ code, stdout, stderr }); });
   });
   checks[operation] = {
     result: result.code === expectedCode ? "pass" : "fail",
@@ -33,29 +36,26 @@ async function invoke(operation, method, extra = [], expectedCode = 0) {
   };
   const parsed = (() => { try { return JSON.parse(result.stdout); } catch { return undefined; } })();
   if (operation === "initialize") checks.protocolVersion = findProtocolVersion(parsed);
+  return parsed?.result ?? parsed;
 }
 
 await invoke("initialize", "initialize");
-await invoke("ping", "initialize"); // connect-only Inspector probe exercises transport liveness.
-await invoke("tools/list", "tools/list");
+checks.ping = { result: "skip", reason: "Pinned Inspector one-shot CLI has no ping method; initialize is not ping proof" };
+const tools = await invoke("tools/list", "tools/list");
+try {
+  const manifest = JSON.parse(await readFile(new URL("../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
+  assertToolRoster(tools?.tools?.map(({ name }) => name) ?? [], manifest.tools.map(({ advertisedName }) => advertisedName));
+} catch (error) { checks["tools/list"].result = "fail"; checks["tools/list"].error = String(error); }
 await invoke("resources/templates/list", "resources/templates/list");
 await invoke("behavior/resources-pagination", "resources/list");
-await invoke("behavior/error", "tools/call", ["--tool-name", "__certification_missing_tool__"], 5);
-await invoke("behavior/auth", "initialize", ["--stored-auth-only"]);
-{
-  const startedAt = new Date().toISOString();
-  const child = spawn(binary, ["--cli", requestUrl, "--transport", "http", "--method", "tools/list", "--format", "json"], {
-    env: { ...process.env, MCP_AUTO_OPEN_ENABLED: "false" },
-  });
-  setTimeout(() => child.kill("SIGTERM"), 25);
-  const outcome = await new Promise((resolve) => child.on("close", (code, signal) => resolve({ code, signal })));
-  checks["behavior/cancellation"] = {
-    result: outcome.signal === "SIGTERM" ? "pass" : "fail",
-    startedAt,
-    completedAt: new Date().toISOString(),
-    inspectorExitCode: outcome.code,
-    signal: outcome.signal,
-  };
-}
+// The pinned CLI rejects names absent from its local tools/list before sending
+// tools/call. Its exit code cannot establish the candidate's unknown-tool error.
+checks["behavior/error"] = { result: "skip", reason: "Pinned Inspector rejects unknown tool locally; no server error proof" };
+// The authentication control calls a protected tool through an anonymous Inspector
+// session and inspects its typed refusal; a successful handshake is insufficient.
+const denied = await invoke("behavior/auth", "tools/call", ["--tool-name", "honua_list_layers", "--stored-auth-only"], 5, false);
+try { await authenticationDenial({ callTool: async () => denied }); }
+catch (error) { checks["behavior/auth"].result = "fail"; checks["behavior/auth"].error = String(error); }
+checks["behavior/cancellation"] = { result: "skip", reason: "Inspector has no supported in-flight cancellation proof; honua-release#123" };
 await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
-if (Object.values(checks).some(({ result }) => result === "fail")) process.exitCode = 1;
+if (Object.values(checks).some(({ result }) => result === "fail" || result === "skip")) process.exitCode = 1;

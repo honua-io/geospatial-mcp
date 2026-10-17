@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { buildFragment } from "../build-fragment.mjs";
+import { spawnSync } from "node:child_process";
+import { buildFragment as build } from "../build-fragment.mjs";
+import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../requirements.mjs";
+const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
+  revision: "test-owned-catalog/v1", requirements: OPERATIONS.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
+    capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
+    deployment_target: "local-docker", maturity: "supported", required_tier: "nightly",
+    scenario_facets: ["positive", "negative", "media-schema"], fixture_revision: FIXTURE_REVISION,
+    contract_revision: CONTRACT_REVISION, auth_policy_revision: "anonymous-public-v1",
+  }))) };
+const buildFragment = (input) => build({ requirements, ...input });
 
 const identity = {
   sourceSha: "a".repeat(40), producerSourceSha: "c".repeat(40),
@@ -87,4 +97,61 @@ test("preserves failed initialization when negotiation did not complete", () => 
   );
   assert.equal(initializeRow.result, "fail");
   assert.equal(initializeRow.protocol_version, null);
+});
+
+
+test("receipt v2 owns the exact governed identity", async () => {
+  const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
+    protocolVersion: "2025-06-18", checks: passing,
+  }])) });
+  const row = fragment.observations.find((row) => row.result === "pass");
+  assert.equal(row.evidence_receipt.schema, "honua.certification-evidence-receipt/v2");
+  assert.equal(row.evidence_receipt.identity.requirements_revision, requirements.revision);
+  assert.equal(row.evidence_receipt.identity.maturity, "supported");
+  assert.equal(row.evidence_receipt.identity.required_tier, "nightly");
+  assert.equal("runtime_environment" in row.evidence_receipt.identity, false);
+  assert.equal("protocol_version" in row.evidence_receipt.identity, false);
+});
+
+test("missing, ambiguous, stale-version and incomplete requirement context fail closed", () => {
+  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing }]));
+  for (const catalog of [undefined, { ...requirements, receipt_schema_min: "v1" },
+    { ...requirements, complete: false }, { ...requirements, requirements: requirements.requirements.slice(1) },
+    { ...requirements, requirements: [...requirements.requirements, requirements.requirements[0]] },
+    { ...requirements, requirements: requirements.requirements.map((row) => ({ ...row, client_version: "stale" })) }]) {
+    assert.throws(() => build({ identity, results, requirements: catalog }), /governed|requirement/);
+  }
+});
+
+test("unsupported cancellation and auth never mint negative facets or pass receipts", () => {
+  for (const behavior of ["behavior/cancellation", "behavior/auth"]) {
+    const checks = { ...passing, [behavior]: { result: "skip", reason: "not implemented" } };
+    const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
+      protocolVersion: "2025-06-18", checks,
+    }])) });
+    assert.equal(fragment.observations.filter((row) => row.result === "pass").length, 0);
+    assert.equal(fragment.observations.some((row) => row.evidence_receipt), false);
+  }
+});
+
+
+test("real release consumer accepts v2 and rejects stale context and tampered bytes", { skip: !process.env.HONUA_RELEASE_CHECKER }, () => {
+  const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
+    protocolVersion: "2025-06-18", checks: passing,
+  }])) });
+  const row = fragment.observations.find((row) => row.result === "pass");
+  const code = `import copy,importlib.util,json,sys
+spec=importlib.util.spec_from_file_location("release_checker",sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+row=json.load(sys.stdin);revision=row["requirements_revision"]
+assert m._valid_receipt(row, requirements_revision=revision)
+for field,value in [("requirements_revision","stale"),("required_tier","release"),("maturity","preview"),("schema","honua.certification-evidence-receipt/v1")]:
+    bad=copy.deepcopy(row)
+    if field=="schema": bad["evidence_receipt"][field]=value
+    else: bad["evidence_receipt"]["identity"][field]=value
+    assert not m._valid_receipt(bad, requirements_revision=revision),field
+bad=copy.deepcopy(row);bad["evidence_digest"]="sha256:"+"0"*64
+assert m._receipt_digest(bad["evidence_receipt"]) != bad["evidence_digest"]
+`;
+  const checked = spawnSync("python3", ["-c", code, process.env.HONUA_RELEASE_CHECKER], { input: JSON.stringify(row), encoding: "utf8" });
+  assert.equal(checked.status, 0, checked.stderr);
 });

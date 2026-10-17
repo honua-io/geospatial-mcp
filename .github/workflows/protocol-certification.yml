@@ -33,6 +33,12 @@ on:
       server_seed_ref:
         description: Exact honua-server seed revision
         required: false
+      requirements_ref:
+        description: Full honua-release commit owning the governed requirement catalog
+        required: false
+      requirements_revision:
+        description: Exact governed catalog revision (required for release)
+        required: false
       release_cut:
         description: Independently frozen RFC 3339 release cut
         required: false
@@ -121,9 +127,29 @@ jobs:
           cache: npm
           cache-dependency-path: certification/package-lock.json
 
+      - name: Fetch immutable governed requirement context and consumer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIREMENTS_REF: ${{ inputs.requirements_ref || 'a5296ff13f34c6dd1a2109d1d31ad5c8d0e80935' }}
+          REQUIREMENTS_REVISION: ${{ inputs.requirements_revision }}
+          TIER: ${{ steps.identity.outputs.tier }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "${REQUIREMENTS_REF}" =~ ^[0-9a-f]{40}$ ]] || { echo '::error::Requirements ref must be immutable.'; exit 1; }
+          [[ "${TIER}" != release || -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Release requirements revision is required.'; exit 1; }
+          mkdir -p .certification
+          gh api "repos/honua-io/honua-release/contents/certification/protocol-certification-requirements.v1.json?ref=${REQUIREMENTS_REF}" -H 'Accept: application/vnd.github.raw' > .certification/requirements.json
+          gh api "repos/honua-io/honua-release/contents/tools/check_protocol_certification.py?ref=${REQUIREMENTS_REF}" -H 'Accept: application/vnd.github.raw' > .certification/check_protocol_certification.py
+          actual="$(jq -er '.revision' .certification/requirements.json)"
+          [[ -z "${REQUIREMENTS_REVISION}" || "${actual}" == "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Requirements revision mismatch.'; exit 1; }
+          echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/.certification/check_protocol_certification.py" >> "${GITHUB_ENV}"
+          printf '%s\n' "${REQUIREMENTS_REF}" > .certification/requirements-source.txt
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
+          npm test
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
           # content-addressed corpus check: no fetch, no dependency on a reachable commit
@@ -213,6 +239,7 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/sdk-results.json
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
         run: mkdir -p artifacts && node run-sdk.mjs
 
       - name: Exercise MCP through the real Inspector
@@ -222,6 +249,7 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/inspector-results.json
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
         run: node run-inspector.mjs
 
       - name: Emit normalized digest-bound fragment
@@ -247,14 +275,17 @@ jobs:
             --slurpfile inspector certification/artifacts/inspector-results.json \
             '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
             > artifacts/mcp/builder-input.json
-          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json
+          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json .certification/requirements.json
 
       - name: Upload governed producer artifact
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mcp-protocol-certification-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/mcp/protocol-certification-fragment.json
+          path: |
+            artifacts/mcp/protocol-certification-fragment.json
+            .certification/requirements.json
+            .certification/requirements-source.txt
           if-no-files-found: error
           retention-days: 90
 

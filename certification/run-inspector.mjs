@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
+import { readScenarios } from "./semantic-reads.mjs";
 import { authenticationDenial, assertToolRoster } from "./probes.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
@@ -27,7 +28,7 @@ async function invoke(operation, method, extra = [], expectedCode = 0, authentic
     child.on("close", (code) => { clearTimeout(timeout); resolve({ code, stdout, stderr }); });
   });
   checks[operation] = {
-    result: result.code === expectedCode ? "pass" : "fail",
+    result: (Array.isArray(expectedCode) ? expectedCode.includes(result.code) : result.code === expectedCode) ? "pass" : "fail",
     startedAt,
     completedAt: new Date().toISOString(),
     inspectorExitCode: result.code,
@@ -47,7 +48,19 @@ try {
   assertToolRoster(tools?.tools?.map(({ name }) => name) ?? [], manifest.tools.map(({ advertisedName }) => advertisedName));
 } catch (error) { checks["tools/list"].result = "fail"; checks["tools/list"].error = String(error); }
 await invoke("resources/templates/list", "resources/templates/list");
-await invoke("behavior/resources-pagination", "resources/list");
+await readScenarios(async (name, arguments_) => {
+  const extra = ["--tool-name", name];
+  if (Object.keys(arguments_).length) extra.push("--tool-arg", ...Object.entries(arguments_).map(([key, value]) => `${key}=${JSON.stringify(value)}`));
+  return invoke(`diagnostic/${name}`, "tools/call", extra, [0, 5]);
+}, async (name, run) => {
+  const startedAt = new Date().toISOString();
+  try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
+  catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
+});
+await invoke("diagnostic/resources-list", "resources/list");
+// A single CLI listing is not a wire-observed cursor traversal. Preserve the
+// diagnostic result without counting it as pagination evidence.
+checks["behavior/resources-pagination"] = { result: "skip", reason: "Inspector cursor traversal is not independently observed; geospatial-mcp#95" };
 // The pinned CLI rejects names absent from its local tools/list before sending
 // tools/call. Its exit code cannot establish the candidate's unknown-tool error.
 checks["behavior/error"] = { result: "skip", reason: "Pinned Inspector rejects unknown tool locally; no server error proof" };

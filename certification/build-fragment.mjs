@@ -52,12 +52,18 @@ export function buildFragment({ identity, results, requirements, now = new Date(
     OPERATIONS.map(([capabilityKey, operation]) => {
       const context = contexts.get(`${client.canonicalClient}:${operation}`);
       const execution = results[clientKey]?.checks?.[operation];
-      const executable = ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const semantic = ["tools/call:list_capabilities", "tools/call:list_layers", "tools/call:query_features"].includes(operation);
+      const proof = execution?.value;
+      const semanticPassed = !semantic || (proof?.schema === "honua.mcp-read-semantic-proof/v1"
+        && proof.positive === true && proof.negative === true && proof.mediaSchema === true
+        && proof.fixtureSourceSha === identity.sourceSha && /^sha256:[0-9a-f]{64}$/.test(proof.seedSqlSha256)
+        && /^sha256:[0-9a-f]{64}$/.test(proof.allocatedIdsSha256));
+      const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass");
       const result = execution?.result === "fail"
         ? "fail"
-        : executable && execution?.result === "pass" && behaviorPassed
+        : executable && execution?.result === "pass" && behaviorPassed && semanticPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -103,7 +109,8 @@ export function buildFragment({ identity, results, requirements, now = new Date(
         deployment_target: "local-docker",
         result,
         skip_reason: result === "skip"
-          ? executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
+          ? semantic ? `candidate-bound read semantic proof did not pass: ${RELEASE_123}`
+            : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,
         producer_source_sha: identity.producerSourceSha,

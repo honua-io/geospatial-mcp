@@ -155,3 +155,15 @@ assert m._receipt_digest(bad["evidence_receipt"]) != bad["evidence_digest"]
   const checked = spawnSync("python3", ["-c", code, process.env.HONUA_RELEASE_CHECKER], { input: JSON.stringify(row), encoding: "utf8" });
   assert.equal(checked.status, 0, checked.stderr);
 });
+
+
+test("semantic read pass requires candidate-bound authored fixture proof", () => {
+  const semantic = { result: "pass", value: { schema: "honua.mcp-read-semantic-proof/v1", positive: true, negative: true,
+    mediaSchema: true, fixtureSourceSha: identity.sourceSha, seedSqlSha256: `sha256:${"d".repeat(64)}`, allocatedIdsSha256: `sha256:${"e".repeat(64)}` } };
+  for (const [value, expected] of [[semantic, "pass"], [{ ...semantic, value: {} }, "skip"],
+    [{ ...semantic, value: { ...semantic.value, fixtureSourceSha: "f".repeat(40) } }, "skip"]]) {
+    const checks = { ...passing, "tools/call:query_features": value };
+    const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks }])) });
+    assert.equal(fragment.observations.find((row) => row.operation === "tools/call:query_features").result, expected);
+  }
+});

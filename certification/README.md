@@ -7,7 +7,12 @@ producer-to-consumer receipt controls.
 
 The workflow fetches and retains that revision's governed requirements catalog.
 Release dispatches require its exact `requirements_revision`; `requirements_ref`
-is a full commit, never a branch. `build-fragment.mjs INPUT OUTPUT REQUIREMENTS`
+is a full commit, never a branch. Before fetching executable checker bytes, the
+maintained fetcher verifies the canonical repository, protected default trunk,
+source ancestry, full source tree, unique Git blobs, byte lengths and Git/SHA256
+hashes. Default bytes also match reviewed file pins; overrides require an exact
+source/revision pair and the same protected-history floor. This matches the
+SDK receipt producer's reviewed governance-fetch contract. `build-fragment.mjs INPUT OUTPUT REQUIREMENTS`
 requires one matching governed row for every declared operation/client/version,
 including its maturity, tier, facets, and fixture/contract/auth policy revisions.
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
@@ -37,3 +42,15 @@ independent mutation/readback, under geospatial-mcp#95 and honua-release#123/#65
 A green synthetic/unit check is never candidate certification. The workflow's
 retained fragment, source/image binding, required facets, and final release gate
 must all pass against the selected candidate.
+
+
+The bounded read scenarios now invoke `honua_list_capabilities`,
+`honua_list_layers`, and `honua_query_features` through each real canonical client.
+They inspect typed discovery metadata, the authored service/layer, and the exact
+alpha/beta feature IDs, integer attributes and point coordinates. Positive and
+typed-negative calls remain mandatory. The oracle binds the exact candidate seed
+SQL and separately captured allocated database IDs; arbitrary layer discovery,
+cross-adapter agreement, or empty/partial feature responses do not establish proof.
+The builder requires this candidate/source/hash binding before admitting a semantic
+read. The unchanged cancellation and Inspector pagination floors still prevent a
+full lane pass. General tool/resource workflows remain separately incomplete.

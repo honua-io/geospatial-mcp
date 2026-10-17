@@ -127,28 +127,28 @@ jobs:
           cache: npm
           cache-dependency-path: certification/package-lock.json
 
-      - name: Fetch immutable governed requirement context and consumer
+      - name: Fetch protected-history governed requirement context and consumer
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REQUIREMENTS_REF: ${{ inputs.requirements_ref || 'a5296ff13f34c6dd1a2109d1d31ad5c8d0e80935' }}
+          REQUIREMENTS_REF: ${{ inputs.requirements_ref }}
           REQUIREMENTS_REVISION: ${{ inputs.requirements_revision }}
           TIER: ${{ steps.identity.outputs.tier }}
         shell: bash
         run: |
           set -euo pipefail
-          [[ "${REQUIREMENTS_REF}" =~ ^[0-9a-f]{40}$ ]] || { echo '::error::Requirements ref must be immutable.'; exit 1; }
-          [[ "${TIER}" != release || -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Release requirements revision is required.'; exit 1; }
-          mkdir -p .certification
-          gh api "repos/honua-io/honua-release/contents/certification/protocol-certification-requirements.v1.json?ref=${REQUIREMENTS_REF}" -H 'Accept: application/vnd.github.raw' > .certification/requirements.json
-          gh api "repos/honua-io/honua-release/contents/tools/check_protocol_certification.py?ref=${REQUIREMENTS_REF}" -H 'Accept: application/vnd.github.raw' > .certification/check_protocol_certification.py
-          actual="$(jq -er '.revision' .certification/requirements.json)"
-          [[ -z "${REQUIREMENTS_REVISION}" || "${actual}" == "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Requirements revision mismatch.'; exit 1; }
+          args=(--destination .certification)
+          if [[ -n "${REQUIREMENTS_REF}" || -n "${REQUIREMENTS_REVISION}" ]]; then
+            [[ -n "${REQUIREMENTS_REF}" && -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Governed source/revision must be supplied together.'; exit 1; }
+            args+=(--source-sha "${REQUIREMENTS_REF}" --requirements-revision "${REQUIREMENTS_REVISION}")
+          fi
+          [[ "${TIER}" != release || -n "${REQUIREMENTS_REF}" && -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Release requirements source/revision are required.'; exit 1; }
+          python3 certification/fetch-certification-requirements.py "${args[@]}"
           echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/.certification/check_protocol_certification.py" >> "${GITHUB_ENV}"
-          printf '%s\n' "${REQUIREMENTS_REF}" > .certification/requirements-source.txt
 
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
+          python3 -m unittest discover -s test -p 'test_fetch*.py' -v
           npm test
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
@@ -232,6 +232,16 @@ jobs:
         shell: bash
         run: PGPASSWORD="${HONUA_CERT_DB_PASSWORD}" psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
 
+      - name: Retain independently allocated authored point fixture IDs
+        env:
+          PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -At \
+            -c "SELECT json_agg(row_to_json(f) ORDER BY f.name) FROM (SELECT objectid AS id, attributes->>'name' AS name FROM features WHERE layer_id=0 AND attributes->>'name' IN ('alpha','beta')) f" \
+            > .certification/fixture-row-ids.json
+
       - name: Exercise MCP through the real official SDK
         id: sdk
         continue-on-error: true
@@ -240,6 +250,10 @@ jobs:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/sdk-results.json
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
+          HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
+          HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
         run: mkdir -p artifacts && node run-sdk.mjs
 
       - name: Exercise MCP through the real Inspector
@@ -250,6 +264,10 @@ jobs:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/inspector-results.json
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
+          HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
+          HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
         run: node run-inspector.mjs
 
       - name: Emit normalized digest-bound fragment
@@ -275,7 +293,7 @@ jobs:
             --slurpfile inspector certification/artifacts/inspector-results.json \
             '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
             > artifacts/mcp/builder-input.json
-          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json .certification/requirements.json
+          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json .certification/protocol-certification-requirements.v1.json
 
       - name: Upload governed producer artifact
         if: always()
@@ -286,8 +304,10 @@ jobs:
             artifacts/mcp/protocol-certification-fragment.json
             certification/artifacts/sdk-results.json
             certification/artifacts/inspector-results.json
-            .certification/requirements.json
-            .certification/requirements-source.txt
+            .certification/protocol-certification-requirements.v1.json
+            .certification/source-binding.json
+            .certification/base-schema.sql
+            .certification/fixture-row-ids.json
           if-no-files-found: error
           retention-days: 90
 

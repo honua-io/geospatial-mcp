@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { readScenarios } from "./semantic-reads.mjs";
 import { authenticationDenial, assertToolRoster, collectPages, missingTool } from "./probes.mjs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -41,6 +42,7 @@ if (checks.initialize.result === "pass") {
     const resources = await collectPages((params) => client.listResources(params), "resources", ({ name, uri }) => ({ name, uri }));
     return { resources, paginationCompleted: true };
   });
+  await readScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await record("behavior/error", () => missingTool(client));
   // Neither a pre-aborted local promise nor killing the client establishes that
   // the candidate stopped in-flight work. No cancellation receipt is minted.

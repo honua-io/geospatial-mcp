@@ -11,7 +11,7 @@ const requirements = { schema: "honua.protocol-certification-requirements/v1", r
     scenario_facets: ["positive", "negative", "media-schema"], fixture_revision: FIXTURE_REVISION,
     contract_revision: CONTRACT_REVISION, auth_policy_revision: "anonymous-public-v1",
   }))) };
-const buildFragment = (input) => build({ requirements, ...input });
+const buildFragment = (input) => build({ requirements, executedTier: "nightly", ...input });
 
 const identity = {
   sourceSha: "a".repeat(40), producerSourceSha: "c".repeat(40),
@@ -166,4 +166,48 @@ test("semantic read pass requires candidate-bound authored fixture proof", () =>
     const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks }])) });
     assert.equal(fragment.observations.find((row) => row.operation === "tools/call:query_features").result, expected);
   }
+});
+
+
+test("missing or invalid executed tier cannot create certification receipts", () => {
+  for (const executedTier of [undefined, null, "", "production", "Release", true]) {
+    assert.throws(() => buildFragment({ identity, results: {}, executedTier }), /executed certification tier/);
+  }
+});
+
+test("only execution at or above the governed tier can mint pass receipts", () => {
+  const tiers = ["pr", "nightly", "release"];
+  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing }]));
+  for (const executedTier of tiers) {
+    for (const requiredTier of tiers) {
+      const catalog = { ...requirements, requirements: requirements.requirements.map((row) => ({ ...row, required_tier: requiredTier })) };
+      const fragment = buildFragment({ identity, results, requirements: catalog, executedTier });
+      const row = fragment.observations.find((value) => value.operation === "ping");
+      if (tiers.indexOf(executedTier) >= tiers.indexOf(requiredTier)) {
+        assert.equal(row.result, "pass");
+        assert.equal(row.evidence_receipt.identity.required_tier, requiredTier);
+        assert.ok(row.evidence_digest);
+      } else {
+        assert.equal(row.result, "skip");
+        assert.match(row.skip_reason, /executed .* tier does not satisfy required/);
+        assert.equal(row.evidence_receipt, null);
+        assert.equal(row.evidence_digest, null);
+        assert.equal(row.facet_results, null);
+        assert.deepEqual(row.exercised_capabilities, []);
+      }
+    }
+  }
+  const failed = buildFragment({ identity, executedTier: "pr", results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
+    protocolVersion: "2025-06-18", checks: { ...passing, ping: { result: "fail" } },
+  }])) });
+  assert.equal(failed.observations.find((row) => row.operation === "ping").result, "fail");
+});
+
+test("workflow supplies resolved event tier to the fragment builder", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const workflow = await readFile(new URL("../../.github/workflows/protocol-certification.yml", import.meta.url), "utf8");
+  const emit = workflow.split("- name: Emit normalized digest-bound fragment")[1].split("- name: Upload governed producer artifact")[0];
+  assert.ok(emit.includes("EXECUTED_TIER: ${{ steps.identity.outputs.tier }}"));
+  assert.ok(emit.includes('--arg executedTier "${EXECUTED_TIER}"'));
+  assert.ok(emit.includes("{executedTier:$executedTier,identity:"));
 });

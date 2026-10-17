@@ -10,7 +10,7 @@ const canonical = (value) => Array.isArray(value)
     ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`
     : JSON.stringify(value);
 
-export function buildFragment({ identity, results, requirements, now = new Date().toISOString() }) {
+export function buildFragment({ identity, results, requirements, executedTier, now = new Date().toISOString() }) {
   if (requirements?.schema !== "honua.protocol-certification-requirements/v1"
       || requirements.receipt_schema_min !== "v2" || requirements.complete !== true
       || typeof requirements.revision !== "string" || !requirements.revision
@@ -33,6 +33,8 @@ export function buildFragment({ identity, results, requirements, now = new Date(
         required_tier: row.required_tier, requirements_revision: requirements.revision });
     }
   }
+  const tiers = ["pr", "nightly", "release"];
+  if (!tiers.includes(executedTier)) throw new Error("missing or invalid executed certification tier");
   for (const key of ["sourceSha", "producerSourceSha", "imageDigest", "cutAt", "startedAt", "runtimeEnvironment"]) {
     if (!identity[key]) throw new Error(`missing identity.${key}`);
   }
@@ -61,9 +63,10 @@ export function buildFragment({ identity, results, requirements, now = new Date(
       const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass");
+      const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : executable && execution?.result === "pass" && behaviorPassed && semanticPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -109,7 +112,8 @@ export function buildFragment({ identity, results, requirements, now = new Date(
         deployment_target: "local-docker",
         result,
         skip_reason: result === "skip"
-          ? semantic ? `candidate-bound read semantic proof did not pass: ${RELEASE_123}`
+          ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
+            : semantic ? `candidate-bound read semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

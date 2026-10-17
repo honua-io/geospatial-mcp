@@ -273,6 +273,7 @@ jobs:
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
+          EXECUTED_TIER: ${{ steps.identity.outputs.tier }}
           SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
           SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           CUT_AT: ${{ steps.identity.outputs.cut-at }}
@@ -282,6 +283,7 @@ jobs:
         run: |
           mkdir -p artifacts/mcp
           jq -n \
+            --arg executedTier "${EXECUTED_TIER}" \
             --arg sourceSha "${SERVER_SOURCE_SHA}" \
             --arg producerSourceSha "${GITHUB_SHA}" \
             --arg imageDigest "${SERVER_IMAGE##*@}" \
@@ -291,7 +293,7 @@ jobs:
             --arg requestUrl "http://localhost:8080/mcp" \
             --slurpfile sdk certification/artifacts/sdk-results.json \
             --slurpfile inspector certification/artifacts/inspector-results.json \
-            '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
+            '{executedTier:$executedTier,identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
             > artifacts/mcp/builder-input.json
           node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json .certification/protocol-certification-requirements.v1.json
 

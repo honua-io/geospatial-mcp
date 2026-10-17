@@ -22,7 +22,8 @@ export function fixtureBinding(sql, allocated, sourceSha, candidateSha) {
     row.id = matches[0].id;
   }
   require(new Set(expected.map((row) => row.id)).size === 2, "fixture IDs are duplicated");
-  return { sourceSha, seedSqlSha256: hash(sql), allocatedIdsSha256: hash(allocated), serviceName: "test_service", layerId: 0, expected };
+  return { sourceSha, seedSqlSha256: hash(sql), allocatedIdsSha256: hash(allocated), serviceName: "test_service",
+    serviceId: "svc-test-service-feature", layerId: 0, expected };
 }
 
 async function loadFixture() {
@@ -60,6 +61,17 @@ export function verifyQuery(output, fixture) {
   return [...actual.keys()].sort();
 }
 
+export function verifyLayers(output, fixture) {
+  require(Array.isArray(output.layers) && output.layerCount === output.layers.length && output.hasMore === false,
+    "layer discovery is malformed or incomplete");
+  // The seed publishes the same layer through feature/map/OGC services. Bind the
+  // authored feature-service publication rather than assuming its name is unique.
+  const layers = output.layers.filter((layer) => layer.serviceName === fixture.serviceName
+    && layer.serviceId === fixture.serviceId && layer.layerId === fixture.layerId);
+  require(layers.length === 1 && layers[0].geometryType === "Point" && layers[0].srid === 4326,
+    "layer discovery did not identify the authored point feature-service publication");
+}
+
 export async function readScenarios(call, record) {
   const fixture = loadFixture();
   const prove = (value) => ({ schema: "honua.mcp-read-semantic-proof/v1", positive: true, negative: true, mediaSchema: true,
@@ -78,11 +90,7 @@ export async function readScenarios(call, record) {
   await record("tools/call:list_layers", async () => {
     const bound = await fixture;
     const output = success(await call("honua_list_layers", { filter: bound.serviceName, limit: 20 }));
-    require(Array.isArray(output.layers) && output.layerCount === output.layers.length && output.hasMore === false,
-      "layer discovery is malformed or incomplete");
-    const layers = output.layers.filter((layer) => layer.serviceName === bound.serviceName && layer.layerId === bound.layerId);
-    require(layers.length === 1 && typeof layers[0].serviceId === "string" && layers[0].serviceId && layers[0].geometryType === "Point"
-      && layers[0].srid === 4326, "layer discovery did not identify the authored point layer");
+    verifyLayers(output, bound);
     await negative(call, "honua_list_layers", { limit: 0 }, "invalid_argument");
     return prove(bound);
   });

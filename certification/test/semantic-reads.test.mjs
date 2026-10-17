@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fixtureBinding, verifyQuery } from "../semantic-reads.mjs";
+import { fixtureBinding, verifyLayers, verifyQuery } from "../semantic-reads.mjs";
 const sql = Buffer.from(`'test_service', 'Test Feature Service'
 INSERT INTO features (layer_id, geometry, attributes)
 ('alpha', 'active', 1, 1.25, true, 'POINT(-122.4900 37.7100)')
@@ -28,5 +28,18 @@ test("query proof requires actual fixture identities, typed values and geometry"
     (x) => { x.geojson.features[1] = x.geojson.features[0]; }]) {
     const corrupted = structuredClone(query); mutate(corrupted);
     assert.throws(() => verifyQuery(corrupted, fixture));
+  }
+});
+
+test("layer proof binds the authored feature publication among protocol siblings", () => {
+  const layer = { serviceName: "test_service", serviceId: "svc-test-service-feature", layerId: 0, geometryType: "Point", srid: 4326 };
+  const output = { layers: [layer, { ...layer, serviceId: "svc-test-service-map" }], layerCount: 2, hasMore: false };
+  verifyLayers(output, fixture);
+  for (const mutate of [(x) => { x.layers[0].serviceId = "unrelated"; },
+    (x) => { x.layers[0].serviceName = "unrelated"; }, (x) => { x.layers[0].layerId = 1; },
+    (x) => { x.layers[0].geometryType = "Polygon"; }, (x) => { x.layers[0].srid = 3857; },
+    (x) => { x.layers[1] = x.layers[0]; }, (x) => { x.hasMore = true; }]) {
+    const corrupted = structuredClone(output); mutate(corrupted);
+    assert.throws(() => verifyLayers(corrupted, fixture));
   }
 });

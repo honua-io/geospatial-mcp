@@ -45,7 +45,7 @@ async function execute(mode, runner = "sdk") {
       }
       if (value.params.name === "honua_list_layers") {
         if (value.params.arguments?.limit === 0) return error("invalid_argument");
-        return okay({ layerCount: 1, hasMore: false, layers: [{ serviceName: "test_service", serviceId: "fixture-service",
+        return okay({ layerCount: 1, hasMore: false, layers: [{ serviceName: "test_service", serviceId: "svc-test-service-feature",
           layerId: 0, geometryType: "Point", srid: 4326 }] });
       }
       if (value.params.name === "honua_query_features") {

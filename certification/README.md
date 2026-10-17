@@ -43,7 +43,6 @@ A green synthetic/unit check is never candidate certification. The workflow's
 retained fragment, source/image binding, required facets, and final release gate
 must all pass against the selected candidate.
 
-
 The bounded read scenarios now invoke `honua_list_capabilities`,
 `honua_list_layers`, and `honua_query_features` through each real canonical client.
 They inspect typed discovery metadata, the authored service/layer, and the exact

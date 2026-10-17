@@ -28,6 +28,22 @@ test("auth probe invokes a protected tool and requires typed denial with no data
   }
 });
 
+test("auth refusal cannot conceal data in nested, secondary or metadata channels", async () => {
+  const output = { status: "error", code: "unauthenticated", message: "Authentication required", requiresReauthentication: true,
+    resourceUri: null, error: { kind: "unauthenticated", message: "Authentication required", stepId: null, violations: null } };
+  const valid = { isError: true, structuredContent: output, content: [{ type: "text", text: JSON.stringify(output) }] };
+  assert.equal((await authenticationDenial(call(valid))).rejected, true);
+  for (const mutate of [(x) => { x.structuredContent.data = { layers: [{ id: 1 }] }; },
+    (x) => { x.structuredContent.error.data = { features: [1] }; }, (x) => { x._meta = { privateData: [1] }; },
+    (x) => { x.privateData = [1]; }, (x) => { x.content.push({ type: "text", text: "private data" }); },
+    (x) => { x.content[0] = { type: "text", text: JSON.stringify({ ...output, layers: [1] }) }; },
+    (x) => { x.content[0] = { type: "image", data: "private", mimeType: "image/png" }; },
+    (x) => { x.structuredContent.proposalId = "private-proposal"; }]) {
+    const leaked = structuredClone(valid); mutate(leaked);
+    await assert.rejects(authenticationDenial(call(leaked)));
+  }
+});
+
 test("tools/list must match the implemented manifest rather than pass an empty catalog", () => {
   assert.throws(() => assertToolRoster([], ["a"]));
   assert.throws(() => assertToolRoster(["a", "a"], ["a"]));

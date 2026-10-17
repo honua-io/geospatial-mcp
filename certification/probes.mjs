@@ -1,4 +1,6 @@
 // Assertions shared by real certification drivers and deliberately broken-client controls.
+import { isDeepStrictEqual } from "node:util";
+
 export const MISSING_TOOL = "__certification_missing_tool__";
 
 export function toolOutput(result) {
@@ -34,6 +36,28 @@ export async function authenticationDenial(client) {
   if (result.isError !== true || output.status !== "error" || output.code !== "unauthenticated"
       || output.requiresReauthentication !== true || output.features || output.layers || output.resourceUri) {
     throw new Error("anonymous tool call did not return the typed reauthentication refusal without data");
+  }
+  // Certify the refusal envelope, including the secondary content channel. A
+  // correct status must not hide returned records in an unexamined field.
+  const publicFields = new Set(["status", "code", "message", "requiresReauthentication", "error"]);
+  const optionalNullFields = new Set(["approvalRequired", "policyRef", "studioAuthorizationCode", "proposalId", "resourceUri",
+    "conflictingJobId", "currentGeneration", "retryable", "missingDependency", "missingEntitlement", "capability",
+    "remediation", "remediationRef", "violations"]);
+  if (Object.entries(output).some(([key, value]) => !publicFields.has(key) && !(optionalNullFields.has(key) && value === null))
+      || (output.message !== undefined && typeof output.message !== "string")) {
+    throw new Error("anonymous refusal returned unexpected fields or data");
+  }
+  if (output.error != null && (typeof output.error !== "object" || Array.isArray(output.error)
+      || Object.entries(output.error).some(([key, value]) =>
+        ["kind", "message"].includes(key) ? typeof value !== "string" : !["stepId", "violations"].includes(key) || value !== null))) {
+    throw new Error("anonymous refusal returned unexpected nested error data");
+  }
+  if (Object.keys(result).some((key) => !["isError", "structuredContent", "content", "_meta"].includes(key))
+      || (result._meta != null && (typeof result._meta !== "object" || Object.keys(result._meta).length !== 0))
+      || (result.content !== undefined && (!Array.isArray(result.content) || result.content.length > 1
+        || result.content.some((item) => item.type !== "text" || Object.keys(item).some((key) => !["type", "text"].includes(key))
+          || !isDeepStrictEqual(JSON.parse(item.text), output))))) {
+    throw new Error("anonymous refusal returned secondary content or metadata");
   }
   return { rejected: true, code: output.code, requiresReauthentication: true };
 }

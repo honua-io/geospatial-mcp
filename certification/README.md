@@ -13,7 +13,9 @@ including its maturity, tier, facets, and fixture/contract/auth policy revisions
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
 or incompatible context fails closed. The current default catalog still pins
 older MCP client versions: pin convergence is tracked under honua-release#652.
-It is not evidence that the current producer has qualified the release.
+It is not evidence that the current producer has qualified the release. Raw SDK
+and Inspector result JSON is retained even when governed fragment construction
+refuses the mismatched catalog, so blocked/failing checks remain inspectable.
 
 The real SDK runner checks the implemented manifest against the live tool roster,
 sends a missing-tool call with the authenticated API key, and separately invokes

@@ -284,6 +284,8 @@ jobs:
           name: mcp-protocol-certification-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/mcp/protocol-certification-fragment.json
+            certification/artifacts/sdk-results.json
+            certification/artifacts/inspector-results.json
             .certification/requirements.json
             .certification/requirements-source.txt
           if-no-files-found: error

@@ -1,6 +1,7 @@
 // Synthetic receipt metadata for pure controls only, never candidate evidence.
 export function syntheticInspectorCancellationProof() {
   return { schema: "honua.inspector-browser-cancellation-proof/v1", performedBy: "MCP Inspector", inspectorVersion: "2.10.1",
+    protocolVersion: "2025-06-18", transport: "streamable-http", protocolEra: "legacy",
     fixtureSourceSha: "a".repeat(40), seedSqlSha256: `sha256:${"d".repeat(64)}`, allocatedIdsSha256: `sha256:${"e".repeat(64)}`,
     sessionSha256: `sha256:${"f".repeat(64)}`, argumentsSha256: `sha256:${"1".repeat(64)}`,
     requestMethod: "tools/call", toolName: "honua_query_features", serviceName: "test_service", layerId: 0,

@@ -114,7 +114,7 @@ if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
         inspectorEntry: new URL("./node_modules/@modelcontextprotocol/inspector/clients/launcher/build/index.js", import.meta.url).pathname,
         headers: process.env.HONUA_MCP_API_KEY ? { "X-API-Key": process.env.HONUA_MCP_API_KEY } : {} }),
       verifyRecovery: (result) => verifyQuery(toolOutput(result), fixture) });
-    if (!verifyInspectorCancellationProof(proof, fixture.sourceSha, CLIENTS.inspector.version)) throw new Error("incomplete Inspector proof");
+    if (!verifyInspectorCancellationProof(proof, fixture.sourceSha, CLIENTS.inspector.version, checks.protocolVersion)) throw new Error("incomplete Inspector proof");
     checks["behavior/cancellation"] = { result: "pass", value: proof, startedAt: cancellationStarted, completedAt: new Date().toISOString() };
   } catch {
     checks["behavior/cancellation"] = { result: "fail", error: "Public Inspector notification, open upstream and independent PostgreSQL cessation were not proved",

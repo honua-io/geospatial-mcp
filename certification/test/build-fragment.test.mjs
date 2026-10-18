@@ -272,6 +272,7 @@ test("Inspector browser and SDK cancellation proofs cannot substitute for one an
   for (const value of [undefined, syntheticCancellationProof('MCP Inspector'),
     { ...syntheticInspectorCancellationProof(), genuineNotificationObserved: false },
     { ...syntheticInspectorCancellationProof(), originalUpstreamKeptOpen: false },
+    { ...syntheticInspectorCancellationProof(), protocolVersion: '2025-11-25' },
     { ...syntheticInspectorCancellationProof(), inspectorVersion: '2.3.0' }]) {
     const checks = passing('inspector'); checks['behavior/cancellation'].value = value;
     const fragment = buildFragment({ identity, results: {

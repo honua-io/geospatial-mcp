@@ -67,7 +67,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
-        && (clientKey === "inspector" ? verifyInspectorCancellationProof(cancellation, identity.sourceSha, client.version)
+        && (clientKey === "inspector" ? verifyInspectorCancellationProof(cancellation, identity.sourceSha, client.version, protocolVersions[clientKey])
           : verifyCancellationProof(cancellation, identity.sourceSha, client.canonicalClient))
         && (clientKey !== "inspector" || verifyInspectorPaginationProof(
           results[clientKey]?.checks?.["behavior/resources-pagination"]?.value, identity.sourceSha, client.version))

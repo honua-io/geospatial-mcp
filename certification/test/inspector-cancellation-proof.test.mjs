@@ -6,7 +6,7 @@ import { verifyCancellationProof } from "../cancellation-proof.mjs";
 import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fixture.mjs";
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
 
-const verify = (value) => verifyInspectorCancellationProof(value, "a".repeat(40), "2.10.1");
+const verify = (value) => verifyInspectorCancellationProof(value, "a".repeat(40), "2.10.1", "2025-06-18");
 test("Inspector UI proof is explicit and cannot weaken official SDK no-AbortSignal proof", async () => {
   const proof = syntheticInspectorCancellationProof();
   assert.equal(verify(proof), true);
@@ -18,7 +18,8 @@ test("Inspector UI proof is explicit and cannot weaken official SDK no-AbortSign
 });
 
 for (const [name, patch] of Object.entries({ missing: undefined, source: { fixtureSourceSha: "b".repeat(40) },
-  version: { inspectorVersion: "2.3.0" }, notification: { genuineNotificationObserved: false },
+  version: { inspectorVersion: "2.3.0" }, protocol: { protocolVersion: "2025-11-25" },
+  transport: { transport: "stdio" }, era: { protocolEra: "modern" }, notification: { genuineNotificationObserved: false },
   upstreamClosed: { originalUpstreamKeptOpen: false }, localAbortOnly: { publicUiAction: "AbortSignal" },
   wrongTypedId: { notificationRequestId: "7" }, duplicate: { responseCount: 2 }, untyped: { code: "success" },
   result: { hasResult: true }, changedRows: { provider: { afterRowsSha256: `sha256:${"3".repeat(64)}` } },

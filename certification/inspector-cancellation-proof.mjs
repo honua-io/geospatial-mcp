@@ -2,10 +2,12 @@
 // immutable server-owned harness, never an executable dependency here.
 const digest = (value) => /^sha256:[0-9a-f]{64}$/.test(value ?? "");
 
-export function verifyInspectorCancellationProof(proof, sourceSha, version) {
+export function verifyInspectorCancellationProof(proof, sourceSha, version, protocolVersion) {
   const id = proof?.requestId;
   return proof?.schema === "honua.inspector-browser-cancellation-proof/v1" && proof.performedBy === "MCP Inspector"
     && proof.inspectorVersion === version && /^2\.\d+\.\d+$/.test(version ?? "")
+    && proof.protocolVersion === protocolVersion && /^\d{4}-\d{2}-\d{2}$/.test(protocolVersion ?? "")
+    && proof.transport === "streamable-http" && proof.protocolEra === "legacy"
     && proof.fixtureSourceSha === sourceSha && /^[0-9a-f]{40}$/.test(sourceSha ?? "")
     && digest(proof.seedSqlSha256) && digest(proof.allocatedIdsSha256)
     && digest(proof.sessionSha256) && digest(proof.argumentsSha256)

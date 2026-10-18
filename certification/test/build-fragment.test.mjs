@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { buildFragment as build } from "../build-fragment.mjs";
@@ -7,8 +8,18 @@ import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../req
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
 import { syntheticInspectorPaginationProof } from "./pagination-fixture.mjs";
 import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fixture.mjs";
+// Build the expected catalog from published vocabulary, independently of the
+// producer's OPERATIONS. Deriving both from OPERATIONS hid the retired tool.
+const publishedIndex = JSON.parse(readFileSync(new URL("../../spec/schemas/index.json", import.meta.url), "utf8"));
+const publishedManifest = JSON.parse(readFileSync(new URL("../../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
+const expectedOperations = [
+  ...["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) => ["mcp.transport", operation]),
+  ...publishedManifest.resources.map(({ family }) => ["mcp.resource", `resources/read:${family}`]),
+  ...publishedIndex.tools.filter(({ implementationStatus }) => implementationStatus === "implemented")
+    .map(({ standardName }) => ["mcp.tool", `tools/call:${standardName}`]),
+];
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
-  revision: "test-owned-catalog/v1", requirements: OPERATIONS.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
+  revision: "test-owned-catalog/v1", requirements: expectedOperations.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
     capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
     deployment_target: "local-docker", maturity: "supported", required_tier: "nightly",
     scenario_facets: ["positive", "negative", "media-schema"], fixture_revision: FIXTURE_REVISION,
@@ -32,15 +43,22 @@ const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passin
   ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
     value: syntheticInspectorPaginationProof() } } : {}) });
 
+test("producer operations match the independent published vocabulary without retired or missing tools", () => {
+  const keys = (operations) => operations.map(([capability, operation]) => `${capability}:${operation}`).sort();
+  assert.deepEqual(keys(OPERATIONS), keys(expectedOperations));
+  assert.equal(new Set(keys(OPERATIONS)).size, OPERATIONS.length);
+  assert.equal(OPERATIONS.some(([, operation]) => operation === "tools/call:propose_operation"), false);
+});
+
 test("emits the complete governed denominator and truthful execution identity", () => {
   const fragment = buildFragment({ identity, results: {
     sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("sdk") },
     inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
   }, now: "2026-08-26T21:02:00Z" });
-  assert.equal(fragment.observations.length, 84);
+  assert.equal(fragment.observations.length, 82);
   assert.deepEqual(Object.fromEntries(["Official MCP TypeScript SDK", "MCP Inspector"].map((client) =>
     [client, fragment.observations.filter((row) => row.canonical_client === client).length])), {
-    "Official MCP TypeScript SDK": 42, "MCP Inspector": 42,
+    "Official MCP TypeScript SDK": 41, "MCP Inspector": 41,
   });
   for (const row of fragment.observations) {
     assert.equal(row.surface, "mcp");
@@ -157,7 +175,7 @@ test("bare or contradictory cancellation successes cannot mint any candidate rec
       inspector: { protocolVersion: "2025-06-18", checks: { ...passing("inspector"),
         "behavior/cancellation": { result: "skip", reason: "not implemented" } } },
     } });
-    assert.equal(fragment.observations.length, 84);
+    assert.equal(fragment.observations.length, 82);
     assert.equal(fragment.observations.some((row) => row.result === "pass" || row.evidence_receipt), false);
   }
 });
@@ -172,7 +190,7 @@ test("semantic and cessation evidence must use the same independently allocated 
     inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
   } });
   assert.equal(fragment.observations.find((row) => row.operation === "tools/call:query_features").result, "skip");
-  assert.equal(fragment.observations.length, 84);
+  assert.equal(fragment.observations.length, 82);
 });
 
 
@@ -264,7 +282,7 @@ test("Inspector apparent passes cannot survive missing or mismatched independent
     }});
     assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
     assert.ok(result.observations.some((row) => row.canonical_client === "Official MCP TypeScript SDK" && row.result === "pass"));
-    assert.equal(result.observations.length, 84);
+    assert.equal(result.observations.length, 82);
   }
 });
 
@@ -279,7 +297,7 @@ test("Inspector browser and SDK cancellation proofs cannot substitute for one an
       sdk: { protocolVersion: '2025-06-18', checks: passing('sdk') },
       inspector: { protocolVersion: '2025-06-18', checks },
     } });
-    assert.equal(fragment.observations.length, 84);
+    assert.equal(fragment.observations.length, 82);
     assert.equal(fragment.observations.filter((row) => row.canonical_client === 'MCP Inspector' && row.result === 'pass').length, 0);
     assert.ok(fragment.observations.some((row) => row.canonical_client === 'Official MCP TypeScript SDK' && row.result === 'pass'));
   }

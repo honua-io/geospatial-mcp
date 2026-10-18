@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
-import { verifyCancellationProof } from "./request-cancellation.mjs";
+import { verifyCancellationProof } from "./cancellation-proof.mjs";
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 const canonical = (value) => Array.isArray(value)

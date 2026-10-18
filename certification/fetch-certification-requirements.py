@@ -20,6 +20,47 @@ def api(path):
     return json.loads(result.stdout)
 
 
+def immutable_files(repository, source, paths, *, get=api):
+    """Authenticate protected-trunk source and every retained immutable Git blob."""
+    if not re.fullmatch(r"[0-9a-f]{40}", source or ""):
+        raise ValueError("source must be an exact lowercase commit")
+    repo = get(f"repos/{repository}")
+    if repo.get("full_name") != repository or repo.get("default_branch") != "trunk":
+        raise ValueError("governance repository identity or default branch differs")
+    branch = get(f"repos/{repository}/branches/trunk")
+    head = branch.get("commit", {}).get("sha")
+    if branch.get("name") != "trunk" or branch.get("protected") is not True or not re.fullmatch(r"[0-9a-f]{40}", head or ""):
+        raise ValueError("governance protected trunk readback failed")
+    comparison = get(f"repos/{repository}/compare/{source}...{head}")
+    if (comparison.get("status") not in {"ahead", "identical"}
+            or comparison.get("base_commit", {}).get("sha") != source
+            or comparison.get("merge_base_commit", {}).get("sha") != source):
+        raise ValueError("governance source is not authenticated protected-trunk history")
+    tree = get(f"repos/{repository}/git/trees/{source}?recursive=1")
+    if tree.get("truncated") is not False or not isinstance(tree.get("tree"), list):
+        raise ValueError("governance source tree is incomplete")
+    retained = {}
+    for path in paths:
+        matches = [entry for entry in tree["tree"] if entry.get("path") == path]
+        if len(matches) != 1 or matches[0].get("type") != "blob":
+            raise ValueError("governance source file is missing or ambiguous")
+        blob_sha = matches[0].get("sha")
+        if not re.fullmatch(r"[0-9a-f]{40}", blob_sha or ""):
+            raise ValueError("governance source blob identity is invalid")
+        blob = get(f"repos/{repository}/git/blobs/{blob_sha}")
+        if blob.get("sha") != blob_sha or blob.get("encoding") != "base64":
+            raise ValueError("governance source blob readback differs")
+        data = base64.b64decode("".join(blob.get("content", "").split()), validate=True)
+        if not 0 < len(data) <= 32 * 1024 * 1024 or blob.get("size") != len(data):
+            raise ValueError("governance source blob is missing or exceeds its bound")
+        actual_blob = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+        if actual_blob != blob_sha:
+            raise ValueError("governance source bytes differ from the immutable Git blob")
+        digest = hashlib.sha256(data).hexdigest()
+        retained[path] = (data, digest, blob_sha)
+    return retained
+
+
 def fetch(pins, destination, *, source_sha=None, revision=None, get=api):
     if set(pins) != {"repository", "sourceSha", "requirementsRevision", "sha256"} or pins["repository"] != REPOSITORY:
         raise ValueError("governance pins must identify the canonical release repository")
@@ -35,42 +76,9 @@ def fetch(pins, destination, *, source_sha=None, revision=None, get=api):
         raise ValueError("governance pins must bind both retained source files")
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in pins["sha256"].values()):
         raise ValueError("governance file pins must be SHA-256 digests")
-    repo = get(f"repos/{REPOSITORY}")
-    if repo.get("full_name") != REPOSITORY or repo.get("default_branch") != "trunk":
-        raise ValueError("governance repository identity or default branch differs")
-    branch = get(f"repos/{REPOSITORY}/branches/trunk")
-    head = branch.get("commit", {}).get("sha")
-    if branch.get("name") != "trunk" or branch.get("protected") is not True or not re.fullmatch(r"[0-9a-f]{40}", head or ""):
-        raise ValueError("governance protected trunk readback failed")
-    comparison = get(f"repos/{REPOSITORY}/compare/{source}...{head}")
-    if (comparison.get("status") not in {"ahead", "identical"}
-            or comparison.get("base_commit", {}).get("sha") != source
-            or comparison.get("merge_base_commit", {}).get("sha") != source):
-        raise ValueError("governance source is not authenticated protected-trunk history")
-    tree = get(f"repos/{REPOSITORY}/git/trees/{source}?recursive=1")
-    if tree.get("truncated") is not False or not isinstance(tree.get("tree"), list):
-        raise ValueError("governance source tree is incomplete")
-    retained = {}
-    for path in PATHS:
-        matches = [entry for entry in tree["tree"] if entry.get("path") == path]
-        if len(matches) != 1 or matches[0].get("type") != "blob":
-            raise ValueError("governance source file is missing or ambiguous")
-        blob_sha = matches[0].get("sha")
-        if not re.fullmatch(r"[0-9a-f]{40}", blob_sha or ""):
-            raise ValueError("governance source blob identity is invalid")
-        blob = get(f"repos/{REPOSITORY}/git/blobs/{blob_sha}")
-        if blob.get("sha") != blob_sha or blob.get("encoding") != "base64":
-            raise ValueError("governance source blob readback differs")
-        data = base64.b64decode("".join(blob.get("content", "").split()), validate=True)
-        if not 0 < len(data) <= 32 * 1024 * 1024 or blob.get("size") != len(data):
-            raise ValueError("governance source blob is missing or exceeds its bound")
-        actual_blob = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
-        if actual_blob != blob_sha:
-            raise ValueError("governance source bytes differ from the immutable Git blob")
-        digest = hashlib.sha256(data).hexdigest()
-        if source_sha is None and digest != pins["sha256"][path]:
-            raise ValueError("governance source bytes differ from reviewed file pins")
-        retained[path] = (data, digest, blob_sha)
+    retained = immutable_files(REPOSITORY, source, PATHS, get=get)
+    if source_sha is None and any(retained[path][1] != pins["sha256"][path] for path in PATHS):
+        raise ValueError("governance source bytes differ from reviewed file pins")
     catalog = json.loads(retained[PATHS[0]][0])
     if (catalog.get("schema") != "honua.protocol-certification-requirements/v1"
             or catalog.get("receipt_schema_min") != "v2" or catalog.get("complete") is not True

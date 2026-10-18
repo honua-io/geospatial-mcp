@@ -28,7 +28,16 @@ a protected tool without credentials to require the typed reauthentication
 refusal with no data. Negative controls drive the actual official SDK over a
 controlled HTTP server, including deliberately broken success responses.
 
-The SDK cancellation scenario uses its public `notification` method while keeping
+The thin SDK adapter consumes the server-owned cancellation scenario and PostGIS
+observer from `honua-server/tests/mcp-certification`, not from a copied runtime
+harness here. The maintained immutable-source fetcher authenticates canonical
+protected trunk ancestry, every Git blob and both content hashes at the exact
+attested candidate source. The adapter rechecks the retained runtime bytes before
+import. Missing/mismatched helpers and stale cached destinations refuse; no local
+or floating fallback can qualify. `cancellation-proof.mjs` is a pure receipt
+validator and imports no runtime or subprocess module.
+
+The server-owned SDK scenario uses its public `notification` method while keeping
 the original `callTool` request open. It observes the SDK's actual integer wire ID
 and stateful session, blocks the authored feature query using an independently
 owned PostGIS relation lock, and requires a correlated typed `-32800` cancellation
@@ -81,13 +90,17 @@ read. The builder also requires the SDK cessation proof to use the same authored
 seed and allocated-ID hashes. Inspector cancellation and pagination floors still
 prevent a full lane pass. General tool/resource workflows remain incomplete.
 
-`npm test` runs controlled-peer installed-SDK wire and proof-consumer negatives;
-they are harness controls and never candidate evidence. The workflow separately
-runs `node --test test/postgres-observer.integration.mjs` against a disposable
-owned database to prove actual blocking, SQL cancellation, lock release and row
-checks by the observer, including an unrelated public-table decoy beside the
-authored `honua` fixture. That test is not included in certification rows and does
-not substitute for the SDK-to-Honua scenario. A positive candidate run requires an
+`npm test` runs canonical SDK adapter, immutable-helper binding and pure
+proof-consumer controls here. When the exact candidate contains the server-owned
+harness, the workflow also runs its retained installed-SDK wire controls and
+`test/postgres-observer.integration.mjs` against a disposable owned database.
+These prove the observer's real blocking, SQL cancellation, lock release and row
+checks, including an unrelated public-table decoy beside the authored `honua`
+fixture. Harness controls never emit candidate certification rows and do not
+substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
 image at source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` predates that runtime
-change. This implementation changes no image pin or governed qualification state.
+change and this server-owned harness. This implementation changes no image pin,
+capability baseline or governed qualification state. Request cancellation is a
+behavior of the already-required `ai.mcp-discovery` query surface; the server's
+authoritative capability catalog declares no separate cancellation capability.

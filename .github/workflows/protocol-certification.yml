@@ -150,12 +150,6 @@ jobs:
           npm ci --ignore-scripts
           python3 -m unittest discover -s test -p 'test_fetch*.py' -v
           npm test
-          # Separate harness control: real PostGIS proves the independent observer.
-          # It emits no candidate certification row and uses its own disposable DB.
-          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
-            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
-            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-observer-control \
-            node --test test/postgres-observer.integration.mjs
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
           # content-addressed corpus check: no fetch, no dependency on a reachable commit
@@ -164,6 +158,28 @@ jobs:
           [[ "${actual_conformance}" == "${CONFORMANCE_CORPUS_TREE}" ]] || { echo "::error::conformance/ tree ${actual_conformance} != pinned CONFORMANCE_CORPUS_TREE ${CONFORMANCE_CORPUS_TREE}"; exit 1; }
           [[ "${actual_spec}" == "${SPEC_TREE}" ]] || { echo "::error::spec/ tree ${actual_spec} != pinned SPEC_TREE ${SPEC_TREE}"; exit 1; }
         working-directory: certification
+
+      - name: Fetch server-owned cancellation harness at the exact candidate source
+        id: cancellation-harness
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+        run: |
+          python3 certification/fetch-server-harness.py --source-sha "${SERVER_SOURCE_SHA}" --destination certification/.candidate-server
+          mkdir -p certification/artifacts
+          cp certification/.candidate-server/source-binding.json certification/artifacts/server-harness-source-binding.json
+
+      - name: Verify server-owned installed-client and PostGIS observer controls
+        if: steps.cancellation-harness.outcome == 'success'
+        working-directory: certification
+        run: |
+          node --test .candidate-server/test/*.test.mjs
+          # Harness-only SQL cancellation; never a candidate certification row.
+          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
+            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
+            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-observer-control \
+            node --test .candidate-server/test/postgres-observer.integration.mjs
 
       - name: Check MCP tool roster parity against the server source SHA
         id: roster
@@ -319,6 +335,7 @@ jobs:
             artifacts/mcp/protocol-certification-fragment.json
             certification/artifacts/sdk-results.json
             certification/artifacts/inspector-results.json
+            certification/artifacts/server-harness-source-binding.json
             .certification/protocol-certification-requirements.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql
@@ -329,7 +346,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

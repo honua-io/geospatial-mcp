@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { verifyQuery } from "./semantic-reads.mjs";
 import { toolOutput } from "./probes.mjs";
-import { until } from "./postgres-cancellation-observer.mjs";
+import { PostgresObservationError, until } from "./postgres-cancellation-observer.mjs";
 
 const require = (condition, message) => { if (!condition) throw new Error(message); };
 const hash = (value) => `sha256:${createHash("sha256").update(value).digest("hex")}`;
@@ -141,8 +141,9 @@ export async function requestCancellation({ client, transport, otherClient, othe
       originalRequestKeptOpen: true, wrongSession, wrongIdType, recoveryReadMatchesFixture: true,
       provider: { kind: "postgres-relation-lock", blockerPid, queryPid: pid, observedBlocked: true, ceasedBeforeBlockerRelease: true,
         relationLocksReleased: true, beforeRowsSha256: before, afterRowsSha256: after } };
-  } catch {
-    failure = new Error(`SDK request-cancellation proof failed at ${stage}`);
+  } catch (error) {
+    const diagnostic = error instanceof PostgresObservationError ? ` (${error.observationCode})` : "";
+    failure = new Error(`SDK request-cancellation proof failed at ${stage}${diagnostic}`);
   } finally {
     // Independent owned cleanup continues after a failed adapter/assertion.
     try { await observer.release(); } catch { failure ??= new Error("cancellation blocker cleanup failed"); }

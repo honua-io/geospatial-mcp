@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { observerConfiguration } from "../postgres-cancellation-observer.mjs";
+import { observerConfiguration, PostgresObservationError } from "../postgres-cancellation-observer.mjs";
 import { verifyCancellationProof } from "../request-cancellation.mjs";
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
 
@@ -44,4 +44,13 @@ test("observer is restricted to an explicit owned loopback database and a safe a
     ["PORT", "5432;select"], ["SERVER_APP_NAME", "x' OR true--"], ["PASSWORD", ""]]) {
     assert.throws(() => observerConfiguration({ ...environment, [`HONUA_MCP_OBSERVER_PG${name}`]: value }));
   }
+});
+
+test("observer diagnostics preserve only bounded SQLSTATE or fixed fixture codes", () => {
+  assert.equal(new PostgresObservationError("42P01").observationCode, "42P01");
+  assert.equal(new PostgresObservationError("FIXTURE_ROWS").observationCode, "FIXTURE_ROWS");
+  const error = new PostgresObservationError("password=synthetic-secret");
+  assert.equal(error.observationCode, "COMMAND_FAILED");
+  assert.equal(JSON.stringify(error).includes("synthetic-secret"), false);
+  assert.equal(error.message.includes("synthetic-secret"), false);
 });

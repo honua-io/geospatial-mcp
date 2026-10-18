@@ -52,7 +52,7 @@ test("real PostGIS observer distinguishes blocked work from cessation before blo
     await observer.release();
     assert.equal(await observer.snapshot(fixture), before);
     await observer.sql("UPDATE public.features SET attributes = jsonb_set(attributes, '{count}', '99') WHERE objectid = 21; SELECT true::text");
-    await assert.rejects(observer.snapshot(fixture), /authored point fixture/);
+    await assert.rejects(observer.snapshot(fixture), (error) => error.observationCode === "FIXTURE_ROWS");
   } finally {
     const cleanupErrors = [];
     try { await observer.release(); } catch (error) { cleanupErrors.push(error); }

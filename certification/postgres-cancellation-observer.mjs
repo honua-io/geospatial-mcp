@@ -5,6 +5,14 @@ const require = (condition, message) => { if (!condition) throw new Error(messag
 const hash = (value) => `sha256:${createHash("sha256").update(value).digest("hex")}`;
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+export class PostgresObservationError extends Error {
+  constructor(code) {
+    const safe = /^[0-9A-Z]{5}$/.test(code) || ["COMMAND_FAILED", "INVALID_JSON", "FIXTURE_ROWS"].includes(code);
+    super("Postgres cancellation observation failed");
+    this.observationCode = safe ? code : "COMMAND_FAILED";
+  }
+}
+
 export async function until(check, milliseconds = 8_000) {
   const deadline = performance.now() + milliseconds;
   do {
@@ -30,7 +38,8 @@ export function observerConfiguration(environment) {
 export class PostgresCancellationObserver {
   constructor(config) {
     this.config = config;
-    this.arguments = ["--no-psqlrc", "--quiet", "--tuples-only", "--no-align", "--set", "ON_ERROR_STOP=1"];
+    this.arguments = ["--no-psqlrc", "--quiet", "--tuples-only", "--no-align", "--set", "ON_ERROR_STOP=1",
+      "--set", "VERBOSITY=sqlstate"];
     this.environment = { PATH: process.env.PATH, LANG: "C.UTF-8", PGHOST: config.HOST, PGPORT: config.PORT,
       PGDATABASE: config.DATABASE, PGUSER: config.USER, PGPASSWORD: config.PASSWORD, PGCONNECT_TIMEOUT: "3",
       PGAPPNAME: "honua-mcp-cert-observer", PGOPTIONS: "-c statement_timeout=2500" };
@@ -42,6 +51,7 @@ export class PostgresCancellationObserver {
     const child = spawn("psql", [...this.arguments, "--command", statement], { env: this.environment });
     let output = "";
     let exceeded = false;
+    let sqlstate;
     const stop = () => {
       child.kill("SIGTERM");
       setTimeout(() => { if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL"); }, 250).unref();
@@ -53,12 +63,15 @@ export class PostgresCancellationObserver {
           output += bytes;
           if (output.length > 131_072) { exceeded = true; stop(); }
         });
-        child.stderr.resume(); // Never retain connection/credential diagnostics in a receipt.
+        child.stderr.on("data", (bytes) => {
+          // Retain only a PostgreSQL SQLSTATE, never raw connection/credential diagnostics.
+          sqlstate ??= bytes.toString().match(/ERROR:\s+([0-9A-Z]{5})\b/)?.[1];
+        });
         child.on("error", () => reject(new Error("Postgres observer could not start")));
         child.on("close", (code) => {
-          if (code !== 0 || exceeded) { reject(new Error("Postgres observer command failed or exceeded its budget")); return; }
+          if (code !== 0 || exceeded) { reject(new PostgresObservationError(sqlstate ?? "COMMAND_FAILED")); return; }
           try { resolve(JSON.parse(output.trim())); }
-          catch { reject(new Error("Postgres observer returned malformed JSON")); }
+          catch { reject(new PostgresObservationError("INVALID_JSON")); }
         });
       });
     } finally { clearTimeout(timer); }
@@ -71,10 +84,10 @@ export class PostgresCancellationObserver {
     require(Array.isArray(rows), "observer fixture snapshot is malformed");
     for (const expected of fixture.expected) {
       const found = rows.filter((row) => row.id === expected.id && row.attributes?.name === expected.name);
-      require(found.length === 1 && found[0].attributes.count === expected.count && found[0].srid === 4326
+      const matches = found.length === 1 && found[0].attributes.count === expected.count && found[0].srid === 4326
         && found[0].geometry?.type === "Point" && found[0].geometry.coordinates?.length === 2
-        && found[0].geometry.coordinates.every((value, index) => Math.abs(value - expected.coordinates[index]) < 1e-8),
-      "observer rows do not match the independently bound authored point fixture");
+        && found[0].geometry.coordinates.every((value, index) => Math.abs(value - expected.coordinates[index]) < 1e-8);
+      if (!matches) throw new PostgresObservationError("FIXTURE_ROWS");
     }
     return hash(JSON.stringify(rows));
   }

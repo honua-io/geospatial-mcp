@@ -40,3 +40,15 @@ export async function loadInspectorPaginationHarness(directory, candidateSha, im
     && typeof module.observeInspectorPagination === "function");
   return module;
 }
+
+export async function loadInspectorCancellationHarness(directory, candidateSha, importModule = (url) => import(url)) {
+  await verifyRuntimeFiles(directory, candidateSha, ['inspector-browser-cancellation.mjs', 'inspector-public-ui.mjs',
+    'postgres-cancellation-observer.mjs', 'browser/package.json', 'browser/package-lock.json']);
+  const module = await importModule(pathToFileURL(join(directory, 'inspector-browser-cancellation.mjs')).href);
+  const ui = await importModule(pathToFileURL(join(directory, 'inspector-public-ui.mjs')).href);
+  const database = await importModule(pathToFileURL(join(directory, 'postgres-cancellation-observer.mjs')).href);
+  require(module.INSPECTOR_CANCELLATION_CONTRACT === 'honua.inspector-browser-cancellation-proof/v1'
+    && typeof module.inspectorBrowserCancellation === 'function' && typeof ui.openInspectorPublicUi === 'function'
+    && typeof database.observerConfiguration === 'function' && typeof database.PostgresCancellationObserver === 'function');
+  return { ...module, ...ui, ...database };
+}

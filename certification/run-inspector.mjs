@@ -1,9 +1,10 @@
 import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
-import { readScenarios } from "./semantic-reads.mjs";
-import { authenticationDenial, assertToolRoster } from "./probes.mjs";
-import { loadInspectorPaginationHarness } from "./server-harness.mjs";
+import { loadFixture, readScenarios, verifyQuery } from "./semantic-reads.mjs";
+import { authenticationDenial, assertToolRoster, toolOutput } from "./probes.mjs";
+import { loadInspectorPaginationHarness, loadInspectorCancellationHarness } from "./server-harness.mjs";
 import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult } from "./pagination-proof.mjs";
+import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
 import { CLIENTS } from "./requirements.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
@@ -96,6 +97,29 @@ checks["behavior/error"] = { result: "skip", reason: "Pinned Inspector rejects u
 const denied = await invoke("behavior/auth", "tools/call", ["--tool-name", "honua_list_layers", "--stored-auth-only"], 5, false);
 try { await authenticationDenial({ callTool: async () => denied }); }
 catch (error) { checks["behavior/auth"].result = "fail"; checks["behavior/auth"].error = String(error); }
-checks["behavior/cancellation"] = { result: "skip", reason: "Inspector has no supported in-flight cancellation proof; honua-release#123" };
+const cancellationStarted = new Date().toISOString();
+if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
+  try {
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(requestUrl).hostname)) throw new Error("owned loopback target is required");
+    const directory = new URL("./.candidate-server/", import.meta.url).pathname;
+    const harness = await loadInspectorCancellationHarness(directory, process.env.HONUA_MCP_SERVER_SOURCE_SHA);
+    const { chromium } = await import(new URL("./.candidate-server/browser/node_modules/@playwright/test/index.mjs", import.meta.url));
+    const fixture = await loadFixture();
+    const observer = new harness.PostgresCancellationObserver(harness.observerConfiguration(process.env));
+    const tool = tools?.tools?.find((value) => value.name === "honua_query_features");
+    if (!tool) throw new Error("query tool was not discovered by the actual Inspector");
+    const proof = await harness.inspectorBrowserCancellation({ endpoint: requestUrl, inspectorVersion: CLIENTS.inspector.version,
+      sourceSha: fixture.sourceSha, fixture, observer,
+      openUi: (endpoint) => harness.openInspectorPublicUi({ endpoint, chromium, toolLabel: tool.title ?? tool.name,
+        inspectorEntry: new URL("./node_modules/@modelcontextprotocol/inspector/clients/launcher/build/index.js", import.meta.url).pathname,
+        headers: process.env.HONUA_MCP_API_KEY ? { "X-API-Key": process.env.HONUA_MCP_API_KEY } : {} }),
+      verifyRecovery: (result) => verifyQuery(toolOutput(result), fixture) });
+    if (!verifyInspectorCancellationProof(proof, fixture.sourceSha, CLIENTS.inspector.version)) throw new Error("incomplete Inspector proof");
+    checks["behavior/cancellation"] = { result: "pass", value: proof, startedAt: cancellationStarted, completedAt: new Date().toISOString() };
+  } catch {
+    checks["behavior/cancellation"] = { result: "fail", error: "Public Inspector notification, open upstream and independent PostgreSQL cessation were not proved",
+      startedAt: cancellationStarted, completedAt: new Date().toISOString() };
+  }
+} else checks["behavior/cancellation"] = { result: "skip", reason: "Owned PostgreSQL request-cessation observer is not configured; geospatial-mcp#95" };
 await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
 if (Object.values(checks).some(({ result }) => result === "fail" || result === "skip")) process.exitCode = 1;

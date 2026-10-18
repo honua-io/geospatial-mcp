@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
-import { loadServerHarness, loadInspectorPaginationHarness } from "../server-harness.mjs";
+import { loadServerHarness, loadInspectorPaginationHarness, loadInspectorCancellationHarness } from "../server-harness.mjs";
 
 const source = "a".repeat(40);
-const files = ["request-cancellation.mjs", "postgres-cancellation-observer.mjs", "inspector-pagination.mjs"];
+const files = ["request-cancellation.mjs", "postgres-cancellation-observer.mjs", "inspector-pagination.mjs",
+  "inspector-browser-cancellation.mjs", "inspector-public-ui.mjs", "browser/package.json", "browser/package-lock.json"];
 const module = { CANCELLATION_HARNESS_CONTRACT: "honua.mcp-request-cancellation-driver/v1",
   requestCancellation() {}, observerConfiguration() {}, PostgresCancellationObserver: class {} };
 
@@ -17,6 +18,7 @@ async function fixture() {
     sourceSha: source, files: {} };
   for (const file of files) {
     const bytes = Buffer.from("// Synthetic loader-control bytes; never candidate evidence.\n");
+    await mkdir(dirname(join(directory, file)), { recursive: true });
     await writeFile(join(directory, file), bytes);
     binding.files[`tests/mcp-certification/${file}`] = {
       sha256: createHash("sha256").update(bytes).digest("hex"),
@@ -25,6 +27,32 @@ async function fixture() {
   }
   await writeFile(join(directory, "source-binding.json"), JSON.stringify(binding));
   return { directory, binding };
+}
+
+const browserModule = { INSPECTOR_CANCELLATION_CONTRACT: "honua.inspector-browser-cancellation-proof/v1",
+  inspectorBrowserCancellation() {} };
+const publicUiModule = { openInspectorPublicUi() {} };
+const browserImports = async (url) => url.endsWith('/inspector-browser-cancellation.mjs') ? browserModule
+  : url.endsWith('/inspector-public-ui.mjs') ? publicUiModule : module;
+test("Inspector browser loads only authenticated owning modules and locked browser inputs", async () => {
+  const { directory } = await fixture();
+  try {
+    const loaded = await loadInspectorCancellationHarness(directory, source, browserImports);
+    assert.equal(loaded.inspectorBrowserCancellation, browserModule.inspectorBrowserCancellation);
+    assert.equal(loaded.openInspectorPublicUi, publicUiModule.openInspectorPublicUi);
+    await assert.rejects(loadInspectorCancellationHarness(directory, source, async () => ({})));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+for (const file of ['inspector-browser-cancellation.mjs', 'inspector-public-ui.mjs', 'postgres-cancellation-observer.mjs',
+  'browser/package.json', 'browser/package-lock.json']) {
+  test(`Inspector browser rejects tampered ${file} before any executable dependency loads`, async () => {
+    const { directory } = await fixture(); let imported = false;
+    try {
+      await writeFile(join(directory, file), 'unverified');
+      await assert.rejects(loadInspectorCancellationHarness(directory, source, async (url) => { imported = true; return browserImports(url); }));
+      assert.equal(imported, false);
+    } finally { await rm(directory, { recursive: true, force: true }); }
+  });
 }
 
 test("loads only exact-source helper bytes after verifying both retained runtime blobs", async () => {

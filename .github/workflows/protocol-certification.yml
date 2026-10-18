@@ -174,13 +174,22 @@ jobs:
         if: steps.cancellation-harness.outcome == 'success'
         working-directory: certification
         run: |
+          ln -s "${GITHUB_WORKSPACE}/certification/node_modules" .candidate-server/node_modules
+          mkdir -p artifacts/inspector-browser-controls
+          npm ci --ignore-scripts --prefix .candidate-server/browser
+          .candidate-server/browser/node_modules/.bin/playwright install --with-deps chromium
           node --test .candidate-server/test/*.test.mjs
           node --test .candidate-server/inspector-pagination.test.mjs
+          node --test .candidate-server/inspector-browser-wire.test.mjs
           # Harness-only SQL cancellation; never a candidate certification row.
           HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
             HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
             HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-observer-control \
             node --test .candidate-server/test/postgres-observer.integration.mjs
+          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
+            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
+            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-inspector-control \
+            node --test .candidate-server/inspector-browser-cancellation.integration.mjs
 
       - name: Check MCP tool roster parity against the server source SHA
         id: roster

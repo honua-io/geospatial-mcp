@@ -6,6 +6,7 @@ import { buildFragment as build } from "../build-fragment.mjs";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../requirements.mjs";
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
 import { syntheticInspectorPaginationProof } from "./pagination-fixture.mjs";
+import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fixture.mjs";
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: OPERATIONS.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
     capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
@@ -27,7 +28,7 @@ for (const operation of ["behavior/auth", "behavior/error", "behavior/cancellati
   passingBase[operation] = { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" };
 }
 const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passingBase["behavior/cancellation"],
-  value: syntheticCancellationProof(CLIENTS[key].canonicalClient) },
+  value: key === "inspector" ? syntheticInspectorCancellationProof() : syntheticCancellationProof(CLIENTS[key].canonicalClient) },
   ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
     value: syntheticInspectorPaginationProof() } } : {}) });
 
@@ -264,5 +265,21 @@ test("Inspector apparent passes cannot survive missing or mismatched independent
     assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
     assert.ok(result.observations.some((row) => row.canonical_client === "Official MCP TypeScript SDK" && row.result === "pass"));
     assert.equal(result.observations.length, 84);
+  }
+});
+
+test("Inspector browser and SDK cancellation proofs cannot substitute for one another or a local abort", () => {
+  for (const value of [undefined, syntheticCancellationProof('MCP Inspector'),
+    { ...syntheticInspectorCancellationProof(), genuineNotificationObserved: false },
+    { ...syntheticInspectorCancellationProof(), originalUpstreamKeptOpen: false },
+    { ...syntheticInspectorCancellationProof(), inspectorVersion: '2.3.0' }]) {
+    const checks = passing('inspector'); checks['behavior/cancellation'].value = value;
+    const fragment = buildFragment({ identity, results: {
+      sdk: { protocolVersion: '2025-06-18', checks: passing('sdk') },
+      inspector: { protocolVersion: '2025-06-18', checks },
+    } });
+    assert.equal(fragment.observations.length, 84);
+    assert.equal(fragment.observations.filter((row) => row.canonical_client === 'MCP Inspector' && row.result === 'pass').length, 0);
+    assert.ok(fragment.observations.some((row) => row.canonical_client === 'Official MCP TypeScript SDK' && row.result === 'pass'));
   }
 });

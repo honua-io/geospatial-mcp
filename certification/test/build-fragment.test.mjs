@@ -4,6 +4,9 @@ import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { buildFragment as build } from "../build-fragment.mjs";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../requirements.mjs";
+import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
+import { syntheticInspectorPaginationProof } from "./pagination-fixture.mjs";
+import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fixture.mjs";
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: OPERATIONS.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
     capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
@@ -19,16 +22,20 @@ const identity = {
   startedAt: "2026-08-26T21:00:00Z", runtimeEnvironment: "Production",
   requestUrl: "http://localhost:8080/mcp",
 };
-const passing = Object.fromEntries(["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) =>
+const passingBase = Object.fromEntries(["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) =>
   [operation, { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" }]));
 for (const operation of ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]) {
-  passing[operation] = { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" };
+  passingBase[operation] = { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" };
 }
+const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passingBase["behavior/cancellation"],
+  value: key === "inspector" ? syntheticInspectorCancellationProof() : syntheticCancellationProof(CLIENTS[key].canonicalClient) },
+  ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
+    value: syntheticInspectorPaginationProof() } } : {}) });
 
 test("emits the complete governed denominator and truthful execution identity", () => {
   const fragment = buildFragment({ identity, results: {
-    sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing },
-    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing },
+    sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("sdk") },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
   }, now: "2026-08-26T21:02:00Z" });
   assert.equal(fragment.observations.length, 84);
   assert.deepEqual(Object.fromEntries(["Official MCP TypeScript SDK", "MCP Inspector"].map((client) =>
@@ -67,12 +74,12 @@ test("requires negotiated protocol versions from every certification client", ()
 
 test("preserves failed checks as fail", () => {
   const failing = {
-    ...passing,
-    initialize: { ...passing.initialize, result: "fail", error: "initialize transport down" },
+    ...passing("sdk"),
+    initialize: { ...passingBase.initialize, result: "fail", error: "initialize transport down" },
   };
   const fragment = buildFragment({ identity, results: {
     sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: failing },
-    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
   }});
   const initializeRow = fragment.observations.find((row) =>
     row.canonical_client === "Official MCP TypeScript SDK" && row.operation === "initialize",
@@ -85,12 +92,12 @@ test("preserves failed checks as fail", () => {
 
 test("preserves failed initialization when negotiation did not complete", () => {
   const failing = {
-    ...passing,
-    initialize: { ...passing.initialize, result: "fail", error: "initialize transport down" },
+    ...passing("sdk"),
+    initialize: { ...passingBase.initialize, result: "fail", error: "initialize transport down" },
   };
   const fragment = buildFragment({ identity, results: {
     sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: null, checks: failing },
-    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
   }});
   const initializeRow = fragment.observations.find((row) =>
     row.canonical_client === "Official MCP TypeScript SDK" && row.operation === "initialize",
@@ -102,7 +109,7 @@ test("preserves failed initialization when negotiation did not complete", () => 
 
 test("receipt v2 owns the exact governed identity", async () => {
   const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
-    protocolVersion: "2025-06-18", checks: passing,
+    protocolVersion: "2025-06-18", checks: passing(key),
   }])) });
   const row = fragment.observations.find((row) => row.result === "pass");
   assert.equal(row.evidence_receipt.schema, "honua.certification-evidence-receipt/v2");
@@ -114,7 +121,7 @@ test("receipt v2 owns the exact governed identity", async () => {
 });
 
 test("missing, ambiguous, stale-version and incomplete requirement context fail closed", () => {
-  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing }]));
+  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing(key) }]));
   for (const catalog of [undefined, { ...requirements, receipt_schema_min: "v1" },
     { ...requirements, complete: false }, { ...requirements, requirements: requirements.requirements.slice(1) },
     { ...requirements, requirements: [...requirements.requirements, requirements.requirements[0]] },
@@ -125,7 +132,7 @@ test("missing, ambiguous, stale-version and incomplete requirement context fail 
 
 test("unsupported cancellation and auth never mint negative facets or pass receipts", () => {
   for (const behavior of ["behavior/cancellation", "behavior/auth"]) {
-    const checks = { ...passing, [behavior]: { result: "skip", reason: "not implemented" } };
+    const checks = { ...passing("sdk"), [behavior]: { result: "skip", reason: "not implemented" } };
     const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
       protocolVersion: "2025-06-18", checks,
     }])) });
@@ -134,10 +141,44 @@ test("unsupported cancellation and auth never mint negative facets or pass recei
   }
 });
 
+test("bare or contradictory cancellation successes cannot mint any candidate receipts", () => {
+  for (const change of [
+    (proof) => Object.keys(proof).forEach((key) => delete proof[key]),
+    (proof) => { proof.performedBy = "MCP Inspector"; },
+    (proof) => { proof.fixtureSourceSha = "f".repeat(40); },
+    (proof) => { proof.clientAbortUsed = true; },
+    (proof) => { proof.provider.ceasedBeforeBlockerRelease = false; },
+    (proof) => { proof.cleanup.originalRequestDrained = false; },
+  ]) {
+    const checks = structuredClone(passing("sdk"));
+    change(checks["behavior/cancellation"].value);
+    const fragment = buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks },
+      inspector: { protocolVersion: "2025-06-18", checks: { ...passing("inspector"),
+        "behavior/cancellation": { result: "skip", reason: "not implemented" } } },
+    } });
+    assert.equal(fragment.observations.length, 84);
+    assert.equal(fragment.observations.some((row) => row.result === "pass" || row.evidence_receipt), false);
+  }
+});
+
+test("semantic and cessation evidence must use the same independently allocated fixture", () => {
+  const checks = { ...passing("sdk"), "tools/call:query_features": { result: "pass", value: {
+    schema: "honua.mcp-read-semantic-proof/v1", positive: true, negative: true, mediaSchema: true,
+    fixtureSourceSha: identity.sourceSha, seedSqlSha256: `sha256:${"d".repeat(64)}`, allocatedIdsSha256: `sha256:${"9".repeat(64)}`,
+  } } };
+  const fragment = buildFragment({ identity, results: {
+    sdk: { protocolVersion: "2025-06-18", checks },
+    inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+  } });
+  assert.equal(fragment.observations.find((row) => row.operation === "tools/call:query_features").result, "skip");
+  assert.equal(fragment.observations.length, 84);
+});
+
 
 test("real release consumer accepts v2 and rejects stale context and tampered bytes", { skip: !process.env.HONUA_RELEASE_CHECKER }, () => {
   const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
-    protocolVersion: "2025-06-18", checks: passing,
+    protocolVersion: "2025-06-18", checks: passing(key),
   }])) });
   const row = fragment.observations.find((row) => row.result === "pass");
   const code = `import copy,importlib.util,json,sys
@@ -162,7 +203,7 @@ test("semantic read pass requires candidate-bound authored fixture proof", () =>
     mediaSchema: true, fixtureSourceSha: identity.sourceSha, seedSqlSha256: `sha256:${"d".repeat(64)}`, allocatedIdsSha256: `sha256:${"e".repeat(64)}` } };
   for (const [value, expected] of [[semantic, "pass"], [{ ...semantic, value: {} }, "skip"],
     [{ ...semantic, value: { ...semantic.value, fixtureSourceSha: "f".repeat(40) } }, "skip"]]) {
-    const checks = { ...passing, "tools/call:query_features": value };
+    const checks = { ...passing("sdk"), "tools/call:query_features": value };
     const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks }])) });
     assert.equal(fragment.observations.find((row) => row.operation === "tools/call:query_features").result, expected);
   }
@@ -177,7 +218,7 @@ test("missing or invalid executed tier cannot create certification receipts", ()
 
 test("only execution at or above the governed tier can mint pass receipts", () => {
   const tiers = ["pr", "nightly", "release"];
-  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing }]));
+  const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing(key) }]));
   for (const executedTier of tiers) {
     for (const requiredTier of tiers) {
       const catalog = { ...requirements, requirements: requirements.requirements.map((row) => ({ ...row, required_tier: requiredTier })) };
@@ -198,7 +239,7 @@ test("only execution at or above the governed tier can mint pass receipts", () =
     }
   }
   const failed = buildFragment({ identity, executedTier: "pr", results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
-    protocolVersion: "2025-06-18", checks: { ...passing, ping: { result: "fail" } },
+    protocolVersion: "2025-06-18", checks: { ...passing(key), ping: { result: "fail" } },
   }])) });
   assert.equal(failed.observations.find((row) => row.operation === "ping").result, "fail");
 });
@@ -210,4 +251,36 @@ test("workflow supplies resolved event tier to the fragment builder", async () =
   assert.ok(emit.includes("EXECUTED_TIER: ${{ steps.identity.outputs.tier }}"));
   assert.ok(emit.includes('--arg executedTier "${EXECUTED_TIER}"'));
   assert.ok(emit.includes("{executedTier:$executedTier,identity:"));
+});
+
+test("Inspector apparent passes cannot survive missing or mismatched independent pagination proof", () => {
+  for (const change of [undefined, { pageCount: 1 }, { sourceSha: "f".repeat(40) }, { inspectorVersion: "2.3.0" },
+    { cursorHandoffCount: 0 }, { clientResultMatchesWire: false }]) {
+    const checks = passing("inspector");
+    checks["behavior/resources-pagination"].value = change === undefined ? undefined : { ...syntheticInspectorPaginationProof(), ...change };
+    const result = buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks: passing("sdk") },
+      inspector: { protocolVersion: "2025-06-18", checks },
+    }});
+    assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
+    assert.ok(result.observations.some((row) => row.canonical_client === "Official MCP TypeScript SDK" && row.result === "pass"));
+    assert.equal(result.observations.length, 84);
+  }
+});
+
+test("Inspector browser and SDK cancellation proofs cannot substitute for one another or a local abort", () => {
+  for (const value of [undefined, syntheticCancellationProof('MCP Inspector'),
+    { ...syntheticInspectorCancellationProof(), genuineNotificationObserved: false },
+    { ...syntheticInspectorCancellationProof(), originalUpstreamKeptOpen: false },
+    { ...syntheticInspectorCancellationProof(), protocolVersion: '2025-11-25' },
+    { ...syntheticInspectorCancellationProof(), inspectorVersion: '2.3.0' }]) {
+    const checks = passing('inspector'); checks['behavior/cancellation'].value = value;
+    const fragment = buildFragment({ identity, results: {
+      sdk: { protocolVersion: '2025-06-18', checks: passing('sdk') },
+      inspector: { protocolVersion: '2025-06-18', checks },
+    } });
+    assert.equal(fragment.observations.length, 84);
+    assert.equal(fragment.observations.filter((row) => row.canonical_client === 'MCP Inspector' && row.result === 'pass').length, 0);
+    assert.ok(fragment.observations.some((row) => row.canonical_client === 'Official MCP TypeScript SDK' && row.result === 'pass'));
+  }
 });

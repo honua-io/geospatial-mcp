@@ -26,7 +26,7 @@ export function fixtureBinding(sql, allocated, sourceSha, candidateSha) {
     serviceId: "svc-test-service-feature", layerId: 0, expected };
 }
 
-async function loadFixture() {
+export async function loadFixture() {
   return fixtureBinding(await readFile(process.env.HONUA_MCP_SEED_SQL ?? ""), await readFile(process.env.HONUA_MCP_FIXTURE_IDS ?? ""),
     process.env.HONUA_MCP_SEED_SOURCE_SHA, process.env.HONUA_MCP_SERVER_SOURCE_SHA);
 }

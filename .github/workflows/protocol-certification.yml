@@ -159,6 +159,38 @@ jobs:
           [[ "${actual_spec}" == "${SPEC_TREE}" ]] || { echo "::error::spec/ tree ${actual_spec} != pinned SPEC_TREE ${SPEC_TREE}"; exit 1; }
         working-directory: certification
 
+      - name: Fetch server-owned cancellation harness at the exact candidate source
+        id: cancellation-harness
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+        run: |
+          python3 certification/fetch-server-harness.py --source-sha "${SERVER_SOURCE_SHA}" --destination certification/.candidate-server
+          mkdir -p certification/artifacts
+          cp certification/.candidate-server/source-binding.json certification/artifacts/server-harness-source-binding.json
+
+      - name: Verify server-owned installed-client and PostGIS observer controls
+        if: steps.cancellation-harness.outcome == 'success'
+        working-directory: certification
+        run: |
+          ln -s "${GITHUB_WORKSPACE}/certification/node_modules" .candidate-server/node_modules
+          mkdir -p artifacts/inspector-browser-controls
+          npm ci --ignore-scripts --prefix .candidate-server/browser
+          .candidate-server/browser/node_modules/.bin/playwright install --with-deps chromium
+          node --test .candidate-server/test/*.test.mjs
+          node --test .candidate-server/inspector-pagination.test.mjs
+          node --test .candidate-server/inspector-browser-wire.test.mjs
+          # Harness-only SQL cancellation; never a candidate certification row.
+          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
+            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
+            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-observer-control \
+            node --test .candidate-server/test/postgres-observer.integration.mjs
+          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
+            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
+            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-inspector-control \
+            node --test .candidate-server/inspector-browser-cancellation.integration.mjs
+
       - name: Check MCP tool roster parity against the server source SHA
         id: roster
         env:
@@ -216,7 +248,7 @@ jobs:
           salt="$(head -c 16 /dev/urandom | base64)"
           # Boot against the extension-only database so the server's own migrations own the
           # schema; the seed is applied afterwards (as honua-server's setup-honua-server does).
-          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
+          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
           for i in $(seq 1 60); do
             [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
             if [[ "$(docker inspect -f '{{.State.Running}}' honua-server 2>/dev/null || true)" != true ]]; then
@@ -254,6 +286,13 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
+          HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
+          HONUA_MCP_OBSERVER_PGPORT: "5432"
+          HONUA_MCP_OBSERVER_PGDATABASE: honua_test
+          HONUA_MCP_OBSERVER_PGUSER: honua
+          HONUA_MCP_OBSERVER_PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_OBSERVER_PGSERVER_APP_NAME: honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}
         run: mkdir -p artifacts && node run-sdk.mjs
 
       - name: Exercise MCP through the real Inspector
@@ -268,6 +307,13 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
+          HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
+          HONUA_MCP_OBSERVER_PGPORT: "5432"
+          HONUA_MCP_OBSERVER_PGDATABASE: honua_test
+          HONUA_MCP_OBSERVER_PGUSER: honua
+          HONUA_MCP_OBSERVER_PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_OBSERVER_PGSERVER_APP_NAME: honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}
         run: node run-inspector.mjs
 
       - name: Emit normalized digest-bound fragment
@@ -306,6 +352,7 @@ jobs:
             artifacts/mcp/protocol-certification-fragment.json
             certification/artifacts/sdk-results.json
             certification/artifacts/inspector-results.json
+            certification/artifacts/server-harness-source-binding.json
             .certification/protocol-certification-requirements.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql
@@ -316,7 +363,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { readScenarios } from "./semantic-reads.mjs";
-import { authenticationDenial, assertToolRoster, collectPages, missingTool } from "./probes.mjs";
+import { loadFixture, readScenarios, verifyQuery } from "./semantic-reads.mjs";
+import { authenticationDenial, assertToolRoster, collectPages, missingTool, toolOutput } from "./probes.mjs";
+import { verifyCancellationProof } from "./cancellation-proof.mjs";
+import { loadServerHarness } from "./server-harness.mjs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -44,11 +46,29 @@ if (checks.initialize.result === "pass") {
   });
   await readScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await record("behavior/error", () => missingTool(client));
-  // Neither a pre-aborted local promise nor killing the client establishes that
-  // the candidate stopped in-flight work. No cancellation receipt is minted.
-  checks["behavior/cancellation"] = {
-    result: "skip", reason: "No independently observed server-side in-flight cancellation scenario is implemented; honua-release#123",
-  };
+  if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
+    await record("behavior/cancellation", async () => {
+      if (!["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) throw new Error("cancellation requires the owned local-docker target");
+      const fixture = await loadFixture();
+      const harness = await loadServerHarness(process.env.HONUA_MCP_SERVER_HARNESS ?? ".candidate-server",
+        process.env.HONUA_MCP_SERVER_SOURCE_SHA);
+      const observer = new harness.PostgresCancellationObserver(harness.observerConfiguration(process.env));
+      const otherClient = new Client({ name: "geospatial-mcp-cancellation-authority-control", version: "1.0.0" });
+      const otherTransport = new StreamableHTTPClientTransport(url, { requestInit: { headers } });
+      try { await otherClient.connect(otherTransport); }
+      catch { await otherClient.close(); throw new Error("independent SDK cancellation-control session could not initialize"); }
+      const proof = await harness.requestCancellation({ client, transport, otherClient, otherTransport, observer, fixture,
+        verifyRecovery: (result) => verifyQuery(toolOutput(result), fixture) });
+      if (!verifyCancellationProof(proof, fixture.sourceSha, "Official MCP TypeScript SDK")) {
+        throw new Error("server cancellation scenario returned an incomplete proof");
+      }
+      return proof;
+    });
+  } else {
+    // A local AbortSignal rejection or client process kill cannot replace the
+    // independent database observation; unconfigured controls remain nonpass.
+    checks["behavior/cancellation"] = { result: "skip", reason: "Owned Postgres request-cessation observer is not configured; geospatial-mcp#95" };
+  }
   await record("behavior/auth", async () => {
     const anonymous = new Client({ name: "geospatial-mcp-anonymous-certification", version: "1.0.0" });
     try {

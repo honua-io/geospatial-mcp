@@ -5,6 +5,7 @@ import { authenticationDenial, assertToolRoster, toolOutput } from "./probes.mjs
 import { loadInspectorPaginationHarness, loadInspectorCancellationHarness } from "./server-harness.mjs";
 import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult } from "./pagination-proof.mjs";
 import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
+import { inspectorCancellationRequested } from "./inspector-cancellation-selection.mjs";
 import { CLIENTS } from "./requirements.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
@@ -98,7 +99,7 @@ const denied = await invoke("behavior/auth", "tools/call", ["--tool-name", "honu
 try { await authenticationDenial({ callTool: async () => denied }); }
 catch (error) { checks["behavior/auth"].result = "fail"; checks["behavior/auth"].error = String(error); }
 const cancellationStarted = new Date().toISOString();
-if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
+if (inspectorCancellationRequested(process.env)) {
   try {
     if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(requestUrl).hostname)) throw new Error("owned loopback target is required");
     const directory = new URL("./.candidate-server/", import.meta.url).pathname;

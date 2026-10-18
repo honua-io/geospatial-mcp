@@ -307,6 +307,13 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
+          HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
+          HONUA_MCP_OBSERVER_PGPORT: "5432"
+          HONUA_MCP_OBSERVER_PGDATABASE: honua_test
+          HONUA_MCP_OBSERVER_PGUSER: honua
+          HONUA_MCP_OBSERVER_PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_OBSERVER_PGSERVER_APP_NAME: honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}
         run: node run-inspector.mjs
 
       - name: Emit normalized digest-bound fragment

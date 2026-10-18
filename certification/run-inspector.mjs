@@ -2,6 +2,9 @@ import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { readScenarios } from "./semantic-reads.mjs";
 import { authenticationDenial, assertToolRoster } from "./probes.mjs";
+import { loadInspectorPaginationHarness } from "./server-harness.mjs";
+import { verifyInspectorPaginationProof } from "./pagination-proof.mjs";
+import { CLIENTS } from "./requirements.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
 const binary = new URL("./node_modules/.bin/mcp-inspector", import.meta.url).pathname;
@@ -13,9 +16,9 @@ const findProtocolVersion = (value) => {
   return Object.values(value).map(findProtocolVersion).find(Boolean);
 };
 
-async function invoke(operation, method, extra = [], expectedCode = 0, authenticated = true) {
+async function invoke(operation, method, extra = [], expectedCode = 0, authenticated = true, endpoint = requestUrl) {
   const startedAt = new Date().toISOString();
-  const args = ["--cli", requestUrl, "--transport", "http", "--method", method, "--format", "json", ...extra];
+  const args = ["--cli", endpoint, "--transport", "http", "--method", method, "--format", "json", ...extra];
   if (authenticated && process.env.HONUA_MCP_API_KEY) args.push("--header", `X-API-Key: ${process.env.HONUA_MCP_API_KEY}`);
   const result = await new Promise((resolve) => {
     const child = spawn(binary, args, { env: { ...process.env, MCP_AUTO_OPEN_ENABLED: "false" } });
@@ -57,10 +60,28 @@ await readScenarios(async (name, arguments_) => {
   try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
   catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
 });
-await invoke("diagnostic/resources-list", "resources/list");
-// A single CLI listing is not a wire-observed cursor traversal. Preserve the
-// diagnostic result without counting it as pagination evidence.
-checks["behavior/resources-pagination"] = { result: "skip", reason: "Inspector cursor traversal is not independently observed; geospatial-mcp#95" };
+const paginationStarted = new Date().toISOString();
+let paginationHarness;
+try {
+  paginationHarness = await loadInspectorPaginationHarness(new URL("./.candidate-server/", import.meta.url).pathname,
+    process.env.HONUA_MCP_SERVER_SOURCE_SHA);
+} catch {
+  checks["behavior/resources-pagination"] = { result: "skip", reason: "verified candidate-source Inspector observer is unavailable" };
+}
+if (paginationHarness) {
+  try {
+    const proof = await paginationHarness.observeInspectorPagination({ endpoint: requestUrl,
+      inspectorVersion: CLIENTS.inspector.version, sourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA,
+      invoke: (endpoint) => invoke("diagnostic/resources-list", "resources/list", [], 0, true, endpoint) });
+    if (!verifyInspectorPaginationProof(proof, process.env.HONUA_MCP_SERVER_SOURCE_SHA, CLIENTS.inspector.version)) {
+      throw new Error("Inspector pagination proof did not bind the installed client and candidate");
+    }
+    checks["behavior/resources-pagination"] = { result: "pass", value: proof, startedAt: paginationStarted, completedAt: new Date().toISOString() };
+  } catch {
+    checks["behavior/resources-pagination"] = { result: "fail", error: "Independent Inspector cursor traversal was not proved",
+      startedAt: paginationStarted, completedAt: new Date().toISOString() };
+  }
+}
 // The pinned CLI rejects names absent from its local tools/list before sending
 // tools/call. Its exit code cannot establish the candidate's unknown-tool error.
 checks["behavior/error"] = { result: "skip", reason: "Pinned Inspector rejects unknown tool locally; no server error proof" };

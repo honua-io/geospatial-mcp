@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
 import { verifyCancellationProof } from "./cancellation-proof.mjs";
+import { verifyInspectorPaginationProof } from "./pagination-proof.mjs";
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 const canonical = (value) => Array.isArray(value)
@@ -66,6 +67,8 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
         && verifyCancellationProof(cancellation, identity.sourceSha, client.canonicalClient)
+        && (clientKey !== "inspector" || verifyInspectorPaginationProof(
+          results[clientKey]?.checks?.["behavior/resources-pagination"]?.value, identity.sourceSha, client.version))
         && (!semantic || (cancellation.seedSqlSha256 === proof?.seedSqlSha256
           && cancellation.allocatedIdsSha256 === proof?.allocatedIdsSha256));
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);

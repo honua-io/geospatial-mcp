@@ -17,6 +17,7 @@ PATHS = tuple(PREFIX + path for path in (
     "request-cancellation.mjs", "postgres-cancellation-observer.mjs",
     "test/cancellation-fixture.mjs", "test/postgres-observer.test.mjs",
     "test/request-cancellation-wire.test.mjs", "test/postgres-observer.integration.mjs",
+    "inspector-pagination.mjs", "inspector-pagination.test.mjs",
 ))
 
 

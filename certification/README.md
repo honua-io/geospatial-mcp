@@ -104,3 +104,14 @@ change and this server-owned harness. This implementation changes no image pin,
 capability baseline or governed qualification state. Request cancellation is a
 behavior of the already-required `ai.mcp-discovery` query surface; the server's
 authoritative capability catalog declares no separate cancellation capability.
+
+The Inspector pagination adapter consumes the independently observed public CLI
+page chain from the same verified server source (`inspector-pagination.mjs`,
+server6338). It requires a multi-page cursor traversal and a final returned
+resource list matching the wire, then the pure fragment consumer rechecks the
+candidate source, actual installed Inspector version, completion and bounded
+counts/hashes. Missing/tampered helpers stay nonpassing; there is no local copy.
+The owning server controls run the actual installed2.10.1 CLI. They do not qualify
+governed2.3.0, alter any of the84 requirements, or clear the remaining Inspector
+ping, unknown-tool and cancellation addressability gaps. A fresh image alone
+still cannot make the canonical lane green.

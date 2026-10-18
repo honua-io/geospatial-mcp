@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { buildFragment as build } from "../build-fragment.mjs";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../requirements.mjs";
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
+import { syntheticInspectorPaginationProof } from "./pagination-fixture.mjs";
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: OPERATIONS.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
     capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
@@ -26,7 +27,9 @@ for (const operation of ["behavior/auth", "behavior/error", "behavior/cancellati
   passingBase[operation] = { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" };
 }
 const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passingBase["behavior/cancellation"],
-  value: syntheticCancellationProof(CLIENTS[key].canonicalClient) } });
+  value: syntheticCancellationProof(CLIENTS[key].canonicalClient) },
+  ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
+    value: syntheticInspectorPaginationProof() } } : {}) });
 
 test("emits the complete governed denominator and truthful execution identity", () => {
   const fragment = buildFragment({ identity, results: {
@@ -247,4 +250,19 @@ test("workflow supplies resolved event tier to the fragment builder", async () =
   assert.ok(emit.includes("EXECUTED_TIER: ${{ steps.identity.outputs.tier }}"));
   assert.ok(emit.includes('--arg executedTier "${EXECUTED_TIER}"'));
   assert.ok(emit.includes("{executedTier:$executedTier,identity:"));
+});
+
+test("Inspector apparent passes cannot survive missing or mismatched independent pagination proof", () => {
+  for (const change of [undefined, { pageCount: 1 }, { sourceSha: "f".repeat(40) }, { inspectorVersion: "2.3.0" },
+    { cursorHandoffCount: 0 }, { clientResultMatchesWire: false }]) {
+    const checks = passing("inspector");
+    checks["behavior/resources-pagination"].value = change === undefined ? undefined : { ...syntheticInspectorPaginationProof(), ...change };
+    const result = buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks: passing("sdk") },
+      inspector: { protocolVersion: "2025-06-18", checks },
+    }});
+    assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
+    assert.ok(result.observations.some((row) => row.canonical_client === "Official MCP TypeScript SDK" && row.result === "pass"));
+    assert.equal(result.observations.length, 84);
+  }
 });

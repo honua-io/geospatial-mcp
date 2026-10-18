@@ -4,10 +4,10 @@ import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { loadServerHarness } from "../server-harness.mjs";
+import { loadServerHarness, loadInspectorPaginationHarness } from "../server-harness.mjs";
 
 const source = "a".repeat(40);
-const files = ["request-cancellation.mjs", "postgres-cancellation-observer.mjs"];
+const files = ["request-cancellation.mjs", "postgres-cancellation-observer.mjs", "inspector-pagination.mjs"];
 const module = { CANCELLATION_HARNESS_CONTRACT: "honua.mcp-request-cancellation-driver/v1",
   requestCancellation() {}, observerConfiguration() {}, PostgresCancellationObserver: class {} };
 
@@ -69,3 +69,32 @@ test("wrong helper interface cannot be treated as a complete scenario", async ()
     assert.equal(/\bimport\b|child_process/.test(validator), false);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
+
+const paginationModule = { INSPECTOR_PAGINATION_CONTRACT: "honua.inspector-pagination-observer/v1", observeInspectorPagination() {} };
+test("pagination loads the verified server-owned observer only at exact candidate source", async () => {
+  const { directory } = await fixture();
+  try {
+    assert.equal(await loadInspectorPaginationHarness(directory, source, async (url) => {
+      assert.ok(url.endsWith("/inspector-pagination.mjs")); return paginationModule;
+    }), paginationModule);
+    await assert.rejects(loadInspectorPaginationHarness(directory, source, async () => ({ ...paginationModule, observeInspectorPagination: undefined })));
+    await assert.rejects(loadInspectorPaginationHarness(directory, source, async () => ({ ...paginationModule, INSPECTOR_PAGINATION_CONTRACT: "unknown" })));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+for (const mode of ["missing", "tampered", "source", "symlink"]) {
+  test(`pagination ${mode} binding refuses before loading any observer`, async () => {
+    const { directory, binding } = await fixture(); let imported = false;
+    try {
+      if (mode === "source") {
+        binding.sourceSha = "b".repeat(40);
+        await writeFile(join(directory, "source-binding.json"), JSON.stringify(binding));
+      } else if (mode === "tampered") await writeFile(join(directory, "inspector-pagination.mjs"), "unverified code");
+      else {
+        await rm(join(directory, "inspector-pagination.mjs"));
+        if (mode === "symlink") await symlink(join(directory, files[0]), join(directory, "inspector-pagination.mjs"));
+      }
+      await assert.rejects(loadInspectorPaginationHarness(directory, source, async () => { imported = true; return paginationModule; }));
+      assert.equal(imported, false);
+    } finally { await rm(directory, { recursive: true, force: true }); }
+  });
+}

@@ -175,6 +175,7 @@ jobs:
         working-directory: certification
         run: |
           node --test .candidate-server/test/*.test.mjs
+          node --test .candidate-server/inspector-pagination.test.mjs
           # Harness-only SQL cancellation; never a candidate certification row.
           HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
             HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \

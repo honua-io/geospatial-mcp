@@ -43,7 +43,11 @@ This observer is enabled only for the workflow's owned loopback database using
 `HONUA_MCP_CANCELLATION_OBSERVER=postgres-lock-v1` and explicit
 `HONUA_MCP_OBSERVER_PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, and
 `PGSERVER_APP_NAME` suffixes under `HONUA_MCP_OBSERVER_`. The server connection's
-application name must equal that observer binding. The database password is the
+application name must equal that observer binding. Independent service/layer
+metadata must bind the authored layer to `honua.features` or `public.features`
+with its exact maintained key/geometry columns; the blocker, row snapshot and
+lock oracle all use that same qualified relation. An unrelated public table or
+another fixture schema cannot substitute for it. The database password is the
 workflow's masked per-run service password; it is never emitted in proof JSON.
 The blocker expires after 30 seconds, individual observer commands have a
 3-second process budget, provider discovery has an 8-second budget, and response
@@ -81,7 +85,8 @@ prevent a full lane pass. General tool/resource workflows remain incomplete.
 they are harness controls and never candidate evidence. The workflow separately
 runs `node --test test/postgres-observer.integration.mjs` against a disposable
 owned database to prove actual blocking, SQL cancellation, lock release and row
-checks by the observer. That test is not included in certification rows and does
+checks by the observer, including an unrelated public-table decoy beside the
+authored `honua` fixture. That test is not included in certification rows and does
 not substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
 image at source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` predates that runtime

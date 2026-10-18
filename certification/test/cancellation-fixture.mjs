@@ -8,7 +8,7 @@ export function syntheticCancellationProof(performedBy = "Official MCP TypeScrip
     requestId: 7, notificationRequestId: 7, responseId: 7, responseCount: 1, protocolCode: -32800,
     code: "cancelled", hasResult: false, clientAbortUsed: false, originalRequestKeptOpen: true,
     wrongSession: { observedAfterMs: 601, samples: 3 }, wrongIdType: { observedAfterMs: 601, samples: 3 },
-    recoveryReadMatchesFixture: true, provider: { kind: "postgres-relation-lock", blockerPid: 101, queryPid: 102,
+    recoveryReadMatchesFixture: true, provider: { kind: "postgres-relation-lock", tableSchema: "public", tableName: "features", blockerPid: 101, queryPid: 102,
       observedBlocked: true, ceasedBeforeBlockerRelease: true, relationLocksReleased: true,
       beforeRowsSha256: `sha256:${"2".repeat(64)}`, afterRowsSha256: `sha256:${"2".repeat(64)}` },
     cleanup: { blockerReleased: true, otherClientClosed: true, originalRequestDrained: true } };

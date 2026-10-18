@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { observerConfiguration, PostgresObservationError } from "../postgres-cancellation-observer.mjs";
+import { observerConfiguration, PostgresCancellationObserver, PostgresObservationError } from "../postgres-cancellation-observer.mjs";
 import { verifyCancellationProof } from "../request-cancellation.mjs";
-import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
+import { fixture, syntheticCancellationProof } from "./cancellation-fixture.mjs";
 
 test("synthetic cancellation proof controls require every cessation and authority obligation", () => {
   const valid = syntheticCancellationProof();
@@ -11,7 +11,7 @@ test("synthetic cancellation proof controls require every cessation and authorit
   for (const path of ["schema", "performedBy", "fixtureSourceSha", "seedSqlSha256", "allocatedIdsSha256",
     "sessionSha256", "argumentsSha256", "requestMethod", "toolName", "serviceName", "layerId", "notificationMethod",
     "requestId", "notificationRequestId", "responseId", "responseCount", "protocolCode", "code", "hasResult",
-    "clientAbortUsed", "originalRequestKeptOpen", "provider.kind", "provider.blockerPid", "provider.queryPid",
+    "clientAbortUsed", "originalRequestKeptOpen", "provider.kind", "provider.tableSchema", "provider.tableName", "provider.blockerPid", "provider.queryPid",
     "provider.observedBlocked", "provider.ceasedBeforeBlockerRelease", "provider.relationLocksReleased",
     "provider.beforeRowsSha256", "provider.afterRowsSha256", "wrongSession.observedAfterMs", "wrongSession.samples",
     "wrongIdType.observedAfterMs", "wrongIdType.samples", "recoveryReadMatchesFixture", "cleanup.blockerReleased",
@@ -33,6 +33,21 @@ test("synthetic cancellation proof controls require every cessation and authorit
   ]) {
     const proof = structuredClone(valid); update(proof); assert.equal(verify(proof), false);
   }
+});
+
+test("physical binding accepts only the exact authored relation and refuses ambiguous or injected metadata", async () => {
+  const expected = { schema: "honua", table: "features", primaryKey: "objectid", geometry: "geometry" };
+  for (const bindings of [[], [expected, expected], [{ ...expected, schema: 'public";DROP TABLE x;--' }],
+    [{ ...expected, schema: "other_fixture" }], [{ ...expected, table: "unrelated" }],
+    [{ ...expected, primaryKey: "other_id" }], [{ ...expected, geometry: "other_geom" }]]) {
+    const observer = new PostgresCancellationObserver({});
+    observer.sql = async () => bindings;
+    await assert.rejects(observer.bind(fixture), (error) => error.observationCode === "FIXTURE_BINDING");
+    assert.equal(observer.relation, undefined);
+  }
+  const observer = new PostgresCancellationObserver({}); observer.sql = async () => [expected];
+  await observer.bind(fixture);
+  assert.equal(observer.relation, '"honua"."features"');
 });
 
 test("observer is restricted to an explicit owned loopback database and a safe application binding", () => {

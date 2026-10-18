@@ -24,16 +24,24 @@ test("real PostGIS observer distinguishes blocked work from cessation before blo
   try {
     await command("createdb", [database]); created = true;
     await observer.sql(`CREATE EXTENSION postgis;
-      CREATE TABLE public.features (objectid bigint PRIMARY KEY, layer_id integer NOT NULL,
+      CREATE SCHEMA honua;
+      CREATE TABLE honua.layers (layer_id integer, table_schema text, table_name text, primary_key_column text, geometry_column text);
+      CREATE TABLE honua.service_layers (service_name text, layer_id integer);
+      INSERT INTO honua.layers VALUES (0,'honua','features','objectid','geometry');
+      INSERT INTO honua.service_layers VALUES ('test_service',0);
+      CREATE TABLE honua.features (objectid bigint PRIMARY KEY, layer_id integer NOT NULL,
         attributes jsonb NOT NULL, geometry geometry(Point,4326) NOT NULL);
-      INSERT INTO public.features VALUES
+      INSERT INTO honua.features VALUES
         (21,0,'{"name":"alpha","count":1}',ST_GeomFromText('POINT(-122.49 37.71)',4326)),
         (22,0,'{"name":"beta","count":2}',ST_GeomFromText('POINT(-122.475 37.72)',4326));
+      CREATE TABLE public.features (LIKE honua.features INCLUDING ALL);
+      INSERT INTO public.features VALUES (99,0,'{"name":"decoy","count":0}',ST_GeomFromText('POINT(0 0)',4326));
       SELECT true::text`);
     const before = await observer.snapshot(fixture);
+    assert.equal(observer.tableSchema, "honua");
     await observer.hold();
     const startedAt = new Date().toISOString();
-    query = spawn("psql", [...observer.arguments, "--command", "SELECT count(*) FROM public.features"], {
+    query = spawn("psql", [...observer.arguments, "--command", "SELECT count(*) FROM honua.features"], {
       env: { ...observer.environment, PGAPPNAME: config.SERVER_APP_NAME, PGOPTIONS: "-c statement_timeout=15000" },
       stdio: ["ignore", "ignore", "ignore"],
     });
@@ -51,8 +59,11 @@ test("real PostGIS observer distinguishes blocked work from cessation before blo
     assert.equal(observer.released, false);
     await observer.release();
     assert.equal(await observer.snapshot(fixture), before);
-    await observer.sql("UPDATE public.features SET attributes = jsonb_set(attributes, '{count}', '99') WHERE objectid = 21; SELECT true::text");
+    await observer.sql("UPDATE honua.features SET attributes = jsonb_set(attributes, '{count}', '99') WHERE objectid = 21; SELECT true::text");
     await assert.rejects(observer.snapshot(fixture), (error) => error.observationCode === "FIXTURE_ROWS");
+    await observer.sql("UPDATE honua.layers SET table_schema = 'public'; SELECT true::text");
+    const decoy = new PostgresCancellationObserver(config);
+    await assert.rejects(decoy.snapshot(fixture), (error) => error.observationCode === "FIXTURE_ROWS");
   } finally {
     const cleanupErrors = [];
     try { await observer.release(); } catch (error) { cleanupErrors.push(error); }

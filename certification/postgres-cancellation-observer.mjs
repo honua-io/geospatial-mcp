@@ -7,7 +7,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 export class PostgresObservationError extends Error {
   constructor(code) {
-    const safe = /^[0-9A-Z]{5}$/.test(code) || ["COMMAND_FAILED", "INVALID_JSON", "FIXTURE_ROWS"].includes(code);
+    const safe = /^[0-9A-Z]{5}$/.test(code) || ["COMMAND_FAILED", "INVALID_JSON", "FIXTURE_ROWS", "FIXTURE_BINDING"].includes(code);
     super("Postgres cancellation observation failed");
     this.observationCode = safe ? code : "COMMAND_FAILED";
   }
@@ -78,9 +78,10 @@ export class PostgresCancellationObserver {
   }
 
   async snapshot(fixture) {
+    if (!this.relation) await this.bind(fixture);
     const rows = await this.sql(`SELECT COALESCE(jsonb_agg(jsonb_build_object(
       'id', objectid, 'attributes', attributes, 'geometry', ST_AsGeoJSON(geometry)::jsonb,
-      'srid', ST_SRID(geometry)) ORDER BY objectid), '[]'::jsonb)::text FROM public.features WHERE layer_id = 0`);
+      'srid', ST_SRID(geometry)) ORDER BY objectid), '[]'::jsonb)::text FROM ${this.relation} WHERE layer_id = 0`);
     require(Array.isArray(rows), "observer fixture snapshot is malformed");
     for (const expected of fixture.expected) {
       const found = rows.filter((row) => row.id === expected.id && row.attributes?.name === expected.name);
@@ -92,7 +93,24 @@ export class PostgresCancellationObserver {
     return hash(JSON.stringify(rows));
   }
 
+  async bind(fixture) {
+    if (fixture.serviceName !== "test_service" || fixture.layerId !== 0) throw new PostgresObservationError("FIXTURE_BINDING");
+    const bindings = await this.sql(`SELECT COALESCE(json_agg(json_build_object(
+      'schema', COALESCE(NULLIF(l.table_schema,''),'public'), 'table', l.table_name,
+      'primaryKey', l.primary_key_column, 'geometry', l.geometry_column)), '[]'::json)
+      FROM honua.layers l JOIN honua.service_layers sl ON sl.layer_id = l.layer_id
+      WHERE sl.service_name = 'test_service' AND l.layer_id = 0`);
+    const binding = bindings?.[0];
+    if (!Array.isArray(bindings) || bindings.length !== 1 || !["public", "honua"].includes(binding?.schema)
+      || binding.table !== "features" || binding.primaryKey !== "objectid" || binding.geometry !== "geometry") {
+      throw new PostgresObservationError("FIXTURE_BINDING");
+    }
+    this.tableSchema = binding.schema;
+    this.relation = `"${binding.schema}"."features"`;
+  }
+
   async hold() {
+    require(this.relation, "observer requires an independently bound fixture relation");
     require(!this.blocker, "observer blocker is already allocated");
     const child = spawn("psql", this.arguments, { env: this.environment });
     this.blocker = child;
@@ -104,7 +122,7 @@ export class PostgresCancellationObserver {
     child.stderr.resume();
     child.stdout.on("data", (bytes) => { output += bytes; });
     child.stdin.on("error", () => {}); // Exit/error is checked independently below and on release.
-    child.stdin.write("SET idle_in_transaction_session_timeout = '30s';\nBEGIN;\nLOCK TABLE public.features IN ACCESS EXCLUSIVE MODE;\nSELECT json_build_object('held', true, 'pid', pg_backend_pid());\n");
+    child.stdin.write(`SET idle_in_transaction_session_timeout = '30s';\nBEGIN;\nLOCK TABLE ${this.relation} IN ACCESS EXCLUSIVE MODE;\nSELECT json_build_object('held', true, 'pid', pg_backend_pid());\n`);
     const held = await until(() => {
       require(child.exitCode === null && child.signalCode === null, "observer blocker exited before holding its lock");
       require(output.length <= 4096, "observer blocker returned excessive output");
@@ -132,10 +150,11 @@ export class PostgresCancellationObserver {
 
   async state(pid) {
     require(Number.isSafeInteger(pid) && pid > 0 && Number.isSafeInteger(this.blockerPid), "observer provider identity is invalid");
+    require(this.relation, "observer fixture relation is not bound");
     return this.sql(`SELECT json_build_object(
       'waiting', EXISTS(SELECT 1 FROM pg_stat_activity WHERE pid = ${pid} AND ${this.blockerPid} = ANY(pg_blocking_pids(pid))),
-      'relationLocks', (SELECT count(*) FROM pg_locks WHERE pid = ${pid} AND locktype = 'relation' AND relation = 'public.features'::regclass),
-      'blockerHeld', EXISTS(SELECT 1 FROM pg_locks WHERE pid = ${this.blockerPid} AND relation = 'public.features'::regclass
+      'relationLocks', (SELECT count(*) FROM pg_locks WHERE pid = ${pid} AND locktype = 'relation' AND relation = '${this.relation}'::regclass),
+      'blockerHeld', EXISTS(SELECT 1 FROM pg_locks WHERE pid = ${this.blockerPid} AND relation = '${this.relation}'::regclass
         AND mode = 'AccessExclusiveLock' AND granted))`);
   }
 

@@ -24,7 +24,8 @@ export function verifyCancellationProof(proof, sourceSha, performedBy) {
     && Number.isSafeInteger(id) && id >= 0 && proof.notificationRequestId === id && proof.responseId === id
     && proof.responseCount === 1 && proof.protocolCode === -32800 && proof.code === "cancelled" && proof.hasResult === false
     && proof.clientAbortUsed === false && proof.originalRequestKeptOpen === true
-    && proof.provider?.kind === "postgres-relation-lock" && Number.isSafeInteger(proof.provider.blockerPid)
+    && proof.provider?.kind === "postgres-relation-lock" && ["public", "honua"].includes(proof.provider.tableSchema)
+    && proof.provider.tableName === "features" && Number.isSafeInteger(proof.provider.blockerPid)
     && proof.provider.blockerPid > 0 && Number.isSafeInteger(proof.provider.queryPid) && proof.provider.queryPid > 0
     && proof.provider.queryPid !== proof.provider.blockerPid && proof.provider.observedBlocked === true
     && proof.provider.ceasedBeforeBlockerRelease === true
@@ -139,7 +140,8 @@ export async function requestCancellation({ client, transport, otherClient, othe
       notificationRequestId: capture.id, responseId: responses[0].id, responseCount: responses.length,
       protocolCode: result.error.code, code: result.error.data.code, hasResult: false, clientAbortUsed: false,
       originalRequestKeptOpen: true, wrongSession, wrongIdType, recoveryReadMatchesFixture: true,
-      provider: { kind: "postgres-relation-lock", blockerPid, queryPid: pid, observedBlocked: true, ceasedBeforeBlockerRelease: true,
+      provider: { kind: "postgres-relation-lock", tableSchema: observer.tableSchema, tableName: "features",
+        blockerPid, queryPid: pid, observedBlocked: true, ceasedBeforeBlockerRelease: true,
         relationLocksReleased: true, beforeRowsSha256: before, afterRowsSha256: after } };
   } catch (error) {
     const diagnostic = error instanceof PostgresObservationError ? ` (${error.observationCode})` : "";

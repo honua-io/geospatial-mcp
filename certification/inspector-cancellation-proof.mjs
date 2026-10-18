@@ -17,6 +17,7 @@ export function verifyInspectorCancellationProof(proof, sourceSha, version, prot
     && proof.notificationRequestId === id && proof.responseId === id && proof.responseCount === 1
     && proof.protocolCode === -32800 && proof.code === "cancelled" && proof.hasResult === false
     && proof.publicUiAction === "Execute Tool / Cancel" && proof.clientAbortUsed === true
+    && proof.localUiCancellationObserved === true
     && proof.genuineNotificationObserved === true && proof.originalUpstreamKeptOpen === true
     && proof.provider?.kind === "postgres-relation-lock" && ["public", "honua"].includes(proof.provider.tableSchema)
     && proof.provider.tableName === "features" && Number.isSafeInteger(proof.provider.blockerPid) && proof.provider.blockerPid > 0

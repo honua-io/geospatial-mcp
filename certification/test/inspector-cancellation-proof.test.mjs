@@ -21,6 +21,7 @@ for (const [name, patch] of Object.entries({ missing: undefined, source: { fixtu
   version: { inspectorVersion: "2.3.0" }, protocol: { protocolVersion: "2025-11-25" },
   transport: { transport: "stdio" }, era: { protocolEra: "modern" }, notification: { genuineNotificationObserved: false },
   upstreamClosed: { originalUpstreamKeptOpen: false }, localAbortOnly: { publicUiAction: "AbortSignal" },
+  inertUi: { localUiCancellationObserved: false },
   wrongTypedId: { notificationRequestId: "7" }, duplicate: { responseCount: 2 }, untyped: { code: "success" },
   result: { hasResult: true }, changedRows: { provider: { afterRowsSha256: `sha256:${"3".repeat(64)}` } },
   localTimeout: { provider: { ceasedBeforeBlockerRelease: false } }, locksRemain: { provider: { relationLocksReleased: false } },

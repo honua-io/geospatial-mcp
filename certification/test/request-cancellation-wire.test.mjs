@@ -31,7 +31,8 @@ async function execute(mode) {
     }
     if (body.method === "tools/call") {
       if (++queryCalls === 1) { pending = { response, id: body.id, session: sid }; waiting = true; return; }
-      json(response, { jsonrpc: "2.0", id: body.id, result: queryResult() }); return;
+      json(response, { jsonrpc: "2.0", id: body.id, result: { ...queryResult(),
+        ...(mode === "recovery-error" ? { isError: true } : {}) } }); return;
     }
     if (body.method === "notifications/cancelled" && pending
       && (body.params.requestId === pending.id || (mode === "wrong-id-type" && String(body.params.requestId) === String(pending.id)))
@@ -85,7 +86,7 @@ test("installed SDK keeps original HTTP open and receives typed cancellation thr
 
 for (const [mode, stage] of [["wrong-session", "wrong-session"], ["wrong-id-type", "wrong-id-type"],
   ["acknowledgement-only", "provider-cessation"], ["contradictory-result", "rightful-cancellation"],
-  ["cleanup-failure", "recovery"]]) {
+  ["cleanup-failure", "recovery"], ["recovery-error", "recovery"]]) {
   test(`installed SDK proof rejects ${mode} instead of treating a notification as cessation`, async () => {
     const result = await execute(mode);
     assert.equal(result.proof, undefined);

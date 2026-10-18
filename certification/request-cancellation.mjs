@@ -88,9 +88,11 @@ export async function requestCancellation({ client, transport, otherClient, othe
     return { observedAfterMs, samples };
   };
   try {
+    stage = "session-authority";
     require(typeof transport.sessionId === "string" && transport.sessionId.length > 0
       && typeof otherTransport.sessionId === "string" && otherTransport.sessionId !== transport.sessionId,
     "independent authenticated stateful SDK sessions are required");
+    stage = "fixture-snapshot";
     const before = await observer.snapshot(fixture);
     stage = "blocker";
     const blockerPid = await observer.hold();
@@ -125,7 +127,9 @@ export async function requestCancellation({ client, transport, otherClient, othe
     const after = await observer.snapshot(fixture);
     require(before === after, "cancellation changed the fixture rows");
     await client.notification({ method: "notifications/cancelled", params: { requestId: capture.id, reason: "certification completed-ID control" } });
-    verifyQuery(toolOutput(await client.callTool({ name: "honua_query_features", arguments: arguments_ })), fixture);
+    const recovery = await client.callTool({ name: "honua_query_features", arguments: arguments_ });
+    require(recovery.isError === undefined || recovery.isError === false, "recovery query returned an MCP error envelope");
+    verifyQuery(toolOutput(recovery), fixture);
     require(responses.length === 1, "original SDK request received duplicate terminal responses");
     proof = { schema: "honua.mcp-request-cancellation-proof/v1", performedBy,
       fixtureSourceSha: fixture.sourceSha, seedSqlSha256: fixture.seedSqlSha256, allocatedIdsSha256: fixture.allocatedIdsSha256,

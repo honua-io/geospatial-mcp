@@ -50,7 +50,9 @@ async function invoke(operation, method, extra = [], expectedCode = 0, authentic
 
 await invoke("initialize", "initialize");
 checks.ping = { result: "skip", reason: "Pinned Inspector one-shot CLI has no ping method; initialize is not ping proof" };
-const tools = await invoke("tools/list", "tools/list");
+// Public CLI metadata is forwarded by Inspector's managed pagination. Keep it
+// local to this catalog export: anonymous discovery must retain its default view.
+const tools = await invoke("tools/list", "tools/list", ["--metadata", 'honua.io/workflow-view="full"']);
 try {
   const manifest = JSON.parse(await readFile(new URL("../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
   assertToolRoster(tools?.tools?.map(({ name }) => name) ?? [], manifest.tools.map(({ advertisedName }) => advertisedName));

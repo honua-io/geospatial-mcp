@@ -29,6 +29,13 @@ a protected tool without credentials to require the typed reauthentication
 refusal with no data. Negative controls drive the actual official SDK over a
 controlled HTTP server, including deliberately broken success responses.
 
+Full-roster parity explicitly selects `honua.io/workflow-view=full` in request
+metadata through the official SDK and Inspector's public `--metadata` option.
+Both clients must retain that selection through every catalog page. The server's
+bounded default discovery view remains unchanged, including the anonymous tool
+refusal scenario. Wire controls serve a small default view and a three-page
+authenticated catalog, and require a missing manifest tool to fail parity.
+
 The thin SDK adapter consumes the server-owned cancellation scenario and PostGIS
 observer from `honua-server/tests/mcp-certification`, not from a copied runtime
 harness here. The maintained immutable-source fetcher authenticates canonical

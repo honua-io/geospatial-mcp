@@ -24,11 +24,26 @@ async function execute(mode, runner = "sdk") {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
     const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-    calls.push({ method: body.method, name: body.params?.name, authenticated: request.headers["x-api-key"] === "control-key" });
+    calls.push({ method: body.method, name: body.params?.name, authenticated: request.headers["x-api-key"] === "control-key",
+      view: body.params?._meta?.["honua.io/workflow-view"], cursor: body.params?.cursor });
     const server = new Server({ name: "deliberately-controlled-test-server", version: "1.0.0" }, {
       capabilities: { tools: {}, resources: {} },
     });
-    server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: manifest.tools.map((tool) => ({ name: tool.advertisedName, inputSchema: { type: "object" } })) }));
+    server.setRequestHandler(ListToolsRequestSchema, async (value) => {
+      const tools = manifest.tools.map((tool) => ({ name: tool.advertisedName, inputSchema: { type: "object" } }));
+      if (value.params?._meta?.["honua.io/workflow-view"] !== "full") {
+        if (value.params?.cursor) throw new McpError(ErrorCode.InvalidParams, "Full catalog cursor requires the full view");
+        return { tools: tools.filter(({ name }) => ["honua_list_capabilities", "honua_list_layers", "honua_query_features"].includes(name)) };
+      }
+      if (request.headers["x-api-key"] !== "control-key") {
+        throw new McpError(ErrorCode.InvalidRequest, "Full catalog requires authentication");
+      }
+      const catalog = mode === "missing-catalog-tool" ? tools.slice(0, -1) : tools;
+      if (value.params?.cursor === undefined) return { tools: catalog.slice(0, 2), nextCursor: "catalog-second" };
+      if (value.params.cursor === "catalog-second") return { tools: catalog.slice(2, 4), nextCursor: "catalog-final" };
+      if (value.params.cursor === "catalog-final") return { tools: catalog.slice(4) };
+      throw new McpError(ErrorCode.InvalidParams, "Unknown catalog cursor");
+    });
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: [] }));
     server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({ resourceTemplates: [] }));
     server.setRequestHandler(CallToolRequestSchema, async (value) => {
@@ -116,3 +131,21 @@ test("real Inspector anonymous tool invocation distinguishes denial from leaked 
     assert.equal(JSON.stringify(result).includes("control-key"), false);
   }
 });
+
+for (const runner of ["sdk", "inspector"]) {
+  test(`real ${runner} requests the authenticated full catalog on every page and rejects missing manifest tools`, async () => {
+    for (const mode of ["typed-refusal", "missing-catalog-tool"]) {
+      const { result, calls } = await execute(mode, runner);
+      assert.equal(result.checks["tools/list"].result, mode === "typed-refusal" ? "pass" : "fail",
+        JSON.stringify(result.checks["tools/list"]));
+      if (mode === "missing-catalog-tool") assert.match(result.checks["tools/list"].error, /missing implemented manifest tools/);
+      const full = calls.filter(({ method, view }) => method === "tools/list" && view === "full");
+      assert.deepEqual(full.map(({ cursor }) => cursor), [undefined, "catalog-second", "catalog-final"]);
+      assert.ok(full.every(({ authenticated }) => authenticated));
+      assert.equal(calls.some(({ authenticated, view }) => !authenticated && view === "full"), false);
+      assert.ok(calls.some(({ name, authenticated }) => name === "honua_list_layers" && !authenticated),
+        "anonymous control must reach the protected tool, not stop at full-catalog authorization");
+      assert.equal(result.checks["behavior/auth"].result, "pass");
+    }
+  });
+}

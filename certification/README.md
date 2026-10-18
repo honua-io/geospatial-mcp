@@ -83,7 +83,12 @@ locally before sending a call, so those operations remain incomplete rather than
 counted as successful wire assertions. Its protected-tool authentication probe
 uses an anonymous session and validates the actual typed tool refusal.
 
-The 84-row operation denominator is preserved. Most tool/resource workflows still
+The producer matches the existing governed catalog: 41 operations per client,
+82 rows in total. The retired `propose_operation` is a known gap in the published
+vocabulary and is already absent from that catalog; it is not a required runtime
+operation. Tests construct their expected catalog independently from the
+published vocabulary, so a stale producer entry cannot validate itself.
+Most tool/resource workflows still
 need executable semantic scenarios and candidate evidence under geospatial-mcp#95
 and honua-release#123/#652.
 A green synthetic/unit check is never candidate certification. The workflow's
@@ -126,7 +131,7 @@ resource list matching the wire, then the pure fragment consumer rechecks the
 candidate source, actual installed Inspector version, completion and bounded
 counts/hashes. Missing/tampered helpers stay nonpassing; there is no local copy.
 The owning server controls run the actual installed 2.10.1 CLI and web UI. They
-do not qualify governed 2.3.0, alter any of the 84 requirements, or clear the
+do not qualify governed 2.3.0 or clear the
 remaining Inspector initial-ping and unknown-tool addressability gaps. Browser
 cancellation controls establish the public path against an authored peer, not
 candidate qualification. A fresh image alone still cannot make the canonical

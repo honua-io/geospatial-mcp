@@ -21,7 +21,7 @@ export const OPERATIONS = [
     "geocode_address", "geocode_addresses", "get_style", "ground_candidates",
     "ingest_dataset", "list_capabilities", "list_layers", "operate_events",
     "ops_findings", "ops_health", "plan_analysis", "platform_release_status",
-    "preview_package", "propose_operation", "propose_rollback", "publish_result",
+    "preview_package", "propose_rollback", "publish_result",
     "publish_service", "query_features", "render_map", "resolve_entity", "solve_route",
     "validate_package", "validate_plan"
   ].map((name) => ["mcp.tool", `tools/call:${name}`]),

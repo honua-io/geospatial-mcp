@@ -32,7 +32,10 @@ if (checks.initialize.result === "pass") {
   if (!protocolVersion) throw new Error("SDK did not expose the negotiated MCP protocol version");
   await record("ping", () => client.ping());
   await record("tools/list", async () => {
-    const names = await collectPages((params) => client.listTools(params), "tools", ({ name }) => name);
+    // The default workflow view is deliberately bounded. Catalog parity needs
+    // the explicit authenticated export on every page, including continuation.
+    const names = await collectPages((params) => client.listTools({ ...params,
+      _meta: { "honua.io/workflow-view": "full" } }), "tools", ({ name }) => name);
     const manifest = JSON.parse(await readFile(new URL("../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
     return assertToolRoster(names, manifest.tools.map(({ advertisedName }) => advertisedName));
   });

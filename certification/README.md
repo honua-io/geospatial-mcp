@@ -17,7 +17,8 @@ requires one matching governed row for every declared operation/client/version,
 including its maturity, tier, facets, and fixture/contract/auth policy revisions.
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
 or incompatible context fails closed. The current default catalog still pins
-older MCP client versions: pin convergence is tracked under honua-release#652.
+older MCP client versions: pin convergence is tracked under honua-release#181
+and the honua-release#652 audit rollup.
 It is not evidence that the current producer has qualified the release. Raw SDK
 and Inspector result JSON is retained even when governed fragment construction
 refuses the mismatched catalog, so blocked/failing checks remain inspectable.
@@ -64,16 +65,27 @@ and cessation observations each have a 5-second budget. Failure continues owned
 cleanup and emits no passing proof. Unconfigured observers explicitly skip.
 
 Neither a local AbortSignal rejection nor killing Inspector proves server
-cessation. Inspector cancellation remains incomplete and explicitly skips,
-making its runner exit nonzero; the builder emits no passing receipt for it.
-The pinned Inspector CLI also has no one-shot ping and rejects missing tool names
-locally before sending a call, so those operations are incomplete rather than
+cessation. With the configured observer and complete database bindings above,
+authenticated server-owned helpers and installed browser dependencies, the
+Inspector adapter drives its public web UI's Execute Tool and Cancel actions.
+Its separate proof contract requires the genuine correlated cancellation
+notification, the original upstream request remaining open, a typed terminal
+response, independent PostGIS cessation before blocker release, unchanged rows,
+recovery readback and owned cleanup. The actual initialized protocol and authored
+fixture must match the retained proof. Local UI cancellation alone cannot pass;
+the SDK's separate proof still forbids AbortSignal cancellation. Missing observer
+configuration skips; configured helper, wire or database failures fail the
+scenario and cannot emit a passing receipt. Positive execution against the
+selected Honua candidate remains unqualified.
+
+The pinned Inspector CLI has no one-shot ping and rejects missing tool names
+locally before sending a call, so those operations remain incomplete rather than
 counted as successful wire assertions. Its protected-tool authentication probe
 uses an anonymous session and validates the actual typed tool refusal.
 
 The 84-row operation denominator is preserved. Most tool/resource workflows still
-need executable semantic scenarios, including Inspector cancellation and
-independent mutation/readback, under geospatial-mcp#95 and honua-release#123/#652.
+need executable semantic scenarios and candidate evidence under geospatial-mcp#95
+and honua-release#123/#652.
 A green synthetic/unit check is never candidate certification. The workflow's
 retained fragment, source/image binding, required facets, and final release gate
 must all pass against the selected candidate.
@@ -86,9 +98,11 @@ typed-negative calls remain mandatory. The oracle binds the exact candidate seed
 SQL and separately captured allocated database IDs; arbitrary layer discovery,
 cross-adapter agreement, or empty/partial feature responses do not establish proof.
 The builder requires this candidate/source/hash binding before admitting a semantic
-read. The builder also requires the SDK cessation proof to use the same authored
-seed and allocated-ID hashes. Inspector cancellation and pagination floors still
-prevent a full lane pass. General tool/resource workflows remain incomplete.
+read. The builder also requires each client's cessation proof to use the same
+authored seed and allocated-ID hashes. Missing candidate cancellation or
+pagination evidence cannot pass those floors; Inspector's initial ping and
+unknown-tool wire-error scenarios also remain incomplete and prevent a full lane
+pass. General tool/resource workflows remain incomplete.
 
 `npm test` runs canonical SDK adapter, immutable-helper binding and pure
 proof-consumer controls here. When the exact candidate contains the server-owned
@@ -111,7 +125,9 @@ server6338). It requires a multi-page cursor traversal and a final returned
 resource list matching the wire, then the pure fragment consumer rechecks the
 candidate source, actual installed Inspector version, completion and bounded
 counts/hashes. Missing/tampered helpers stay nonpassing; there is no local copy.
-The owning server controls run the actual installed2.10.1 CLI. They do not qualify
-governed2.3.0, alter any of the84 requirements, or clear the remaining Inspector
-ping, unknown-tool and cancellation addressability gaps. A fresh image alone
-still cannot make the canonical lane green.
+The owning server controls run the actual installed 2.10.1 CLI and web UI. They
+do not qualify governed 2.3.0, alter any of the 84 requirements, or clear the
+remaining Inspector initial-ping and unknown-tool addressability gaps. Browser
+cancellation controls establish the public path against an authored peer, not
+candidate qualification. A fresh image alone still cannot make the canonical
+lane green.

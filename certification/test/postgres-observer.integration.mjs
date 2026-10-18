@@ -54,8 +54,13 @@ test("real PostGIS observer distinguishes blocked work from cessation before blo
     await observer.sql("UPDATE public.features SET attributes = jsonb_set(attributes, '{count}', '99') WHERE objectid = 21; SELECT true::text");
     await assert.rejects(observer.snapshot(fixture), /authored point fixture/);
   } finally {
-    await observer.release();
-    if (query && query.exitCode === null && query.signalCode === null) { query.kill("SIGTERM"); await queryExit; }
-    if (created) await command("dropdb", ["--force", database]);
+    const cleanupErrors = [];
+    try { await observer.release(); } catch (error) { cleanupErrors.push(error); }
+    try {
+      if (query && query.exitCode === null && query.signalCode === null) { query.kill("SIGTERM"); await queryExit; }
+    } catch (error) { cleanupErrors.push(error); }
+    try { if (created) await command("dropdb", ["--force", database]); }
+    catch (error) { cleanupErrors.push(error); }
+    if (cleanupErrors.length) throw new AggregateError(cleanupErrors, "owned observer integration cleanup failed");
   }
 });

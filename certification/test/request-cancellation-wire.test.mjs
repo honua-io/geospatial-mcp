@@ -6,6 +6,7 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { requestCancellation, verifyCancellationProof } from "../request-cancellation.mjs";
+import { until } from "../postgres-cancellation-observer.mjs";
 import { fixture, queryResult } from "./cancellation-fixture.mjs";
 
 async function execute(mode) {
@@ -45,7 +46,7 @@ async function execute(mode) {
   const client = new Client({ name: "installed-sdk-wire-control", version: "1" });
   const otherClient = new Client({ name: "installed-sdk-other-session", version: "1" });
   const observer = { released: false, async snapshot() { return `sha256:${"2".repeat(64)}`; },
-    async hold() { return 101; }, async blocked() { assert.ok(pending); return 102; },
+    async hold() { return 101; }, async blocked() { await until(() => pending, 2_000); return 102; },
     async state() { return { waiting, relationLocks: waiting ? 1 : 0, blockerHeld: !this.released }; },
     async release() { this.released = true; if (mode === "cleanup-failure") throw new Error("synthetic cleanup failure"); } };
   try {

@@ -10,3 +10,11 @@ export function verifyInspectorPaginationProof(value, sourceSha, version) {
     && /^sha256:[a-f0-9]{64}$/.test(value.sessionSha256 ?? "")
     && value.complete === true && value.clientResultMatchesWire === true;
 }
+
+export function requireSuccessfulInspectorPaginationResult(output, execution) {
+  if (execution?.result !== "pass" || execution.inspectorExitCode !== 0
+    || execution.inspectorExitSignal !== null || execution.inspectorTimedOut !== false) {
+    throw new Error("Inspector pagination command did not complete successfully");
+  }
+  return output;
+}

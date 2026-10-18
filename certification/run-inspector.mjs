@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { readScenarios } from "./semantic-reads.mjs";
 import { authenticationDenial, assertToolRoster } from "./probes.mjs";
 import { loadInspectorPaginationHarness } from "./server-harness.mjs";
-import { verifyInspectorPaginationProof } from "./pagination-proof.mjs";
+import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult } from "./pagination-proof.mjs";
 import { CLIENTS } from "./requirements.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
@@ -26,15 +26,18 @@ async function invoke(operation, method, extra = [], expectedCode = 0, authentic
     let stderr = "";
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    const timeout = setTimeout(() => child.kill("SIGTERM"), 30_000);
-    child.on("error", (error) => { clearTimeout(timeout); resolve({ code: null, stdout, stderr: String(error) }); });
-    child.on("close", (code) => { clearTimeout(timeout); resolve({ code, stdout, stderr }); });
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, 30_000);
+    child.on("error", (error) => { clearTimeout(timeout); resolve({ code: null, signal: null, timedOut, stdout, stderr: String(error) }); });
+    child.on("close", (code, signal) => { clearTimeout(timeout); resolve({ code, signal, timedOut, stdout, stderr }); });
   });
   checks[operation] = {
     result: (Array.isArray(expectedCode) ? expectedCode.includes(result.code) : result.code === expectedCode) ? "pass" : "fail",
     startedAt,
     completedAt: new Date().toISOString(),
     inspectorExitCode: result.code,
+    inspectorExitSignal: result.signal ?? null,
+    inspectorTimedOut: result.timedOut === true,
     output: result.stdout.trim(),
     error: result.stderr.trim(),
   };
@@ -72,7 +75,10 @@ if (paginationHarness) {
   try {
     const proof = await paginationHarness.observeInspectorPagination({ endpoint: requestUrl,
       inspectorVersion: CLIENTS.inspector.version, sourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA,
-      invoke: (endpoint) => invoke("diagnostic/resources-list", "resources/list", [], 0, true, endpoint) });
+      invoke: async (endpoint) => {
+        const output = await invoke("diagnostic/resources-list", "resources/list", [], 0, true, endpoint);
+        return requireSuccessfulInspectorPaginationResult(output, checks["diagnostic/resources-list"]);
+      } });
     if (!verifyInspectorPaginationProof(proof, process.env.HONUA_MCP_SERVER_SOURCE_SHA, CLIENTS.inspector.version)) {
       throw new Error("Inspector pagination proof did not bind the installed client and candidate");
     }

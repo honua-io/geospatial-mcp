@@ -150,6 +150,12 @@ jobs:
           npm ci --ignore-scripts
           python3 -m unittest discover -s test -p 'test_fetch*.py' -v
           npm test
+          # Separate harness control: real PostGIS proves the independent observer.
+          # It emits no candidate certification row and uses its own disposable DB.
+          HONUA_MCP_OBSERVER_PGHOST=127.0.0.1 HONUA_MCP_OBSERVER_PGPORT=5432 \
+            HONUA_MCP_OBSERVER_PGUSER=honua HONUA_MCP_OBSERVER_PGPASSWORD=honua \
+            HONUA_MCP_OBSERVER_PGSERVER_APP_NAME=honua-observer-control \
+            node --test test/postgres-observer.integration.mjs
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
           # content-addressed corpus check: no fetch, no dependency on a reachable commit
@@ -216,7 +222,7 @@ jobs:
           salt="$(head -c 16 /dev/urandom | base64)"
           # Boot against the extension-only database so the server's own migrations own the
           # schema; the seed is applied afterwards (as honua-server's setup-honua-server does).
-          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
+          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
           for i in $(seq 1 60); do
             [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
             if [[ "$(docker inspect -f '{{.State.Running}}' honua-server 2>/dev/null || true)" != true ]]; then
@@ -254,6 +260,13 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
+          HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
+          HONUA_MCP_OBSERVER_PGPORT: "5432"
+          HONUA_MCP_OBSERVER_PGDATABASE: honua_test
+          HONUA_MCP_OBSERVER_PGUSER: honua
+          HONUA_MCP_OBSERVER_PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_OBSERVER_PGSERVER_APP_NAME: honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}
         run: mkdir -p artifacts && node run-sdk.mjs
 
       - name: Exercise MCP through the real Inspector

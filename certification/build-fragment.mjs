@@ -2,6 +2,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
+import { verifyCancellationProof } from "./request-cancellation.mjs";
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 const canonical = (value) => Array.isArray(value)
@@ -61,8 +62,12 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         && proof.fixtureSourceSha === identity.sourceSha && /^sha256:[0-9a-f]{64}$/.test(proof.seedSqlSha256)
         && /^sha256:[0-9a-f]{64}$/.test(proof.allocatedIdsSha256));
       const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
-        .every((name) => results[clientKey]?.checks?.[name]?.result === "pass");
+        .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
+        && verifyCancellationProof(cancellation, identity.sourceSha, client.canonicalClient)
+        && (!semantic || (cancellation.seedSqlSha256 === proof?.seedSqlSha256
+          && cancellation.allocatedIdsSha256 === proof?.allocatedIdsSha256));
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"

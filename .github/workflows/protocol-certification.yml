@@ -33,6 +33,12 @@ on:
       server_seed_ref:
         description: Exact honua-server seed revision
         required: false
+      requirements_ref:
+        description: Full honua-release commit owning the governed requirement catalog
+        required: false
+      requirements_revision:
+        description: Exact governed catalog revision (required for release)
+        required: false
       release_cut:
         description: Independently frozen RFC 3339 release cut
         required: false
@@ -121,9 +127,29 @@ jobs:
           cache: npm
           cache-dependency-path: certification/package-lock.json
 
+      - name: Fetch protected-history governed requirement context and consumer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIREMENTS_REF: ${{ inputs.requirements_ref }}
+          REQUIREMENTS_REVISION: ${{ inputs.requirements_revision }}
+          TIER: ${{ steps.identity.outputs.tier }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--destination .certification)
+          if [[ -n "${REQUIREMENTS_REF}" || -n "${REQUIREMENTS_REVISION}" ]]; then
+            [[ -n "${REQUIREMENTS_REF}" && -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Governed source/revision must be supplied together.'; exit 1; }
+            args+=(--source-sha "${REQUIREMENTS_REF}" --requirements-revision "${REQUIREMENTS_REVISION}")
+          fi
+          [[ "${TIER}" != release || -n "${REQUIREMENTS_REF}" && -n "${REQUIREMENTS_REVISION}" ]] || { echo '::error::Release requirements source/revision are required.'; exit 1; }
+          python3 certification/fetch-certification-requirements.py "${args[@]}"
+          echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/.certification/check_protocol_certification.py" >> "${GITHUB_ENV}"
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
+          python3 -m unittest discover -s test -p 'test_fetch*.py' -v
+          npm test
           test "$(node -p "require('./node_modules/@modelcontextprotocol/sdk/package.json').version")" = "${MCP_SDK_VERSION}"
           test "$(node -p "require('./node_modules/@modelcontextprotocol/inspector/package.json').version")" = "${MCP_INSPECTOR_VERSION}"
           # content-addressed corpus check: no fetch, no dependency on a reachable commit
@@ -206,6 +232,16 @@ jobs:
         shell: bash
         run: PGPASSWORD="${HONUA_CERT_DB_PASSWORD}" psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
 
+      - name: Retain independently allocated authored point fixture IDs
+        env:
+          PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -At \
+            -c "SELECT json_agg(row_to_json(f) ORDER BY f.name) FROM (SELECT objectid AS id, attributes->>'name' AS name FROM features WHERE layer_id=0 AND attributes->>'name' IN ('alpha','beta')) f" \
+            > .certification/fixture-row-ids.json
+
       - name: Exercise MCP through the real official SDK
         id: sdk
         continue-on-error: true
@@ -213,6 +249,11 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/sdk-results.json
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
+          HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
+          HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
         run: mkdir -p artifacts && node run-sdk.mjs
 
       - name: Exercise MCP through the real Inspector
@@ -222,11 +263,17 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/inspector-results.json
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
+          HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
+          HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
         run: node run-inspector.mjs
 
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
+          EXECUTED_TIER: ${{ steps.identity.outputs.tier }}
           SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
           SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           CUT_AT: ${{ steps.identity.outputs.cut-at }}
@@ -236,6 +283,7 @@ jobs:
         run: |
           mkdir -p artifacts/mcp
           jq -n \
+            --arg executedTier "${EXECUTED_TIER}" \
             --arg sourceSha "${SERVER_SOURCE_SHA}" \
             --arg producerSourceSha "${GITHUB_SHA}" \
             --arg imageDigest "${SERVER_IMAGE##*@}" \
@@ -245,16 +293,23 @@ jobs:
             --arg requestUrl "http://localhost:8080/mcp" \
             --slurpfile sdk certification/artifacts/sdk-results.json \
             --slurpfile inspector certification/artifacts/inspector-results.json \
-            '{identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
+            '{executedTier:$executedTier,identity:{sourceSha:$sourceSha,producerSourceSha:$producerSourceSha,imageDigest:$imageDigest,cutAt:$cutAt,startedAt:$startedAt,runtimeEnvironment:$runtimeEnvironment,requestUrl:$requestUrl},results:{sdk:$sdk[0],inspector:$inspector[0]}}' \
             > artifacts/mcp/builder-input.json
-          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json
+          node certification/build-fragment.mjs artifacts/mcp/builder-input.json artifacts/mcp/protocol-certification-fragment.json .certification/protocol-certification-requirements.v1.json
 
       - name: Upload governed producer artifact
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mcp-protocol-certification-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/mcp/protocol-certification-fragment.json
+          path: |
+            artifacts/mcp/protocol-certification-fragment.json
+            certification/artifacts/sdk-results.json
+            certification/artifacts/inspector-results.json
+            .certification/protocol-certification-requirements.v1.json
+            .certification/source-binding.json
+            .certification/base-schema.sql
+            .certification/fixture-row-ids.json
           if-no-files-found: error
           retention-days: 90
 

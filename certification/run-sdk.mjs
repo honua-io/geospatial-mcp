@@ -1,10 +1,12 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
+import { readScenarios } from "./semantic-reads.mjs";
+import { authenticationDenial, assertToolRoster, collectPages, missingTool } from "./probes.mjs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const url = new URL(process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp");
 const headers = process.env.HONUA_MCP_API_KEY
-  ? { Authorization: `Bearer ${process.env.HONUA_MCP_API_KEY}` }
+  ? { "X-API-Key": process.env.HONUA_MCP_API_KEY }
   : undefined;
 const client = new Client({ name: "geospatial-mcp-certification", version: "1.0.0" });
 const transport = new StreamableHTTPClientTransport(url, { requestInit: { headers } });
@@ -28,56 +30,34 @@ if (checks.initialize.result === "pass") {
   if (!protocolVersion) throw new Error("SDK did not expose the negotiated MCP protocol version");
   await record("ping", () => client.ping());
   await record("tools/list", async () => {
-    const names = [];
-    let cursor;
-    do {
-      const page = await client.listTools(cursor ? { cursor } : undefined);
-      names.push(...page.tools.map(({ name }) => name));
-      cursor = page.nextCursor;
-    } while (cursor);
-    return { names, paginationCompleted: true };
+    const names = await collectPages((params) => client.listTools(params), "tools", ({ name }) => name);
+    const manifest = JSON.parse(await readFile(new URL("../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
+    return assertToolRoster(names, manifest.tools.map(({ advertisedName }) => advertisedName));
   });
   await record("resources/templates/list", async () => {
-    const templates = [];
-    let cursor;
-    do {
-      const page = await client.listResourceTemplates(cursor ? { cursor } : undefined);
-      templates.push(...page.resourceTemplates.map(({ name, uriTemplate }) => ({ name, uriTemplate })));
-      cursor = page.nextCursor;
-    } while (cursor);
+    const templates = await collectPages((params) => client.listResourceTemplates(params), "resourceTemplates", ({ name, uriTemplate }) => ({ name, uriTemplate }));
     return { templates, paginationCompleted: true };
   });
   await record("behavior/resources-pagination", async () => {
-    const resources = [];
-    let cursor;
-    do {
-      const page = await client.listResources(cursor ? { cursor } : undefined);
-      resources.push(...page.resources.map(({ name, uri }) => ({ name, uri })));
-      cursor = page.nextCursor;
-    } while (cursor);
+    const resources = await collectPages((params) => client.listResources(params), "resources", ({ name, uri }) => ({ name, uri }));
     return { resources, paginationCompleted: true };
   });
-  await record("behavior/error", async () => {
+  await readScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
+  await record("behavior/error", () => missingTool(client));
+  // Neither a pre-aborted local promise nor killing the client establishes that
+  // the candidate stopped in-flight work. No cancellation receipt is minted.
+  checks["behavior/cancellation"] = {
+    result: "skip", reason: "No independently observed server-side in-flight cancellation scenario is implemented; honua-release#123",
+  };
+  await record("behavior/auth", async () => {
+    const anonymous = new Client({ name: "geospatial-mcp-anonymous-certification", version: "1.0.0" });
     try {
-      await client.callTool({ name: "__certification_missing_tool__", arguments: {} });
-      throw new Error("missing tool unexpectedly succeeded");
-    } catch (error) {
-      return { rejected: true, error: String(error) };
-    }
+      await anonymous.connect(new StreamableHTTPClientTransport(url));
+      return await authenticationDenial(anonymous);
+    } finally { await anonymous.close(); }
   });
-  await record("behavior/cancellation", async () => {
-    const controller = new AbortController();
-    controller.abort(new Error("certification cancellation"));
-    try {
-      await client.ping({ signal: controller.signal });
-      throw new Error("aborted request unexpectedly succeeded");
-    } catch (error) {
-      return { cancelled: true, error: String(error) };
-    }
-  });
-  await record("behavior/auth", () => client.ping());
   checks.protocolVersion = protocolVersion;
   await client.close();
 }
 await writeFile(process.env.CERT_RESULTS ?? "sdk-results.json", `${JSON.stringify({ performedBy: "Official MCP TypeScript SDK", requestUrl: url.href, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
-if (Object.values(checks).some(({ result }) => result === "fail")) process.exitCode = 1;
+if (Object.values(checks).some(({ result }) => result === "fail" || result === "skip")) process.exitCode = 1;

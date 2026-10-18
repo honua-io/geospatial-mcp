@@ -10,7 +10,31 @@ const canonical = (value) => Array.isArray(value)
     ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`
     : JSON.stringify(value);
 
-export function buildFragment({ identity, results, now = new Date().toISOString() }) {
+export function buildFragment({ identity, results, requirements, executedTier, now = new Date().toISOString() }) {
+  if (requirements?.schema !== "honua.protocol-certification-requirements/v1"
+      || requirements.receipt_schema_min !== "v2" || requirements.complete !== true
+      || typeof requirements.revision !== "string" || !requirements.revision
+      || !Array.isArray(requirements.requirements)) throw new Error("missing governed v2 requirements catalog");
+  const contexts = new Map();
+  for (const [capabilityKey, operation] of OPERATIONS) {
+    for (const client of Object.values(CLIENTS)) {
+      const matches = requirements.requirements.filter((row) => row.surface === "mcp"
+        && row.capability_key === capabilityKey && row.operation === operation
+        && row.canonical_client === client.canonicalClient && row.client_version === client.version
+        && row.deployment_target === "local-docker");
+      if (matches.length !== 1) throw new Error(`missing or ambiguous governed requirement for ${client.canonicalClient} ${operation}`);
+      const row = matches[0];
+      if (!["supported", "preview", "deprecated", "roadmap", "experimental", "internal"].includes(row.maturity)
+          || !["pr", "nightly", "release"].includes(row.required_tier)
+          || canonical(row.scenario_facets) !== canonical(["positive", "negative", "media-schema"])
+          || row.fixture_revision !== FIXTURE_REVISION || row.contract_revision !== CONTRACT_REVISION
+          || row.auth_policy_revision !== "anonymous-public-v1") throw new Error(`incompatible governed MCP context for ${operation}`);
+      contexts.set(`${client.canonicalClient}:${operation}`, { maturity: row.maturity,
+        required_tier: row.required_tier, requirements_revision: requirements.revision });
+    }
+  }
+  const tiers = ["pr", "nightly", "release"];
+  if (!tiers.includes(executedTier)) throw new Error("missing or invalid executed certification tier");
   for (const key of ["sourceSha", "producerSourceSha", "imageDigest", "cutAt", "startedAt", "runtimeEnvironment"]) {
     if (!identity[key]) throw new Error(`missing identity.${key}`);
   }
@@ -28,19 +52,28 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
 
   const observations = Object.entries(CLIENTS).flatMap(([clientKey, client]) =>
     OPERATIONS.map(([capabilityKey, operation]) => {
+      const context = contexts.get(`${client.canonicalClient}:${operation}`);
       const execution = results[clientKey]?.checks?.[operation];
-      const executable = ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const semantic = ["tools/call:list_capabilities", "tools/call:list_layers", "tools/call:query_features"].includes(operation);
+      const proof = execution?.value;
+      const semanticPassed = !semantic || (proof?.schema === "honua.mcp-read-semantic-proof/v1"
+        && proof.positive === true && proof.negative === true && proof.mediaSchema === true
+        && proof.fixtureSourceSha === identity.sourceSha && /^sha256:[0-9a-f]{64}$/.test(proof.seedSqlSha256)
+        && /^sha256:[0-9a-f]{64}$/.test(proof.allocatedIdsSha256));
+      const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass");
+      const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : executable && execution?.result === "pass" && behaviorPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
       const receipt = result === "pass" ? {
-        schema: "honua.certification-evidence-receipt/v1",
+        schema: "honua.certification-evidence-receipt/v2",
         identity: {
+          ...context,
           capability_key: capabilityKey,
           surface: "mcp",
           operation,
@@ -50,8 +83,6 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
           source_sha: identity.sourceSha,
           producer_source_sha: identity.producerSourceSha,
           image_digest: identity.imageDigest,
-          runtime_environment: identity.runtimeEnvironment,
-          protocol_version: protocolVersions[clientKey],
           fixture_revision: FIXTURE_REVISION,
           contract_revision: CONTRACT_REVISION,
           auth_policy_revision: "anonymous-public-v1",
@@ -64,6 +95,8 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
       } : null;
       const digest = receipt ? sha256(canonical(receipt)) : null;
       return {
+        ...context,
+        capability_key: capabilityKey,
         surface: "mcp",
         operation,
         scenario_facets: scenarioFacets,
@@ -79,7 +112,9 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
         deployment_target: "local-docker",
         result,
         skip_reason: result === "skip"
-          ? executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
+          ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
+            : semantic ? `candidate-bound read semantic proof did not pass: ${RELEASE_123}`
+            : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,
         producer_source_sha: identity.producerSourceSha,
@@ -109,5 +144,6 @@ export function buildFragment({ identity, results, now = new Date().toISOString(
 
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const input = JSON.parse(await readFile(process.argv[2], "utf8"));
+  input.requirements = JSON.parse(await readFile(process.argv[4], "utf8"));
   await writeFile(process.argv[3], `${JSON.stringify(buildFragment(input), null, 2)}\n`);
 }

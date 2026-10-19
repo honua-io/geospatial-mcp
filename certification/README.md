@@ -230,7 +230,7 @@ catalog refusal without the actual tool wire request remains nonpass. The curren
 scratch; restart/another replica may lose it. This does not prove durable save,
 full saved-body readback, deployment, catalog/style resolution or live-model
 composition. Its raw adapter proof cannot mint an anonymous-public-v1 receipt:
-the current governed policy conflicts with authenticated package reads and
+the historical frozen anonymous catalog conflicts with authenticated package reads and
 remains explicitly nonpassing. All 82 governed rows, installed-versus-selected
 client-version mismatch and existing global behavior/cancellation gates remain
 required. A historical image run adds adapter evidence only.
@@ -310,3 +310,47 @@ This source adapter does not qualify the historical selected image, current
 client-cohort mismatch, unresolved authenticated requirement adoption, or all82
 rows. Actual two-client execution remains required; pending/denied/failed
 publication and Inspector local discovery refusal retain nonpass outcomes.
+
+## Governed per-operation authority adoption
+
+The producer authenticates the existing release-owned
+`mcp-operation-auth-policy.v1.json` from the **same exact protected source** as
+its requirements catalog and retains both immutable Git blob identities. It
+requires every operation decision, the `auth` scenario facet and all reviewed
+observations. An old selected source without that policy fails closed; this
+change does not update requirements pins or select a new cohort.
+
+Normalization uses each operation's governed authority revision. For the
+implemented protected map, ingest/publication, style, execution and worker-result
+journeys, authority credit requires the complete protected release-owned oracle
+to rejudge retained actual canonical-client launches and raw wire bytes. Those
+oracles verify successful authenticated invocation, typed fresh anonymous
+refusal, credential fingerprints on initialization and invocation, distinct new
+sessions and unchanged client/server results. Boolean success labels and local
+Inspector discovery refusals cannot satisfy these controls.
+
+Public transport has no authority adapter in this slice. Other protected
+operations without a complete retained authority journey remain nonpassing;
+semantic evidence and global behavior checks alone cannot mint an `auth` facet.
+The fourth facet, governed policy revision and original observations bind any
+future receipt. Test-only synthetic schema/observation fixtures are not runtime
+qualification evidence.
+
+Refs [release695](https://github.com/honua-io/honua-release/issues/695) and
+[issue120](https://github.com/honua-io/geospatial-mcp/issues/120): matching cohort
+preparation, actual selected-candidate authority execution and missing primary
+journeys remain. All 82 candidate rows remain unqualified; the currently authored
+35 primary paths and at least 47 missing primary flows receive no new execution
+credit from this source change. The historical style/worker failures and old
+selected image/cohort rejection remain retained.
+
+`MCP Producer Source Controls` runs the complete offline source suite independently
+of selected-catalog or candidate startup. It authenticates the unchanged pinned
+oracle dependencies and existing reviewed receipt checker; it cannot satisfy or
+replace the required actual `certify` verdict. The full admission regression uses
+the untouched execute-plan proof and bootstrap from run 39284007212, preserving
+historical source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` and image digest
+`sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458`.
+That run's actual global cancellation failed. A separately labeled synthetic
+global control vector exercises the offline positive join; restoring the actual
+cancellation failure prevents a receipt. This is regression evidence only.

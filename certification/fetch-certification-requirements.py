@@ -13,6 +13,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "honua-io/honua-release"
 PATHS = ("certification/protocol-certification-requirements.v1.json", "tools/check_protocol_certification.py")
+AUTH_POLICY = "certification/sources/mcp-operation-auth-policy.v1.json"
 
 
 def api(path):
@@ -61,6 +62,38 @@ def immutable_files(repository, source, paths, *, get=api):
     return retained
 
 
+
+def validate_auth_policy(policy, catalog):
+    """Policy identity is governance input; it never substitutes for observed authority."""
+    if (policy.get("schema") != "honua.mcp-operation-auth-policy/v1"
+            or policy.get("revision") != "mcp-operation-auth-v1"
+            or policy.get("owner_issue") != "https://github.com/honua-io/honua-release/issues/695"):
+        raise ValueError("governed MCP authority policy identity differs")
+    expected = {
+        "anonymous-public-v1": ["anonymous-success", "fresh-anonymous-session", "no-credentials"],
+        "mcp-protected-operation-v1": ["authenticated-success", "fresh-anonymous-refusal",
+                                       "no-credential-forwarding", "no-authenticated-session-reuse", "caller-session-binding"],
+    }
+    if policy.get("required_observations") != expected:
+        raise ValueError("governed MCP authority observations differ")
+    decisions = {}
+    for decision in policy.get("operations", []):
+        operation = decision.get("operation")
+        if not isinstance(operation, str) or not operation or operation in decisions:
+            raise ValueError("governed MCP authority operation is missing or repeated")
+        authority = decision.get("auth_policy_revision")
+        if authority not in expected:
+            raise ValueError("governed MCP authority decision is unknown")
+        decisions[operation] = authority
+    rows = [row for row in catalog.get("requirements", []) if row.get("surface") == "mcp"]
+    if not rows or set(decisions) != {row.get("operation") for row in rows}:
+        raise ValueError("governed MCP authority operation coverage differs")
+    for row in rows:
+        if (row.get("auth_policy_revision") != decisions[row["operation"]]
+                or row.get("scenario_facets") != ["positive", "negative", "media-schema", "auth"]):
+            raise ValueError("governed MCP authority requirement differs")
+
+
 def fetch(pins, destination, *, source_sha=None, revision=None, get=api):
     if set(pins) != {"repository", "sourceSha", "requirementsRevision", "sha256"} or pins["repository"] != REPOSITORY:
         raise ValueError("governance pins must identify the canonical release repository")
@@ -76,7 +109,7 @@ def fetch(pins, destination, *, source_sha=None, revision=None, get=api):
         raise ValueError("governance pins must bind both retained source files")
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in pins["sha256"].values()):
         raise ValueError("governance file pins must be SHA-256 digests")
-    retained = immutable_files(REPOSITORY, source, PATHS, get=get)
+    retained = immutable_files(REPOSITORY, source, (*PATHS, AUTH_POLICY), get=get)
     if source_sha is None and any(retained[path][1] != pins["sha256"][path] for path in PATHS):
         raise ValueError("governance source bytes differ from reviewed file pins")
     catalog = json.loads(retained[PATHS[0]][0])
@@ -84,6 +117,7 @@ def fetch(pins, destination, *, source_sha=None, revision=None, get=api):
             or catalog.get("receipt_schema_min") != "v2" or catalog.get("complete") is not True
             or catalog.get("revision") != expected_revision):
         raise ValueError("governance catalog is incomplete or differs from the expected revision")
+    validate_auth_policy(json.loads(retained[AUTH_POLICY][0]), catalog)
     destination.mkdir(parents=True, exist_ok=True)
     for path, (data, _, _) in retained.items():
         (destination / Path(path).name).write_bytes(data)

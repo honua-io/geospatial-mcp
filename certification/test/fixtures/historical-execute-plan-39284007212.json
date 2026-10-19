@@ -1,0 +1,2712 @@
+{
+  "meaning": "Historical actual execute proof regression only; not current candidate qualification. Original run global SDK cancellation failed. Full-admission tests use separately labeled synthetic global controls.",
+  "run": "https://github.com/honua-io/geospatial-mcp/actions/runs/39284007212",
+  "identity": {
+    "sourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+    "producerSourceSha": "4b0aa91058acebaf7f31341075aa8af5e1c0283e",
+    "imageDigest": "sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+    "cutAt": "2026-10-09T16:11:35.725302592Z",
+    "startedAt": "2026-10-19T16:17:03Z",
+    "runtimeEnvironment": "Production",
+    "requestUrl": "http://localhost:8080/mcp"
+  },
+  "originalGlobalResults": {
+    "behavior/resources-pagination": "pass",
+    "behavior/error": "pass",
+    "behavior/cancellation": "fail",
+    "behavior/auth": "pass"
+  },
+  "proof": {
+    "candidateSourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+    "candidateImage": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+    "fixtureSha256": "sha256:82f7ffb305f25bd5c08a409236f72f52cc7fbfef7eeae57724fafa84a37e76e7",
+    "bootstrapSha256": "sha256:876bbf7b2a342214dd320cf52879a535699963338f198cc3d9adea65bb65c1b9",
+    "schema": "honua.mcp-canonical-execute-plan-proof/v1",
+    "operation": "tools/call:execute_plan",
+    "canonicalClient": "Official MCP TypeScript SDK",
+    "clientVersion": "1.32.1",
+    "positive": true,
+    "negative": true,
+    "mediaSchema": true,
+    "idempotentReplay": true,
+    "geometricResult": true,
+    "persistedReadback": true,
+    "restartReadback": true,
+    "anonymousInvocationRefusal": true,
+    "negativeNonmutation": true,
+    "helperSourceSha": "4194df4368c0b78274fdac12315eaadbdd620c04",
+    "helperSha256": "sha256:1f5f38d7b8e67dad060b1029dc9fae9fa2fece41a0e4ddc2db5dc9ae2e992dd4",
+    "observations": {
+      "schema": "honua.mcp-execute-plan-scenario/v1",
+      "nonce": "a0650fdaeff1",
+      "canonicalClient": "Official MCP TypeScript SDK",
+      "clientVersion": "1.32.1",
+      "candidateSourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+      "candidateImage": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+      "calls": [
+        {
+          "id": "invalid",
+          "method": "tools/call",
+          "params": {
+            "name": "honua_execute_plan",
+            "arguments": {
+              "plan": {
+                "planId": "mcp-execute-sdk-a0650fdaeff1-invalid",
+                "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                "outputs": [
+                  "FeatureLayer"
+                ],
+                "steps": [
+                  {
+                    "stepId": "buffer",
+                    "kind": "Geoprocess",
+                    "processId": "geometry.buffer",
+                    "inputs": {
+                      "wkb": "not-base64",
+                      "srid": "3857",
+                      "distance": "500.0",
+                      "geodesic": "false"
+                    }
+                  }
+                ]
+              },
+              "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-invalid"
+            }
+          },
+          "authenticated": true,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"error\",\"code\":\"invalid_argument\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\"}],\"error\":{\"kind\":\"ValidationFailed\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\"}]}}"
+              }
+            ],
+            "isError": true,
+            "structuredContent": {
+              "status": "error",
+              "code": "invalid_argument",
+              "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.",
+              "violations": [
+                {
+                  "code": "INVALID_ARGUMENT",
+                  "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB."
+                }
+              ],
+              "error": {
+                "kind": "ValidationFailed",
+                "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.",
+                "violations": [
+                  {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB."
+                  }
+                ]
+              }
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "tools/call",
+            "expectedParams": {
+              "name": "honua_execute_plan",
+              "arguments": {
+                "plan": {
+                  "planId": "mcp-execute-sdk-a0650fdaeff1-invalid",
+                  "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                  "outputs": [
+                    "FeatureLayer"
+                  ],
+                  "steps": [
+                    {
+                      "stepId": "buffer",
+                      "kind": "Geoprocess",
+                      "processId": "geometry.buffer",
+                      "inputs": {
+                        "wkb": "not-base64",
+                        "srid": "3857",
+                        "distance": "500.0",
+                        "geodesic": "false"
+                      }
+                    }
+                  ]
+                },
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-invalid"
+              }
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:45433/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:4a06fd9f8d8e847b8b229118d742ec29a7871538f0843f3ecd8f2483e8fe3799",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1-invalid",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "not-base64",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-invalid"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJ0b29scy9jYWxsIiwicGFyYW1zIjp7Im5hbWUiOiJob251YV9leGVjdXRlX3BsYW4iLCJhcmd1bWVudHMiOnsicGxhbiI6eyJwbGFuSWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxLWludmFsaWQiLCJpbnRlbnRJZCI6Im1jcC1leGVjdXRlLXNkay1hMDY1MGZkYWVmZjEiLCJvdXRwdXRzIjpbIkZlYXR1cmVMYXllciJdLCJzdGVwcyI6W3sic3RlcElkIjoiYnVmZmVyIiwia2luZCI6Ikdlb3Byb2Nlc3MiLCJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dHMiOnsid2tiIjoibm90LWJhc2U2NCIsInNyaWQiOiIzODU3IiwiZGlzdGFuY2UiOiI1MDAuMCIsImdlb2Rlc2ljIjoiZmFsc2UifX1dfSwiaWRlbXBvdGVuY3lLZXkiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxLWludmFsaWQifX0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:662e2a48e0c9dffcb56b4fd34ea1f8aa77aa298d6bf81c0e41cfcff5018569dd",
+                "sessionSha256": "sha256:4a06fd9f8d8e847b8b229118d742ec29a7871538f0843f3ecd8f2483e8fe3799",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50IjpbeyJ0eXBlIjoidGV4dCIsInRleHQiOiJ7XHUwMDIyc3RhdHVzXHUwMDIyOlx1MDAyMmVycm9yXHUwMDIyLFx1MDAyMmNvZGVcdTAwMjI6XHUwMDIyaW52YWxpZF9hcmd1bWVudFx1MDAyMixcdTAwMjJtZXNzYWdlXHUwMDIyOlx1MDAyMlBsYW4gZmFpbGVkIGNhdGFsb2cgdmFsaWRhdGlvbjogSU5WQUxJRF9QQVJBTUVURVJfVkFMVUUgXFx1MjAxNCBTdGVwIFxcdTAwMjdidWZmZXJcXHUwMDI3IHN1cHBsaWVzIGludmFsaWQgdmFsdWUgZm9yIHBhcmFtZXRlciBcXHUwMDI3d2tiXFx1MDAyNyBvZiBwcm9jZXNzIFxcdTAwMjdnZW9tZXRyeS5idWZmZXJcXHUwMDI3OiBleHBlY3RlZCBiYXNlNjQtZW5jb2RlZCBXS0IuXHUwMDIyLFx1MDAyMnZpb2xhdGlvbnNcdTAwMjI6W3tcdTAwMjJjb2RlXHUwMDIyOlx1MDAyMklOVkFMSURfQVJHVU1FTlRcdTAwMjIsXHUwMDIybWVzc2FnZVx1MDAyMjpcdTAwMjJQbGFuIGZhaWxlZCBjYXRhbG9nIHZhbGlkYXRpb246IElOVkFMSURfUEFSQU1FVEVSX1ZBTFVFIFxcdTIwMTQgU3RlcCBcXHUwMDI3YnVmZmVyXFx1MDAyNyBzdXBwbGllcyBpbnZhbGlkIHZhbHVlIGZvciBwYXJhbWV0ZXIgXFx1MDAyN3drYlxcdTAwMjcgb2YgcHJvY2VzcyBcXHUwMDI3Z2VvbWV0cnkuYnVmZmVyXFx1MDAyNzogZXhwZWN0ZWQgYmFzZTY0LWVuY29kZWQgV0tCLlx1MDAyMn1dLFx1MDAyMmVycm9yXHUwMDIyOntcdTAwMjJraW5kXHUwMDIyOlx1MDAyMlZhbGlkYXRpb25GYWlsZWRcdTAwMjIsXHUwMDIybWVzc2FnZVx1MDAyMjpcdTAwMjJQbGFuIGZhaWxlZCBjYXRhbG9nIHZhbGlkYXRpb246IElOVkFMSURfUEFSQU1FVEVSX1ZBTFVFIFxcdTIwMTQgU3RlcCBcXHUwMDI3YnVmZmVyXFx1MDAyNyBzdXBwbGllcyBpbnZhbGlkIHZhbHVlIGZvciBwYXJhbWV0ZXIgXFx1MDAyN3drYlxcdTAwMjcgb2YgcHJvY2VzcyBcXHUwMDI3Z2VvbWV0cnkuYnVmZmVyXFx1MDAyNzogZXhwZWN0ZWQgYmFzZTY0LWVuY29kZWQgV0tCLlx1MDAyMixcdTAwMjJ2aW9sYXRpb25zXHUwMDIyOlt7XHUwMDIyY29kZVx1MDAyMjpcdTAwMjJJTlZBTElEX0FSR1VNRU5UXHUwMDIyLFx1MDAyMm1lc3NhZ2VcdTAwMjI6XHUwMDIyUGxhbiBmYWlsZWQgY2F0YWxvZyB2YWxpZGF0aW9uOiBJTlZBTElEX1BBUkFNRVRFUl9WQUxVRSBcXHUyMDE0IFN0ZXAgXFx1MDAyN2J1ZmZlclxcdTAwMjcgc3VwcGxpZXMgaW52YWxpZCB2YWx1ZSBmb3IgcGFyYW1ldGVyIFxcdTAwMjd3a2JcXHUwMDI3IG9mIHByb2Nlc3MgXFx1MDAyN2dlb21ldHJ5LmJ1ZmZlclxcdTAwMjc6IGV4cGVjdGVkIGJhc2U2NC1lbmNvZGVkIFdLQi5cdTAwMjJ9XX19In1dLCJpc0Vycm9yIjp0cnVlLCJzdHJ1Y3R1cmVkQ29udGVudCI6eyJzdGF0dXMiOiJlcnJvciIsImNvZGUiOiJpbnZhbGlkX2FyZ3VtZW50IiwibWVzc2FnZSI6IlBsYW4gZmFpbGVkIGNhdGFsb2cgdmFsaWRhdGlvbjogSU5WQUxJRF9QQVJBTUVURVJfVkFMVUUgXHUyMDE0IFN0ZXAgXHUwMDI3YnVmZmVyXHUwMDI3IHN1cHBsaWVzIGludmFsaWQgdmFsdWUgZm9yIHBhcmFtZXRlciBcdTAwMjd3a2JcdTAwMjcgb2YgcHJvY2VzcyBcdTAwMjdnZW9tZXRyeS5idWZmZXJcdTAwMjc6IGV4cGVjdGVkIGJhc2U2NC1lbmNvZGVkIFdLQi4iLCJ2aW9sYXRpb25zIjpbeyJjb2RlIjoiSU5WQUxJRF9BUkdVTUVOVCIsIm1lc3NhZ2UiOiJQbGFuIGZhaWxlZCBjYXRhbG9nIHZhbGlkYXRpb246IElOVkFMSURfUEFSQU1FVEVSX1ZBTFVFIFx1MjAxNCBTdGVwIFx1MDAyN2J1ZmZlclx1MDAyNyBzdXBwbGllcyBpbnZhbGlkIHZhbHVlIGZvciBwYXJhbWV0ZXIgXHUwMDI3d2tiXHUwMDI3IG9mIHByb2Nlc3MgXHUwMDI3Z2VvbWV0cnkuYnVmZmVyXHUwMDI3OiBleHBlY3RlZCBiYXNlNjQtZW5jb2RlZCBXS0IuIn1dLCJlcnJvciI6eyJraW5kIjoiVmFsaWRhdGlvbkZhaWxlZCIsIm1lc3NhZ2UiOiJQbGFuIGZhaWxlZCBjYXRhbG9nIHZhbGlkYXRpb246IElOVkFMSURfUEFSQU1FVEVSX1ZBTFVFIFx1MjAxNCBTdGVwIFx1MDAyN2J1ZmZlclx1MDAyNyBzdXBwbGllcyBpbnZhbGlkIHZhbHVlIGZvciBwYXJhbWV0ZXIgXHUwMDI3d2tiXHUwMDI3IG9mIHByb2Nlc3MgXHUwMDI3Z2VvbWV0cnkuYnVmZmVyXHUwMDI3OiBleHBlY3RlZCBiYXNlNjQtZW5jb2RlZCBXS0IuIiwidmlvbGF0aW9ucyI6W3siY29kZSI6IklOVkFMSURfQVJHVU1FTlQiLCJtZXNzYWdlIjoiUGxhbiBmYWlsZWQgY2F0YWxvZyB2YWxpZGF0aW9uOiBJTlZBTElEX1BBUkFNRVRFUl9WQUxVRSBcdTIwMTQgU3RlcCBcdTAwMjdidWZmZXJcdTAwMjcgc3VwcGxpZXMgaW52YWxpZCB2YWx1ZSBmb3IgcGFyYW1ldGVyIFx1MDAyN3drYlx1MDAyNyBvZiBwcm9jZXNzIFx1MDAyN2dlb21ldHJ5LmJ1ZmZlclx1MDAyNzogZXhwZWN0ZWQgYmFzZTY0LWVuY29kZWQgV0tCLiJ9XX19fX0KCg==",
+                "bodySha256": "sha256:3958480c4902d4e163dc36911fac8e05b93ac861d6d8148381c742c99afaead1"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10103
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:45433/mcp",
+            "processId": 10103,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10103,\"sessionSha256\":\"sha256:4a06fd9f8d8e847b8b229118d742ec29a7871538f0843f3ecd8f2483e8fe3799\",\"output\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"status\\\":\\\"error\\\",\\\"code\\\":\\\"invalid_argument\\\",\\\"message\\\":\\\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\\\u2014 Step \\\\u0027buffer\\\\u0027 supplies invalid value for parameter \\\\u0027wkb\\\\u0027 of process \\\\u0027geometry.buffer\\\\u0027: expected base64-encoded WKB.\\\",\\\"violations\\\":[{\\\"code\\\":\\\"INVALID_ARGUMENT\\\",\\\"message\\\":\\\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\\\u2014 Step \\\\u0027buffer\\\\u0027 supplies invalid value for parameter \\\\u0027wkb\\\\u0027 of process \\\\u0027geometry.buffer\\\\u0027: expected base64-encoded WKB.\\\"}],\\\"error\\\":{\\\"kind\\\":\\\"ValidationFailed\\\",\\\"message\\\":\\\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\\\u2014 Step \\\\u0027buffer\\\\u0027 supplies invalid value for parameter \\\\u0027wkb\\\\u0027 of process \\\\u0027geometry.buffer\\\\u0027: expected base64-encoded WKB.\\\",\\\"violations\\\":[{\\\"code\\\":\\\"INVALID_ARGUMENT\\\",\\\"message\\\":\\\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\\\u2014 Step \\\\u0027buffer\\\\u0027 supplies invalid value for parameter \\\\u0027wkb\\\\u0027 of process \\\\u0027geometry.buffer\\\\u0027: expected base64-encoded WKB.\\\"}]}}\"}],\"structuredContent\":{\"status\":\"error\",\"code\":\"invalid_argument\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.\"}],\"error\":{\"kind\":\"ValidationFailed\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.\"}]}},\"isError\":true}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:45433/mcp",
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1-invalid",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "not-base64",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-invalid"
+                  }
+                },
+                "authenticated": true
+              },
+              "processId": 10103,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:9b9fbcd20941712a156b2ecf142a633c19261c96975640fd0a721c0675fc2af7",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:4a06fd9f8d8e847b8b229118d742ec29a7871538f0843f3ecd8f2483e8fe3799",
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"error\",\"code\":\"invalid_argument\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\"}],\"error\":{\"kind\":\"ValidationFailed\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\",\"violations\":[{\"code\":\"INVALID_ARGUMENT\",\"message\":\"Plan failed catalog validation: INVALID_PARAMETER_VALUE \\u2014 Step \\u0027buffer\\u0027 supplies invalid value for parameter \\u0027wkb\\u0027 of process \\u0027geometry.buffer\\u0027: expected base64-encoded WKB.\"}]}}"
+                }
+              ],
+              "structuredContent": {
+                "status": "error",
+                "code": "invalid_argument",
+                "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.",
+                "violations": [
+                  {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB."
+                  }
+                ],
+                "error": {
+                  "kind": "ValidationFailed",
+                  "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB.",
+                  "violations": [
+                    {
+                      "code": "INVALID_ARGUMENT",
+                      "message": "Plan failed catalog validation: INVALID_PARAMETER_VALUE \u2014 Step 'buffer' supplies invalid value for parameter 'wkb' of process 'geometry.buffer': expected base64-encoded WKB."
+                    }
+                  ]
+                }
+              },
+              "isError": true
+            }
+          }
+        },
+        {
+          "id": "anonymous",
+          "method": "tools/call",
+          "params": {
+            "name": "honua_execute_plan",
+            "arguments": {
+              "plan": {
+                "planId": "mcp-execute-sdk-a0650fdaeff1-anonymous",
+                "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                "outputs": [
+                  "FeatureLayer"
+                ],
+                "steps": [
+                  {
+                    "stepId": "buffer",
+                    "kind": "Geoprocess",
+                    "processId": "geometry.buffer",
+                    "inputs": {
+                      "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                      "srid": "3857",
+                      "distance": "500.0",
+                      "geodesic": "false"
+                    }
+                  }
+                ]
+              },
+              "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-anonymous"
+            }
+          },
+          "authenticated": false,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"error\",\"code\":\"unauthenticated\",\"message\":\"Authentication is required for this operation.\",\"requiresReauthentication\":true,\"error\":{\"kind\":\"AuthorizationDenied\",\"message\":\"Authentication is required for this operation.\"}}"
+              }
+            ],
+            "isError": true,
+            "structuredContent": {
+              "status": "error",
+              "code": "unauthenticated",
+              "message": "Authentication is required for this operation.",
+              "requiresReauthentication": true,
+              "error": {
+                "kind": "AuthorizationDenied",
+                "message": "Authentication is required for this operation."
+              }
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "tools/call",
+            "expectedParams": {
+              "name": "honua_execute_plan",
+              "arguments": {
+                "plan": {
+                  "planId": "mcp-execute-sdk-a0650fdaeff1-anonymous",
+                  "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                  "outputs": [
+                    "FeatureLayer"
+                  ],
+                  "steps": [
+                    {
+                      "stepId": "buffer",
+                      "kind": "Geoprocess",
+                      "processId": "geometry.buffer",
+                      "inputs": {
+                        "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                        "srid": "3857",
+                        "distance": "500.0",
+                        "geodesic": "false"
+                      }
+                    }
+                  ]
+                },
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-anonymous"
+              }
+            },
+            "authenticated": false,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:36081/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:2966d862537ff421b29d4fbf32e4183226c1f8528440683d89cadde43383b4c4",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1-anonymous",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-anonymous"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJ0b29scy9jYWxsIiwicGFyYW1zIjp7Im5hbWUiOiJob251YV9leGVjdXRlX3BsYW4iLCJhcmd1bWVudHMiOnsicGxhbiI6eyJwbGFuSWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxLWFub255bW91cyIsImludGVudElkIjoibWNwLWV4ZWN1dGUtc2RrLWEwNjUwZmRhZWZmMSIsIm91dHB1dHMiOlsiRmVhdHVyZUxheWVyIl0sInN0ZXBzIjpbeyJzdGVwSWQiOiJidWZmZXIiLCJraW5kIjoiR2VvcHJvY2VzcyIsInByb2Nlc3NJZCI6Imdlb21ldHJ5LmJ1ZmZlciIsImlucHV0cyI6eyJ3a2IiOiJBUUVBQUFBQUFBQUFBQUFrUUFBQUFBQUFBRFJBIiwic3JpZCI6IjM4NTciLCJkaXN0YW5jZSI6IjUwMC4wIiwiZ2VvZGVzaWMiOiJmYWxzZSJ9fV19LCJpZGVtcG90ZW5jeUtleSI6Im1jcC1leGVjdXRlLXNkay1hMDY1MGZkYWVmZjEtYW5vbnltb3VzIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjF9",
+                "bodySha256": "sha256:d41f235a6f3002052ecc5517ee36eea526decb5c66a95735839b58186d3b5f42",
+                "sessionSha256": "sha256:2966d862537ff421b29d4fbf32e4183226c1f8528440683d89cadde43383b4c4",
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50IjpbeyJ0eXBlIjoidGV4dCIsInRleHQiOiJ7XHUwMDIyc3RhdHVzXHUwMDIyOlx1MDAyMmVycm9yXHUwMDIyLFx1MDAyMmNvZGVcdTAwMjI6XHUwMDIydW5hdXRoZW50aWNhdGVkXHUwMDIyLFx1MDAyMm1lc3NhZ2VcdTAwMjI6XHUwMDIyQXV0aGVudGljYXRpb24gaXMgcmVxdWlyZWQgZm9yIHRoaXMgb3BlcmF0aW9uLlx1MDAyMixcdTAwMjJyZXF1aXJlc1JlYXV0aGVudGljYXRpb25cdTAwMjI6dHJ1ZSxcdTAwMjJlcnJvclx1MDAyMjp7XHUwMDIya2luZFx1MDAyMjpcdTAwMjJBdXRob3JpemF0aW9uRGVuaWVkXHUwMDIyLFx1MDAyMm1lc3NhZ2VcdTAwMjI6XHUwMDIyQXV0aGVudGljYXRpb24gaXMgcmVxdWlyZWQgZm9yIHRoaXMgb3BlcmF0aW9uLlx1MDAyMn19In1dLCJpc0Vycm9yIjp0cnVlLCJzdHJ1Y3R1cmVkQ29udGVudCI6eyJzdGF0dXMiOiJlcnJvciIsImNvZGUiOiJ1bmF1dGhlbnRpY2F0ZWQiLCJtZXNzYWdlIjoiQXV0aGVudGljYXRpb24gaXMgcmVxdWlyZWQgZm9yIHRoaXMgb3BlcmF0aW9uLiIsInJlcXVpcmVzUmVhdXRoZW50aWNhdGlvbiI6dHJ1ZSwiZXJyb3IiOnsia2luZCI6IkF1dGhvcml6YXRpb25EZW5pZWQiLCJtZXNzYWdlIjoiQXV0aGVudGljYXRpb24gaXMgcmVxdWlyZWQgZm9yIHRoaXMgb3BlcmF0aW9uLiJ9fX19Cgo=",
+                "bodySha256": "sha256:326bb1558f44eea0b2fca1bc7a3b450a16a6aa111a87684e7a02107537012be3"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10128
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:36081/mcp",
+            "processId": 10128,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10128,\"sessionSha256\":\"sha256:2966d862537ff421b29d4fbf32e4183226c1f8528440683d89cadde43383b4c4\",\"output\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"status\\\":\\\"error\\\",\\\"code\\\":\\\"unauthenticated\\\",\\\"message\\\":\\\"Authentication is required for this operation.\\\",\\\"requiresReauthentication\\\":true,\\\"error\\\":{\\\"kind\\\":\\\"AuthorizationDenied\\\",\\\"message\\\":\\\"Authentication is required for this operation.\\\"}}\"}],\"structuredContent\":{\"status\":\"error\",\"code\":\"unauthenticated\",\"message\":\"Authentication is required for this operation.\",\"requiresReauthentication\":true,\"error\":{\"kind\":\"AuthorizationDenied\",\"message\":\"Authentication is required for this operation.\"}},\"isError\":true}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:36081/mcp",
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1-anonymous",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1-anonymous"
+                  }
+                },
+                "authenticated": false
+              },
+              "processId": 10128,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:d49919d249eceeae3849aca97eb8edf950567912016bf4097bc4debffb6565fe",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:2966d862537ff421b29d4fbf32e4183226c1f8528440683d89cadde43383b4c4",
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"error\",\"code\":\"unauthenticated\",\"message\":\"Authentication is required for this operation.\",\"requiresReauthentication\":true,\"error\":{\"kind\":\"AuthorizationDenied\",\"message\":\"Authentication is required for this operation.\"}}"
+                }
+              ],
+              "structuredContent": {
+                "status": "error",
+                "code": "unauthenticated",
+                "message": "Authentication is required for this operation.",
+                "requiresReauthentication": true,
+                "error": {
+                  "kind": "AuthorizationDenied",
+                  "message": "Authentication is required for this operation."
+                }
+              },
+              "isError": true
+            }
+          }
+        },
+        {
+          "id": "execute",
+          "method": "tools/call",
+          "params": {
+            "name": "honua_execute_plan",
+            "arguments": {
+              "plan": {
+                "planId": "mcp-execute-sdk-a0650fdaeff1",
+                "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                "outputs": [
+                  "FeatureLayer"
+                ],
+                "steps": [
+                  {
+                    "stepId": "buffer",
+                    "kind": "Geoprocess",
+                    "processId": "geometry.buffer",
+                    "inputs": {
+                      "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                      "srid": "3857",
+                      "distance": "500.0",
+                      "geodesic": "false"
+                    }
+                  }
+                ]
+              },
+              "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+            }
+          },
+          "authenticated": true,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"}"
+              }
+            ],
+            "isError": false,
+            "structuredContent": {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "status": "Queued",
+              "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+              "resourceUri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "tools/call",
+            "expectedParams": {
+              "name": "honua_execute_plan",
+              "arguments": {
+                "plan": {
+                  "planId": "mcp-execute-sdk-a0650fdaeff1",
+                  "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                  "outputs": [
+                    "FeatureLayer"
+                  ],
+                  "steps": [
+                    {
+                      "stepId": "buffer",
+                      "kind": "Geoprocess",
+                      "processId": "geometry.buffer",
+                      "inputs": {
+                        "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                        "srid": "3857",
+                        "distance": "500.0",
+                        "geodesic": "false"
+                      }
+                    }
+                  ]
+                },
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+              }
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:40077/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:f8e3d4c6a9a8be2cc70d79723f719b51b84e9bf50768a15658024b5906accea6",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJ0b29scy9jYWxsIiwicGFyYW1zIjp7Im5hbWUiOiJob251YV9leGVjdXRlX3BsYW4iLCJhcmd1bWVudHMiOnsicGxhbiI6eyJwbGFuSWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxIiwiaW50ZW50SWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxIiwib3V0cHV0cyI6WyJGZWF0dXJlTGF5ZXIiXSwic3RlcHMiOlt7InN0ZXBJZCI6ImJ1ZmZlciIsImtpbmQiOiJHZW9wcm9jZXNzIiwicHJvY2Vzc0lkIjoiZ2VvbWV0cnkuYnVmZmVyIiwiaW5wdXRzIjp7IndrYiI6IkFRRUFBQUFBQUFBQUFBQWtRQUFBQUFBQUFEUkEiLCJzcmlkIjoiMzg1NyIsImRpc3RhbmNlIjoiNTAwLjAiLCJnZW9kZXNpYyI6ImZhbHNlIn19XX0sImlkZW1wb3RlbmN5S2V5IjoibWNwLWV4ZWN1dGUtc2RrLWEwNjUwZmRhZWZmMSJ9fSwianNvbnJwYyI6IjIuMCIsImlkIjoxfQ==",
+                "bodySha256": "sha256:d504ebb3512e3e08b1596c99161c7d62620ac99eb5604697d94cd8ba4514631c",
+                "sessionSha256": "sha256:f8e3d4c6a9a8be2cc70d79723f719b51b84e9bf50768a15658024b5906accea6",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50IjpbeyJ0eXBlIjoidGV4dCIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJRdWV1ZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnJlc291cmNlVXJpXHUwMDIyOlx1MDAyMmhvbnVhOi8vam9icy9ncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGVcdTAwMjJ9In1dLCJpc0Vycm9yIjpmYWxzZSwic3RydWN0dXJlZENvbnRlbnQiOnsiam9iSWQiOiJncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGUiLCJzdGF0dXMiOiJRdWV1ZWQiLCJjcmVhdGVkQXQiOiIyMDI2LTEwLTE5VDE2OjIwOjQwLjM0NTQ5MDdcdTAwMkIwMDowMCIsInJlc291cmNlVXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSJ9fX0KCg==",
+                "bodySha256": "sha256:4f0b9b58978b4194ff8f4dfc6963b9f95e4ade80e1fec05b301c9ff248e7ce3f"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10152
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:40077/mcp",
+            "processId": 10152,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10152,\"sessionSha256\":\"sha256:f8e3d4c6a9a8be2cc70d79723f719b51b84e9bf50768a15658024b5906accea6\",\"output\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Queued\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"resourceUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e\\\"}\"}],\"structuredContent\":{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"},\"isError\":false}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:40077/mcp",
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+                  }
+                },
+                "authenticated": true
+              },
+              "processId": 10152,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:a54de12e6f40284e8fd9e0220af78213e0b112ac11f1aa8f526be3440b127132",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:f8e3d4c6a9a8be2cc70d79723f719b51b84e9bf50768a15658024b5906accea6",
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"}"
+                }
+              ],
+              "structuredContent": {
+                "jobId": "gp-960c9bea65c51a57beb14c0e",
+                "status": "Queued",
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "resourceUri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+              },
+              "isError": false
+            }
+          }
+        },
+        {
+          "id": "poll-0",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:45989/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:fa2e74f942746718f36defcd655dfd5af912c69acfa9c808b4903ab61ac65733",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:fa2e74f942746718f36defcd655dfd5af912c69acfa9c808b4903ab61ac65733",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vanNvbiIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJRdWV1ZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnVwZGF0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQwLjM1MjM0NjVcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJjdXJyZW50UGhhc2VcdTAwMjI6XHUwMDIyUXVldWVkIGZvciBleGVjdXRpb25cdTAwMjIsXHUwMDIyd2FybmluZ3NcdTAwMjI6W10sXHUwMDIycmVzdWx0c1VyaVx1MDAyMjpcdTAwMjJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHNcdTAwMjJ9In1dfX0KCg==",
+                "bodySha256": "sha256:efd760f7cc26c9aea225efbab31d920f77f172909b07409587586a795b018d74"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10159
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:45989/mcp",
+            "processId": 10159,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10159,\"sessionSha256\":\"sha256:fa2e74f942746718f36defcd655dfd5af912c69acfa9c808b4903ab61ac65733\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Queued\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"updatedAt\\\":\\\"2026-10-19T16:20:40.3523465+00:00\\\",\\\"currentPhase\\\":\\\"Queued for execution\\\",\\\"warnings\\\":[],\\\"resultsUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\\\"}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:45989/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": true
+              },
+              "processId": 10159,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:4bcccc78f7aa769ed8650a151a6d5b8e07f693cbf1bf6123eeb65999fbd3b2a6",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:fa2e74f942746718f36defcd655dfd5af912c69acfa9c808b4903ab61ac65733",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "poll-1",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:37683/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:936e1d5b2fd600e6a317f114dc484e6a00f580d8624b6f712f29b252050312df",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:936e1d5b2fd600e6a317f114dc484e6a00f580d8624b6f712f29b252050312df",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vanNvbiIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJRdWV1ZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnVwZGF0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQwLjM1MjM0NjVcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJjdXJyZW50UGhhc2VcdTAwMjI6XHUwMDIyUXVldWVkIGZvciBleGVjdXRpb25cdTAwMjIsXHUwMDIyd2FybmluZ3NcdTAwMjI6W10sXHUwMDIycmVzdWx0c1VyaVx1MDAyMjpcdTAwMjJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHNcdTAwMjJ9In1dfX0KCg==",
+                "bodySha256": "sha256:efd760f7cc26c9aea225efbab31d920f77f172909b07409587586a795b018d74"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10166
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:37683/mcp",
+            "processId": 10166,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10166,\"sessionSha256\":\"sha256:936e1d5b2fd600e6a317f114dc484e6a00f580d8624b6f712f29b252050312df\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Queued\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"updatedAt\\\":\\\"2026-10-19T16:20:40.3523465+00:00\\\",\\\"currentPhase\\\":\\\"Queued for execution\\\",\\\"warnings\\\":[],\\\"resultsUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\\\"}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:37683/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": true
+              },
+              "processId": 10166,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:91ec0f67ac4604c9f535bb028332d00e11cf35356059390c6b14d5fc4c67a73a",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:936e1d5b2fd600e6a317f114dc484e6a00f580d8624b6f712f29b252050312df",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "poll-2",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:43869/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:7f4898e14f72b7a2f087fbb317f691ba512d1841a67bc80fea818ce4309982e7",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:7f4898e14f72b7a2f087fbb317f691ba512d1841a67bc80fea818ce4309982e7",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vanNvbiIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJRdWV1ZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnVwZGF0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQwLjM1MjM0NjVcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJjdXJyZW50UGhhc2VcdTAwMjI6XHUwMDIyUXVldWVkIGZvciBleGVjdXRpb25cdTAwMjIsXHUwMDIyd2FybmluZ3NcdTAwMjI6W10sXHUwMDIycmVzdWx0c1VyaVx1MDAyMjpcdTAwMjJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHNcdTAwMjJ9In1dfX0KCg==",
+                "bodySha256": "sha256:efd760f7cc26c9aea225efbab31d920f77f172909b07409587586a795b018d74"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10173
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:43869/mcp",
+            "processId": 10173,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10173,\"sessionSha256\":\"sha256:7f4898e14f72b7a2f087fbb317f691ba512d1841a67bc80fea818ce4309982e7\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Queued\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"updatedAt\\\":\\\"2026-10-19T16:20:40.3523465+00:00\\\",\\\"currentPhase\\\":\\\"Queued for execution\\\",\\\"warnings\\\":[],\\\"resultsUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\\\"}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:43869/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": true
+              },
+              "processId": 10173,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:97ee196c27cd44317424519b53812e747a54ba6d77f2db3fb614334d9c52d5b0",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:7f4898e14f72b7a2f087fbb317f691ba512d1841a67bc80fea818ce4309982e7",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Queued\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:40.3523465+00:00\",\"currentPhase\":\"Queued for execution\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "poll-3",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"completedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"percentComplete\":100,\"currentPhase\":\"Completed\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:33963/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:c23fbcfba91ef7800bb51c9976f38b0b002bbbc74e42fe53fabda7e852b31ff5",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:c23fbcfba91ef7800bb51c9976f38b0b002bbbc74e42fe53fabda7e852b31ff5",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vanNvbiIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJTdWNjZWVkZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnVwZGF0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJjb21wbGV0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJwZXJjZW50Q29tcGxldGVcdTAwMjI6MTAwLFx1MDAyMmN1cnJlbnRQaGFzZVx1MDAyMjpcdTAwMjJDb21wbGV0ZWRcdTAwMjIsXHUwMDIyd2FybmluZ3NcdTAwMjI6W10sXHUwMDIycmVzdWx0c1VyaVx1MDAyMjpcdTAwMjJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHNcdTAwMjJ9In1dfX0KCg==",
+                "bodySha256": "sha256:523673609823c3bb48ce49add07feb23d25923b2eb8f313b9665e18233004f1a"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10206
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:33963/mcp",
+            "processId": 10206,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10206,\"sessionSha256\":\"sha256:c23fbcfba91ef7800bb51c9976f38b0b002bbbc74e42fe53fabda7e852b31ff5\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Succeeded\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"updatedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"completedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"percentComplete\\\":100,\\\"currentPhase\\\":\\\"Completed\\\",\\\"warnings\\\":[],\\\"resultsUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\\\"}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:33963/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": true
+              },
+              "processId": 10206,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:0224e48b2913a8acd1ce9f1d01e8576fe056c594ef4f25671ef18e151a82a843",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:c23fbcfba91ef7800bb51c9976f38b0b002bbbc74e42fe53fabda7e852b31ff5",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"completedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"percentComplete\":100,\"currentPhase\":\"Completed\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "results",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"resultPackageId\":\"gp-960c9bea65c51a57beb14c0e:v11\",\"status\":\"Completed\",\"summary\":{\"title\":\"Results for mcp-execute-sdk-a0650fdaeff1\",\"description\":\"Produced 1 artifact.\"},\"artifacts\":[{\"artifactId\":\"gp-960c9bea65c51a57beb14c0e:artifact:1\",\"kind\":\"FeatureLayer\",\"label\":\"featureLayer1\",\"uri\":\"data:application/geo\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\",\"contentType\":\"application/geo\\u002Bjson\",\"metadata\":{}}],\"totalArtifactCount\":1,\"artifactsTruncated\":false,\"workspaceRefs\":[],\"assumptions\":[],\"provenance\":{\"sources\":[],\"processDefinitions\":[\"geometry.buffer\"],\"assumptions\":[],\"clarificationsAsked\":[],\"clarificationsAnswered\":[],\"executedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"generatedArtifactIds\":[\"gp-960c9bea65c51a57beb14c0e:artifact:1\"]},\"errors\":[]}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:38261/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:d613d65df537185d487c7ef84a240f222dd4c409070dc6117080e35a17bb28c2",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHMifSwianNvbnJwYyI6IjIuMCIsImlkIjoxfQ==",
+                "bodySha256": "sha256:755e24cccc7960346449b123d7854bec70a870a8829e58c75edfdf7153782564",
+                "sessionSha256": "sha256:d613d65df537185d487c7ef84a240f222dd4c409070dc6117080e35a17bb28c2",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZS9yZXN1bHRzIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIiwidGV4dCI6IntcdTAwMjJqb2JJZFx1MDAyMjpcdTAwMjJncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGVcdTAwMjIsXHUwMDIycmVzdWx0UGFja2FnZUlkXHUwMDIyOlx1MDAyMmdwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZTp2MTFcdTAwMjIsXHUwMDIyc3RhdHVzXHUwMDIyOlx1MDAyMkNvbXBsZXRlZFx1MDAyMixcdTAwMjJzdW1tYXJ5XHUwMDIyOntcdTAwMjJ0aXRsZVx1MDAyMjpcdTAwMjJSZXN1bHRzIGZvciBtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxXHUwMDIyLFx1MDAyMmRlc2NyaXB0aW9uXHUwMDIyOlx1MDAyMlByb2R1Y2VkIDEgYXJ0aWZhY3QuXHUwMDIyfSxcdTAwMjJhcnRpZmFjdHNcdTAwMjI6W3tcdTAwMjJhcnRpZmFjdElkXHUwMDIyOlx1MDAyMmdwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZTphcnRpZmFjdDoxXHUwMDIyLFx1MDAyMmtpbmRcdTAwMjI6XHUwMDIyRmVhdHVyZUxheWVyXHUwMDIyLFx1MDAyMmxhYmVsXHUwMDIyOlx1MDAyMmZlYXR1cmVMYXllcjFcdTAwMjIsXHUwMDIydXJpXHUwMDIyOlx1MDAyMmRhdGE6YXBwbGljYXRpb24vZ2VvXFx1MDAyQmpzb247YmFzZTY0LGV5SjBlWEJsSWpvaVJtVmhkSFZ5WlNJc0ltZGxiMjFsZEhKNUlqcDdJblI1Y0dVaU9pSlFiMng1WjI5dUlpd2lZMjl2Y21ScGJtRjBaWE1pT2x0Yld6VXhNQzR3TERJd0xqQmRMRnMxTURBdU16a3lOalF3TWpBeE5qRTFNVGNzTVRFM0xqVTBOVEUyTVRBd09EQTJORE0xWFN4Yk5EY3hMamt6T1RjMk5qSTFOVFkwTXpJMExESXhNUzR6TkRFM01UWXhPREkxTkRVeE9GMHNXelF5TlM0M016UTRNRFl4TlRFeU56STJMREk1Tnk0M09EVXhNVFkxTURrNE1ERXdOMTBzV3pNMk15NDFOVE16T1RBMU9UTXlOek0yTml3ek56TXVOVFV6TXprd05Ua3pNamN6T0ROZExGc3lPRGN1TnpnMU1URTJOVEE1T0RBd09TdzBNelV1TnpNME9EQTJNVFV4TWpjeU4xMHNXekl3TVM0ek5ERTNNVFl4T0RJMU5EVXNORGd4TGprek9UYzJOakkxTlRZME16TmRMRnN4TURjdU5UUTFNVFl4TURBNE1EWTBNVFlzTlRFd0xqTTVNalkwTURJd01UWXhOVEpkTEZzeE1DNHdMRFV5TUM0d1hTeGJMVGczTGpVME5URTJNVEF3T0RBMk5ETXpMRFV4TUM0ek9USTJOREF5TURFMk1UVXhOMTBzV3kweE9ERXVNelF4TnpFMk1UZ3lOVFExTVRZc05EZ3hMamt6T1RjMk5qSTFOVFkwTXpJMFhTeGJMVEkyTnk0M09EVXhNVFkxTURrNE1ERXdOeXcwTXpVdU56TTBPREEyTVRVeE1qY3lObDBzV3kwek5ETXVOVFV6TXprd05Ua3pNamN6T0RNc016Y3pMalUxTXpNNU1EVTVNekkzTXpkZExGc3ROREExTGpjek5EZ3dOakUxTVRJM01qY3NNamszTGpjNE5URXhOalV3T1Rnd01EazJYU3hiTFRRMU1TNDVNemszTmpZeU5UVTJORE0wTERJeE1TNHpOREUzTVRZeE9ESTFORFE0TkYwc1d5MDBPREF1TXpreU5qUXdNakF4TmpFMU1pd3hNVGN1TlRRMU1UWXhNREE0TURZME1UaGRMRnN0TkRrd0xqQXNNakF1TUYwc1d5MDBPREF1TXpreU5qUXdNakF4TmpFMU1pd3ROemN1TlRRMU1UWXhNREE0TURZME0xMHNXeTAwTlRFdU9UTTVOelkyTWpVMU5qUXpNelVzTFRFM01TNHpOREUzTVRZeE9ESTFORFE1Tmwwc1d5MDBNRFV1TnpNME9EQTJNVFV4TWpjeU5qWXNMVEkxTnk0M09EVXhNVFkxTURrNE1ERXdOMTBzV3kwek5ETXVOVFV6TXprd05Ua3pNamN6Tnl3dE16TXpMalUxTXpNNU1EVTVNekkzTXpoZExGc3RNalkzTGpjNE5URXhOalV3T1Rnd01EazJMQzB6T1RVdU56TTBPREEyTVRVeE1qY3lOMTBzV3kweE9ERXVNelF4TnpFMk1UZ3lOVFEwT0Rjc0xUUTBNUzQ1TXprM05qWXlOVFUyTkRNek5WMHNXeTA0Tnk0MU5EVXhOakV3TURnd05qUXhMQzAwTnpBdU16a3lOalF3TWpBeE5qRTFNbDBzV3pFd0xqQXNMVFE0TUM0d1hTeGJNVEEzTGpVME5URTJNVEF3T0RBMk5ERTNMQzAwTnpBdU16a3lOalF3TWpBeE5qRTFNbDBzV3pJd01TNHpOREUzTVRZeE9ESTFORFE1TXl3dE5EUXhMamt6T1RjMk5qSTFOVFkwTXpNMVhTeGJNamczTGpjNE5URXhOalV3T1Rnd01URXNMVE01TlM0M016UTRNRFl4TlRFeU56STJYU3hiTXpZekxqVTFNek01TURVNU16STNNemdzTFRNek15NDFOVE16T1RBMU9UTXlOek0zWFN4Yk5ESTFMamN6TkRnd05qRTFNVEkzTWpZc0xUSTFOeTQzT0RVeE1UWTFNRGs0TURFd04xMHNXelEzTVM0NU16azNOall5TlRVMk5ETXpOU3d0TVRjeExqTTBNVGN4TmpFNE1qVTBORGxkTEZzMU1EQXVNemt5TmpRd01qQXhOakUxTWl3dE56Y3VOVFExTVRZeE1EQTRNRFkwTVROZExGczFNVEF1TUN3eU1DNHdYVjFkZlN3aWNISnZjR1Z5ZEdsbGN5STZleUp3Y205alpYTnpTV1FpT2lKblpXOXRaWFJ5ZVM1aWRXWm1aWElpTENKcGJuQjFkRk55YVdRaU9qTTROVGNzSW1KMVptWmxja1JwYzNSaGJtTmxJam8xTURCOWZRPT1cdTAwMjIsXHUwMDIyY29udGVudFR5cGVcdTAwMjI6XHUwMDIyYXBwbGljYXRpb24vZ2VvXFx1MDAyQmpzb25cdTAwMjIsXHUwMDIybWV0YWRhdGFcdTAwMjI6e319XSxcdTAwMjJ0b3RhbEFydGlmYWN0Q291bnRcdTAwMjI6MSxcdTAwMjJhcnRpZmFjdHNUcnVuY2F0ZWRcdTAwMjI6ZmFsc2UsXHUwMDIyd29ya3NwYWNlUmVmc1x1MDAyMjpbXSxcdTAwMjJhc3N1bXB0aW9uc1x1MDAyMjpbXSxcdTAwMjJwcm92ZW5hbmNlXHUwMDIyOntcdTAwMjJzb3VyY2VzXHUwMDIyOltdLFx1MDAyMnByb2Nlc3NEZWZpbml0aW9uc1x1MDAyMjpbXHUwMDIyZ2VvbWV0cnkuYnVmZmVyXHUwMDIyXSxcdTAwMjJhc3N1bXB0aW9uc1x1MDAyMjpbXSxcdTAwMjJjbGFyaWZpY2F0aW9uc0Fza2VkXHUwMDIyOltdLFx1MDAyMmNsYXJpZmljYXRpb25zQW5zd2VyZWRcdTAwMjI6W10sXHUwMDIyZXhlY3V0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJnZW5lcmF0ZWRBcnRpZmFjdElkc1x1MDAyMjpbXHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlOmFydGlmYWN0OjFcdTAwMjJdfSxcdTAwMjJlcnJvcnNcdTAwMjI6W119In1dfX0KCg==",
+                "bodySha256": "sha256:d742c74508c660178039a2da59175d4d85e2707ae9bb2038340ca9bf5df66dc4"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10213
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:38261/mcp",
+            "processId": 10213,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10213,\"sessionSha256\":\"sha256:d613d65df537185d487c7ef84a240f222dd4c409070dc6117080e35a17bb28c2\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"resultPackageId\\\":\\\"gp-960c9bea65c51a57beb14c0e:v11\\\",\\\"status\\\":\\\"Completed\\\",\\\"summary\\\":{\\\"title\\\":\\\"Results for mcp-execute-sdk-a0650fdaeff1\\\",\\\"description\\\":\\\"Produced 1 artifact.\\\"},\\\"artifacts\\\":[{\\\"artifactId\\\":\\\"gp-960c9bea65c51a57beb14c0e:artifact:1\\\",\\\"kind\\\":\\\"FeatureLayer\\\",\\\"label\\\":\\\"featureLayer1\\\",\\\"uri\\\":\\\"data:application/geo\\\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\\\",\\\"contentType\\\":\\\"application/geo\\\\u002Bjson\\\",\\\"metadata\\\":{}}],\\\"totalArtifactCount\\\":1,\\\"artifactsTruncated\\\":false,\\\"workspaceRefs\\\":[],\\\"assumptions\\\":[],\\\"provenance\\\":{\\\"sources\\\":[],\\\"processDefinitions\\\":[\\\"geometry.buffer\\\"],\\\"assumptions\\\":[],\\\"clarificationsAsked\\\":[],\\\"clarificationsAnswered\\\":[],\\\"executedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"generatedArtifactIds\\\":[\\\"gp-960c9bea65c51a57beb14c0e:artifact:1\\\"]},\\\"errors\\\":[]}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:38261/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "authenticated": true
+              },
+              "processId": 10213,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:de7a5a0444146ba35d4d03acde1f941a581b8f4fd4b388109384c2eb00b49f82",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:d613d65df537185d487c7ef84a240f222dd4c409070dc6117080e35a17bb28c2",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"resultPackageId\":\"gp-960c9bea65c51a57beb14c0e:v11\",\"status\":\"Completed\",\"summary\":{\"title\":\"Results for mcp-execute-sdk-a0650fdaeff1\",\"description\":\"Produced 1 artifact.\"},\"artifacts\":[{\"artifactId\":\"gp-960c9bea65c51a57beb14c0e:artifact:1\",\"kind\":\"FeatureLayer\",\"label\":\"featureLayer1\",\"uri\":\"data:application/geo\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\",\"contentType\":\"application/geo\\u002Bjson\",\"metadata\":{}}],\"totalArtifactCount\":1,\"artifactsTruncated\":false,\"workspaceRefs\":[],\"assumptions\":[],\"provenance\":{\"sources\":[],\"processDefinitions\":[\"geometry.buffer\"],\"assumptions\":[],\"clarificationsAsked\":[],\"clarificationsAnswered\":[],\"executedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"generatedArtifactIds\":[\"gp-960c9bea65c51a57beb14c0e:artifact:1\"]},\"errors\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "replay",
+          "method": "tools/call",
+          "params": {
+            "name": "honua_execute_plan",
+            "arguments": {
+              "plan": {
+                "planId": "mcp-execute-sdk-a0650fdaeff1",
+                "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                "outputs": [
+                  "FeatureLayer"
+                ],
+                "steps": [
+                  {
+                    "stepId": "buffer",
+                    "kind": "Geoprocess",
+                    "processId": "geometry.buffer",
+                    "inputs": {
+                      "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                      "srid": "3857",
+                      "distance": "500.0",
+                      "geodesic": "false"
+                    }
+                  }
+                ]
+              },
+              "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+            }
+          },
+          "authenticated": true,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"}"
+              }
+            ],
+            "isError": false,
+            "structuredContent": {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "status": "Succeeded",
+              "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+              "resourceUri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "tools/call",
+            "expectedParams": {
+              "name": "honua_execute_plan",
+              "arguments": {
+                "plan": {
+                  "planId": "mcp-execute-sdk-a0650fdaeff1",
+                  "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                  "outputs": [
+                    "FeatureLayer"
+                  ],
+                  "steps": [
+                    {
+                      "stepId": "buffer",
+                      "kind": "Geoprocess",
+                      "processId": "geometry.buffer",
+                      "inputs": {
+                        "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                        "srid": "3857",
+                        "distance": "500.0",
+                        "geodesic": "false"
+                      }
+                    }
+                  ]
+                },
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+              }
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:37711/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:de8ed2edb979d31acb0526f225a6be4a32d9f8da86be8f1cdc80a273c963c4c5",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJ0b29scy9jYWxsIiwicGFyYW1zIjp7Im5hbWUiOiJob251YV9leGVjdXRlX3BsYW4iLCJhcmd1bWVudHMiOnsicGxhbiI6eyJwbGFuSWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxIiwiaW50ZW50SWQiOiJtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxIiwib3V0cHV0cyI6WyJGZWF0dXJlTGF5ZXIiXSwic3RlcHMiOlt7InN0ZXBJZCI6ImJ1ZmZlciIsImtpbmQiOiJHZW9wcm9jZXNzIiwicHJvY2Vzc0lkIjoiZ2VvbWV0cnkuYnVmZmVyIiwiaW5wdXRzIjp7IndrYiI6IkFRRUFBQUFBQUFBQUFBQWtRQUFBQUFBQUFEUkEiLCJzcmlkIjoiMzg1NyIsImRpc3RhbmNlIjoiNTAwLjAiLCJnZW9kZXNpYyI6ImZhbHNlIn19XX0sImlkZW1wb3RlbmN5S2V5IjoibWNwLWV4ZWN1dGUtc2RrLWEwNjUwZmRhZWZmMSJ9fSwianNvbnJwYyI6IjIuMCIsImlkIjoxfQ==",
+                "bodySha256": "sha256:d504ebb3512e3e08b1596c99161c7d62620ac99eb5604697d94cd8ba4514631c",
+                "sessionSha256": "sha256:de8ed2edb979d31acb0526f225a6be4a32d9f8da86be8f1cdc80a273c963c4c5",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50IjpbeyJ0eXBlIjoidGV4dCIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJTdWNjZWVkZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnJlc291cmNlVXJpXHUwMDIyOlx1MDAyMmhvbnVhOi8vam9icy9ncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGVcdTAwMjJ9In1dLCJpc0Vycm9yIjpmYWxzZSwic3RydWN0dXJlZENvbnRlbnQiOnsiam9iSWQiOiJncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGUiLCJzdGF0dXMiOiJTdWNjZWVkZWQiLCJjcmVhdGVkQXQiOiIyMDI2LTEwLTE5VDE2OjIwOjQwLjM0NTQ5MDdcdTAwMkIwMDowMCIsInJlc291cmNlVXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSJ9fX0KCg==",
+                "bodySha256": "sha256:55a632ee9242d308302162a105c21e5de08798758fd17dc5e7ce82610ac13d2f"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10238
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:37711/mcp",
+            "processId": 10238,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10238,\"sessionSha256\":\"sha256:de8ed2edb979d31acb0526f225a6be4a32d9f8da86be8f1cdc80a273c963c4c5\",\"output\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Succeeded\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"resourceUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e\\\"}\"}],\"structuredContent\":{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"},\"isError\":false}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:37711/mcp",
+                "method": "tools/call",
+                "params": {
+                  "name": "honua_execute_plan",
+                  "arguments": {
+                    "plan": {
+                      "planId": "mcp-execute-sdk-a0650fdaeff1",
+                      "intentId": "mcp-execute-sdk-a0650fdaeff1",
+                      "outputs": [
+                        "FeatureLayer"
+                      ],
+                      "steps": [
+                        {
+                          "stepId": "buffer",
+                          "kind": "Geoprocess",
+                          "processId": "geometry.buffer",
+                          "inputs": {
+                            "wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                            "srid": "3857",
+                            "distance": "500.0",
+                            "geodesic": "false"
+                          }
+                        }
+                      ]
+                    },
+                    "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1"
+                  }
+                },
+                "authenticated": true
+              },
+              "processId": 10238,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:b9efa53a5d035546a4a65fdf6a4bda27e5e14cad3d27bbf4e307dfa99ad004c3",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:de8ed2edb979d31acb0526f225a6be4a32d9f8da86be8f1cdc80a273c963c4c5",
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"resourceUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\"}"
+                }
+              ],
+              "structuredContent": {
+                "jobId": "gp-960c9bea65c51a57beb14c0e",
+                "status": "Succeeded",
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "resourceUri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+              },
+              "isError": false
+            }
+          }
+        },
+        {
+          "id": "anonymous-job",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": false,
+          "result": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "error": {
+              "code": -32000,
+              "message": "Authentication is required to use the MCP operator surface.",
+              "data": {
+                "code": "unauthenticated",
+                "requiresReauthentication": true
+              }
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": false,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:42599/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:bec8f10b9498b272efc376007a479d263a2ad9273c746806f4df6adb70c48b67",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:bec8f10b9498b272efc376007a479d263a2ad9273c746806f4df6adb70c48b67",
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsImVycm9yIjp7ImNvZGUiOi0zMjAwMCwibWVzc2FnZSI6IkF1dGhlbnRpY2F0aW9uIGlzIHJlcXVpcmVkIHRvIHVzZSB0aGUgTUNQIG9wZXJhdG9yIHN1cmZhY2UuIiwiZGF0YSI6eyJjb2RlIjoidW5hdXRoZW50aWNhdGVkIiwicmVxdWlyZXNSZWF1dGhlbnRpY2F0aW9uIjp0cnVlfX19Cgo=",
+                "bodySha256": "sha256:42a157c7293590e8fa5a727104ca9e29f0a06fa30d8c95dbd2e7d062cf496a8e"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10262
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:42599/mcp",
+            "processId": 10262,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10262,\"sessionSha256\":\"sha256:bec8f10b9498b272efc376007a479d263a2ad9273c746806f4df6adb70c48b67\",\"output\":{\"error\":{\"code\":-32000,\"message\":\"MCP error -32000: Authentication is required to use the MCP operator surface.\",\"data\":{\"code\":\"unauthenticated\",\"requiresReauthentication\":true}}}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:42599/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": false
+              },
+              "processId": 10262,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:905cff179cc9af2490c89033d9fbe36b61bc10637958166f34218be736047a55",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:bec8f10b9498b272efc376007a479d263a2ad9273c746806f4df6adb70c48b67",
+            "output": {
+              "error": {
+                "code": -32000,
+                "message": "MCP error -32000: Authentication is required to use the MCP operator surface.",
+                "data": {
+                  "code": "unauthenticated",
+                  "requiresReauthentication": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "anonymous-results",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+          },
+          "authenticated": false,
+          "result": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "error": {
+              "code": -32000,
+              "message": "Authentication is required to use the MCP operator surface.",
+              "data": {
+                "code": "unauthenticated",
+                "requiresReauthentication": true
+              }
+            }
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+            },
+            "authenticated": false,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:43591/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:6f62abe7b80848b102499dfb0a0f0b224ef7a626126b6bf1d9afdb3c798c9031",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHMifSwianNvbnJwYyI6IjIuMCIsImlkIjoxfQ==",
+                "bodySha256": "sha256:755e24cccc7960346449b123d7854bec70a870a8829e58c75edfdf7153782564",
+                "sessionSha256": "sha256:6f62abe7b80848b102499dfb0a0f0b224ef7a626126b6bf1d9afdb3c798c9031",
+                "credentialPresent": false,
+                "credentialFingerprint": null,
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsImVycm9yIjp7ImNvZGUiOi0zMjAwMCwibWVzc2FnZSI6IkF1dGhlbnRpY2F0aW9uIGlzIHJlcXVpcmVkIHRvIHVzZSB0aGUgTUNQIG9wZXJhdG9yIHN1cmZhY2UuIiwiZGF0YSI6eyJjb2RlIjoidW5hdXRoZW50aWNhdGVkIiwicmVxdWlyZXNSZWF1dGhlbnRpY2F0aW9uIjp0cnVlfX19Cgo=",
+                "bodySha256": "sha256:42a157c7293590e8fa5a727104ca9e29f0a06fa30d8c95dbd2e7d062cf496a8e"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10288
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:43591/mcp",
+            "processId": 10288,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10288,\"sessionSha256\":\"sha256:6f62abe7b80848b102499dfb0a0f0b224ef7a626126b6bf1d9afdb3c798c9031\",\"output\":{\"error\":{\"code\":-32000,\"message\":\"MCP error -32000: Authentication is required to use the MCP operator surface.\",\"data\":{\"code\":\"unauthenticated\",\"requiresReauthentication\":true}}}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:43591/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "authenticated": false
+              },
+              "processId": 10288,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:3ee97b5035049d304bd02d45fc6250d8f6750449354fe81f6aaaf49fd0a2c648",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:6f62abe7b80848b102499dfb0a0f0b224ef7a626126b6bf1d9afdb3c798c9031",
+            "output": {
+              "error": {
+                "code": -32000,
+                "message": "MCP error -32000: Authentication is required to use the MCP operator surface.",
+                "data": {
+                  "code": "unauthenticated",
+                  "requiresReauthentication": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "restarted-job",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"completedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"percentComplete\":100,\"currentPhase\":\"Completed\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:35663/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:d9edbb5b7e6b51c253dbb1bcb6106d518fa8d42b90dd53081e11e8f09345f701",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlIn0sImpzb25ycGMiOiIyLjAiLCJpZCI6MX0=",
+                "bodySha256": "sha256:594cd2c18c2b6629dd4bb8f0bb0c4df946e487690999d1dd95e3c905b9975bb4",
+                "sessionSha256": "sha256:d9edbb5b7e6b51c253dbb1bcb6106d518fa8d42b90dd53081e11e8f09345f701",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZSIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vanNvbiIsInRleHQiOiJ7XHUwMDIyam9iSWRcdTAwMjI6XHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlXHUwMDIyLFx1MDAyMnN0YXR1c1x1MDAyMjpcdTAwMjJTdWNjZWVkZWRcdTAwMjIsXHUwMDIyY3JlYXRlZEF0XHUwMDIyOlx1MDAyMjIwMjYtMTAtMTlUMTY6MjA6NDAuMzQ1NDkwN1x1MDAyQjAwOjAwXHUwMDIyLFx1MDAyMnVwZGF0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJjb21wbGV0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJwZXJjZW50Q29tcGxldGVcdTAwMjI6MTAwLFx1MDAyMmN1cnJlbnRQaGFzZVx1MDAyMjpcdTAwMjJDb21wbGV0ZWRcdTAwMjIsXHUwMDIyd2FybmluZ3NcdTAwMjI6W10sXHUwMDIycmVzdWx0c1VyaVx1MDAyMjpcdTAwMjJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHNcdTAwMjJ9In1dfX0KCg==",
+                "bodySha256": "sha256:523673609823c3bb48ce49add07feb23d25923b2eb8f313b9665e18233004f1a"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10488
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:35663/mcp",
+            "processId": 10488,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10488,\"sessionSha256\":\"sha256:d9edbb5b7e6b51c253dbb1bcb6106d518fa8d42b90dd53081e11e8f09345f701\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"status\\\":\\\"Succeeded\\\",\\\"createdAt\\\":\\\"2026-10-19T16:20:40.3454907+00:00\\\",\\\"updatedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"completedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"percentComplete\\\":100,\\\"currentPhase\\\":\\\"Completed\\\",\\\"warnings\\\":[],\\\"resultsUri\\\":\\\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\\\"}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:35663/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e"
+                },
+                "authenticated": true
+              },
+              "processId": 10488,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:50d64d45e14e5ca66104dd578d79c66b7b8b94928950c8945d35b94382a4049e",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:d9edbb5b7e6b51c253dbb1bcb6106d518fa8d42b90dd53081e11e8f09345f701",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"status\":\"Succeeded\",\"createdAt\":\"2026-10-19T16:20:40.3454907+00:00\",\"updatedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"completedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"percentComplete\":100,\"currentPhase\":\"Completed\",\"warnings\":[],\"resultsUri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "restarted-results",
+          "method": "resources/read",
+          "params": {
+            "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+          },
+          "authenticated": true,
+          "result": {
+            "contents": [
+              {
+                "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results",
+                "mimeType": "application/json",
+                "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"resultPackageId\":\"gp-960c9bea65c51a57beb14c0e:v11\",\"status\":\"Completed\",\"summary\":{\"title\":\"Results for mcp-execute-sdk-a0650fdaeff1\",\"description\":\"Produced 1 artifact.\"},\"artifacts\":[{\"artifactId\":\"gp-960c9bea65c51a57beb14c0e:artifact:1\",\"kind\":\"FeatureLayer\",\"label\":\"featureLayer1\",\"uri\":\"data:application/geo\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\",\"contentType\":\"application/geo\\u002Bjson\",\"metadata\":{}}],\"totalArtifactCount\":1,\"artifactsTruncated\":false,\"workspaceRefs\":[],\"assumptions\":[],\"provenance\":{\"sources\":[],\"processDefinitions\":[\"geometry.buffer\"],\"assumptions\":[],\"clarificationsAsked\":[],\"clarificationsAnswered\":[],\"executedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"generatedArtifactIds\":[\"gp-960c9bea65c51a57beb14c0e:artifact:1\"]},\"errors\":[]}"
+              }
+            ]
+          },
+          "wire": {
+            "schema": "honua.mcp-candidate-wire/v1",
+            "upstream": "http://127.0.0.1:8080/mcp",
+            "method": "resources/read",
+            "expectedParams": {
+              "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+            },
+            "authenticated": true,
+            "expectedCredentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+            "listener": "http://127.0.0.1:40173/mcp",
+            "initialize": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                  "protocolVersion": "2025-11-25",
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "geospatial-mcp-map-package-certification",
+                    "version": "1.0.0"
+                  }
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJpbml0aWFsaXplIiwicGFyYW1zIjp7InByb3RvY29sVmVyc2lvbiI6IjIwMjUtMTEtMjUiLCJjYXBhYmlsaXRpZXMiOnt9LCJjbGllbnRJbmZvIjp7Im5hbWUiOiJnZW9zcGF0aWFsLW1jcC1tYXAtcGFja2FnZS1jZXJ0aWZpY2F0aW9uIiwidmVyc2lvbiI6IjEuMC4wIn19LCJqc29ucnBjIjoiMi4wIiwiaWQiOjB9",
+                "bodySha256": "sha256:7bd2100e05da369760aeff0320891a647d2789a31a7b7ea77c51d7e7f907ba24",
+                "sessionSha256": null,
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": "sha256:1719445bbcdd6a2019b9ec8f9716b681b7617e5b0bdecafc768eda5da5fc4437",
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjAsInJlc3VsdCI6eyJwcm90b2NvbFZlcnNpb24iOiIyMDI1LTA2LTE4IiwiY2FwYWJpbGl0aWVzIjp7InRvb2xzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicmVzb3VyY2VzIjp7Imxpc3RDaGFuZ2VkIjp0cnVlfSwicHJvbXB0cyI6eyJsaXN0Q2hhbmdlZCI6ZmFsc2V9fSwic2VydmVySW5mbyI6eyJuYW1lIjoiaG9udWEub3BlcmF0b3IubWNwIiwidmVyc2lvbiI6InYxIn19fQoK",
+                "bodySha256": "sha256:7a540725acfed02c50ab0e7403d166519c3fdb0937465a8e8c5373121b56dbb0"
+              }
+            },
+            "invocation": {
+              "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "bodyBase64": "eyJtZXRob2QiOiJyZXNvdXJjZXMvcmVhZCIsInBhcmFtcyI6eyJ1cmkiOiJob251YTovL2pvYnMvZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlL3Jlc3VsdHMifSwianNvbnJwYyI6IjIuMCIsImlkIjoxfQ==",
+                "bodySha256": "sha256:755e24cccc7960346449b123d7854bec70a870a8829e58c75edfdf7153782564",
+                "sessionSha256": "sha256:1719445bbcdd6a2019b9ec8f9716b681b7617e5b0bdecafc768eda5da5fc4437",
+                "credentialPresent": true,
+                "credentialFingerprint": "scrypt:f0fceaae98c0fe5366d24e7bd724270c:b3740f9d55c3c96a791441ae3e79c80eea98e8a92cbb4579fd69c148d093a062",
+                "authorizationPresent": false,
+                "cookiePresent": false
+              },
+              "response": {
+                "status": 200,
+                "contentType": "text/event-stream",
+                "contentEncoding": "",
+                "sessionSha256": null,
+                "complete": true,
+                "delivered": true,
+                "bodyBase64": "ZXZlbnQ6IG1lc3NhZ2UKZGF0YTogeyJqc29ucnBjIjoiMi4wIiwiaWQiOjEsInJlc3VsdCI6eyJjb250ZW50cyI6W3sidXJpIjoiaG9udWE6Ly9qb2JzL2dwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZS9yZXN1bHRzIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIiwidGV4dCI6IntcdTAwMjJqb2JJZFx1MDAyMjpcdTAwMjJncC05NjBjOWJlYTY1YzUxYTU3YmViMTRjMGVcdTAwMjIsXHUwMDIycmVzdWx0UGFja2FnZUlkXHUwMDIyOlx1MDAyMmdwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZTp2MTFcdTAwMjIsXHUwMDIyc3RhdHVzXHUwMDIyOlx1MDAyMkNvbXBsZXRlZFx1MDAyMixcdTAwMjJzdW1tYXJ5XHUwMDIyOntcdTAwMjJ0aXRsZVx1MDAyMjpcdTAwMjJSZXN1bHRzIGZvciBtY3AtZXhlY3V0ZS1zZGstYTA2NTBmZGFlZmYxXHUwMDIyLFx1MDAyMmRlc2NyaXB0aW9uXHUwMDIyOlx1MDAyMlByb2R1Y2VkIDEgYXJ0aWZhY3QuXHUwMDIyfSxcdTAwMjJhcnRpZmFjdHNcdTAwMjI6W3tcdTAwMjJhcnRpZmFjdElkXHUwMDIyOlx1MDAyMmdwLTk2MGM5YmVhNjVjNTFhNTdiZWIxNGMwZTphcnRpZmFjdDoxXHUwMDIyLFx1MDAyMmtpbmRcdTAwMjI6XHUwMDIyRmVhdHVyZUxheWVyXHUwMDIyLFx1MDAyMmxhYmVsXHUwMDIyOlx1MDAyMmZlYXR1cmVMYXllcjFcdTAwMjIsXHUwMDIydXJpXHUwMDIyOlx1MDAyMmRhdGE6YXBwbGljYXRpb24vZ2VvXFx1MDAyQmpzb247YmFzZTY0LGV5SjBlWEJsSWpvaVJtVmhkSFZ5WlNJc0ltZGxiMjFsZEhKNUlqcDdJblI1Y0dVaU9pSlFiMng1WjI5dUlpd2lZMjl2Y21ScGJtRjBaWE1pT2x0Yld6VXhNQzR3TERJd0xqQmRMRnMxTURBdU16a3lOalF3TWpBeE5qRTFNVGNzTVRFM0xqVTBOVEUyTVRBd09EQTJORE0xWFN4Yk5EY3hMamt6T1RjMk5qSTFOVFkwTXpJMExESXhNUzR6TkRFM01UWXhPREkxTkRVeE9GMHNXelF5TlM0M016UTRNRFl4TlRFeU56STJMREk1Tnk0M09EVXhNVFkxTURrNE1ERXdOMTBzV3pNMk15NDFOVE16T1RBMU9UTXlOek0yTml3ek56TXVOVFV6TXprd05Ua3pNamN6T0ROZExGc3lPRGN1TnpnMU1URTJOVEE1T0RBd09TdzBNelV1TnpNME9EQTJNVFV4TWpjeU4xMHNXekl3TVM0ek5ERTNNVFl4T0RJMU5EVXNORGd4TGprek9UYzJOakkxTlRZME16TmRMRnN4TURjdU5UUTFNVFl4TURBNE1EWTBNVFlzTlRFd0xqTTVNalkwTURJd01UWXhOVEpkTEZzeE1DNHdMRFV5TUM0d1hTeGJMVGczTGpVME5URTJNVEF3T0RBMk5ETXpMRFV4TUM0ek9USTJOREF5TURFMk1UVXhOMTBzV3kweE9ERXVNelF4TnpFMk1UZ3lOVFExTVRZc05EZ3hMamt6T1RjMk5qSTFOVFkwTXpJMFhTeGJMVEkyTnk0M09EVXhNVFkxTURrNE1ERXdOeXcwTXpVdU56TTBPREEyTVRVeE1qY3lObDBzV3kwek5ETXVOVFV6TXprd05Ua3pNamN6T0RNc016Y3pMalUxTXpNNU1EVTVNekkzTXpkZExGc3ROREExTGpjek5EZ3dOakUxTVRJM01qY3NNamszTGpjNE5URXhOalV3T1Rnd01EazJYU3hiTFRRMU1TNDVNemszTmpZeU5UVTJORE0wTERJeE1TNHpOREUzTVRZeE9ESTFORFE0TkYwc1d5MDBPREF1TXpreU5qUXdNakF4TmpFMU1pd3hNVGN1TlRRMU1UWXhNREE0TURZME1UaGRMRnN0TkRrd0xqQXNNakF1TUYwc1d5MDBPREF1TXpreU5qUXdNakF4TmpFMU1pd3ROemN1TlRRMU1UWXhNREE0TURZME0xMHNXeTAwTlRFdU9UTTVOelkyTWpVMU5qUXpNelVzTFRFM01TNHpOREUzTVRZeE9ESTFORFE1Tmwwc1d5MDBNRFV1TnpNME9EQTJNVFV4TWpjeU5qWXNMVEkxTnk0M09EVXhNVFkxTURrNE1ERXdOMTBzV3kwek5ETXVOVFV6TXprd05Ua3pNamN6Tnl3dE16TXpMalUxTXpNNU1EVTVNekkzTXpoZExGc3RNalkzTGpjNE5URXhOalV3T1Rnd01EazJMQzB6T1RVdU56TTBPREEyTVRVeE1qY3lOMTBzV3kweE9ERXVNelF4TnpFMk1UZ3lOVFEwT0Rjc0xUUTBNUzQ1TXprM05qWXlOVFUyTkRNek5WMHNXeTA0Tnk0MU5EVXhOakV3TURnd05qUXhMQzAwTnpBdU16a3lOalF3TWpBeE5qRTFNbDBzV3pFd0xqQXNMVFE0TUM0d1hTeGJNVEEzTGpVME5URTJNVEF3T0RBMk5ERTNMQzAwTnpBdU16a3lOalF3TWpBeE5qRTFNbDBzV3pJd01TNHpOREUzTVRZeE9ESTFORFE1TXl3dE5EUXhMamt6T1RjMk5qSTFOVFkwTXpNMVhTeGJNamczTGpjNE5URXhOalV3T1Rnd01URXNMVE01TlM0M016UTRNRFl4TlRFeU56STJYU3hiTXpZekxqVTFNek01TURVNU16STNNemdzTFRNek15NDFOVE16T1RBMU9UTXlOek0zWFN4Yk5ESTFMamN6TkRnd05qRTFNVEkzTWpZc0xUSTFOeTQzT0RVeE1UWTFNRGs0TURFd04xMHNXelEzTVM0NU16azNOall5TlRVMk5ETXpOU3d0TVRjeExqTTBNVGN4TmpFNE1qVTBORGxkTEZzMU1EQXVNemt5TmpRd01qQXhOakUxTWl3dE56Y3VOVFExTVRZeE1EQTRNRFkwTVROZExGczFNVEF1TUN3eU1DNHdYVjFkZlN3aWNISnZjR1Z5ZEdsbGN5STZleUp3Y205alpYTnpTV1FpT2lKblpXOXRaWFJ5ZVM1aWRXWm1aWElpTENKcGJuQjFkRk55YVdRaU9qTTROVGNzSW1KMVptWmxja1JwYzNSaGJtTmxJam8xTURCOWZRPT1cdTAwMjIsXHUwMDIyY29udGVudFR5cGVcdTAwMjI6XHUwMDIyYXBwbGljYXRpb24vZ2VvXFx1MDAyQmpzb25cdTAwMjIsXHUwMDIybWV0YWRhdGFcdTAwMjI6e319XSxcdTAwMjJ0b3RhbEFydGlmYWN0Q291bnRcdTAwMjI6MSxcdTAwMjJhcnRpZmFjdHNUcnVuY2F0ZWRcdTAwMjI6ZmFsc2UsXHUwMDIyd29ya3NwYWNlUmVmc1x1MDAyMjpbXSxcdTAwMjJhc3N1bXB0aW9uc1x1MDAyMjpbXSxcdTAwMjJwcm92ZW5hbmNlXHUwMDIyOntcdTAwMjJzb3VyY2VzXHUwMDIyOltdLFx1MDAyMnByb2Nlc3NEZWZpbml0aW9uc1x1MDAyMjpbXHUwMDIyZ2VvbWV0cnkuYnVmZmVyXHUwMDIyXSxcdTAwMjJhc3N1bXB0aW9uc1x1MDAyMjpbXSxcdTAwMjJjbGFyaWZpY2F0aW9uc0Fza2VkXHUwMDIyOltdLFx1MDAyMmNsYXJpZmljYXRpb25zQW5zd2VyZWRcdTAwMjI6W10sXHUwMDIyZXhlY3V0ZWRBdFx1MDAyMjpcdTAwMjIyMDI2LTEwLTE5VDE2OjIwOjQzLjI4NTg4ODNcdTAwMkIwMDowMFx1MDAyMixcdTAwMjJnZW5lcmF0ZWRBcnRpZmFjdElkc1x1MDAyMjpbXHUwMDIyZ3AtOTYwYzliZWE2NWM1MWE1N2JlYjE0YzBlOmFydGlmYWN0OjFcdTAwMjJdfSxcdTAwMjJlcnJvcnNcdTAwMjI6W119In1dfX0KCg==",
+                "bodySha256": "sha256:d742c74508c660178039a2da59175d4d85e2707ae9bb2038340ca9bf5df66dc4"
+              }
+            },
+            "invalid": false,
+            "completed": true,
+            "clientProcessId": 10495
+          },
+          "client": {
+            "kind": "sdk",
+            "canonicalClient": "Official MCP TypeScript SDK",
+            "version": "1.32.1",
+            "requestUrl": "http://127.0.0.1:40173/mcp",
+            "processId": 10495,
+            "exitCode": 0,
+            "exitSignal": null,
+            "timedOut": false,
+            "stdout": "{\"processId\":10495,\"sessionSha256\":\"sha256:1719445bbcdd6a2019b9ec8f9716b681b7617e5b0bdecafc768eda5da5fc4437\",\"output\":{\"contents\":[{\"uri\":\"honua://jobs/gp-960c9bea65c51a57beb14c0e/results\",\"mimeType\":\"application/json\",\"text\":\"{\\\"jobId\\\":\\\"gp-960c9bea65c51a57beb14c0e\\\",\\\"resultPackageId\\\":\\\"gp-960c9bea65c51a57beb14c0e:v11\\\",\\\"status\\\":\\\"Completed\\\",\\\"summary\\\":{\\\"title\\\":\\\"Results for mcp-execute-sdk-a0650fdaeff1\\\",\\\"description\\\":\\\"Produced 1 artifact.\\\"},\\\"artifacts\\\":[{\\\"artifactId\\\":\\\"gp-960c9bea65c51a57beb14c0e:artifact:1\\\",\\\"kind\\\":\\\"FeatureLayer\\\",\\\"label\\\":\\\"featureLayer1\\\",\\\"uri\\\":\\\"data:application/geo\\\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\\\",\\\"contentType\\\":\\\"application/geo\\\\u002Bjson\\\",\\\"metadata\\\":{}}],\\\"totalArtifactCount\\\":1,\\\"artifactsTruncated\\\":false,\\\"workspaceRefs\\\":[],\\\"assumptions\\\":[],\\\"provenance\\\":{\\\"sources\\\":[],\\\"processDefinitions\\\":[\\\"geometry.buffer\\\"],\\\"assumptions\\\":[],\\\"clarificationsAsked\\\":[],\\\"clarificationsAnswered\\\":[],\\\"executedAt\\\":\\\"2026-10-19T16:20:43.2858883+00:00\\\",\\\"generatedArtifactIds\\\":[\\\"gp-960c9bea65c51a57beb14c0e:artifact:1\\\"]},\\\"errors\\\":[]}\"}]}}",
+            "stderr": "",
+            "launch": {
+              "schema": "honua.mcp-fixed-client-launch/v1",
+              "selector": "sdk",
+              "package": {
+                "name": "@modelcontextprotocol/sdk",
+                "version": "1.32.1",
+                "integrity": "sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==",
+                "fileCount": 701,
+                "filesSha256": "sha256:58ed6940f938d487e4bfe3c9d84f0e9eb8ed689cb0e0693817c5603b108762a3",
+                "packageJsonSha256": "sha256:0216319ea53177f7ed419d660b2f52ccc7e3327e57f9ee2ef03225ff543aeae4",
+                "entry": "dist/esm/client/index.js",
+                "entrySha256": "sha256:db6cc643f5cc095b2fd0b70bf691d1775f07a317e97555e3928559e815f5e32a"
+              },
+              "manifestSha256": "sha256:0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
+              "launcherSha256": "sha256:5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+              "sdkRunnerSha256": "sha256:f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+              "request": {
+                "endpoint": "http://127.0.0.1:40173/mcp",
+                "method": "resources/read",
+                "params": {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results"
+                },
+                "authenticated": true
+              },
+              "processId": 10495,
+              "exitCode": 0,
+              "exitSignal": null,
+              "timedOut": false,
+              "stdoutSha256": "sha256:5ceffb12347c0ef2bdcac506636efadc52acbc7951a6b372cf8ce602a8a461ba",
+              "stderrSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "sessionSha256": "sha256:1719445bbcdd6a2019b9ec8f9716b681b7617e5b0bdecafc768eda5da5fc4437",
+            "output": {
+              "contents": [
+                {
+                  "uri": "honua://jobs/gp-960c9bea65c51a57beb14c0e/results",
+                  "mimeType": "application/json",
+                  "text": "{\"jobId\":\"gp-960c9bea65c51a57beb14c0e\",\"resultPackageId\":\"gp-960c9bea65c51a57beb14c0e:v11\",\"status\":\"Completed\",\"summary\":{\"title\":\"Results for mcp-execute-sdk-a0650fdaeff1\",\"description\":\"Produced 1 artifact.\"},\"artifacts\":[{\"artifactId\":\"gp-960c9bea65c51a57beb14c0e:artifact:1\",\"kind\":\"FeatureLayer\",\"label\":\"featureLayer1\",\"uri\":\"data:application/geo\\u002Bjson;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==\",\"contentType\":\"application/geo\\u002Bjson\",\"metadata\":{}}],\"totalArtifactCount\":1,\"artifactsTruncated\":false,\"workspaceRefs\":[],\"assumptions\":[],\"provenance\":{\"sources\":[],\"processDefinitions\":[\"geometry.buffer\"],\"assumptions\":[],\"clarificationsAsked\":[],\"clarificationsAnswered\":[],\"executedAt\":\"2026-10-19T16:20:43.2858883+00:00\",\"generatedArtifactIds\":[\"gp-960c9bea65c51a57beb14c0e:artifact:1\"]},\"errors\":[]}"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "snapshots": {
+        "initial": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [],
+          "results": []
+        },
+        "invalid": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [],
+          "results": []
+        },
+        "anonymous": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [],
+          "results": []
+        },
+        "completed": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        },
+        "replay": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        },
+        "anonymous-job": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        },
+        "anonymous-results": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        },
+        "restarted": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        },
+        "restarted-readback": {
+          "schema": "honua.mcp-execution-persisted/v1",
+          "jobs": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:37ef7192659a734db6c538ad33cdd471fab2a80c511f81e2fd78d509937e9298",
+              "binding": {
+                "operationId": "gp-960c9bea65c51a57beb14c0e",
+                "status": 3,
+                "createdAt": "2026-10-19T16:20:40.3454907+00:00",
+                "idempotencyKey": "mcp-execute-sdk-a0650fdaeff1",
+                "parameters": {
+                  "honua.geoprocessing.plan_id": "mcp-execute-sdk-a0650fdaeff1",
+                  "honua.geoprocessing.process_definitions": "geometry.buffer",
+                  "honua.geoprocessing.output_artifact_kinds": "FeatureLayer",
+                  "honua.geoprocessing.step.0.wkb": "AQEAAAAAAAAAAAAkQAAAAAAAADRA",
+                  "honua.geoprocessing.step.0.srid": "3857",
+                  "honua.geoprocessing.step.0.distance": "500.0",
+                  "honua.geoprocessing.step.0.geodesic": "false"
+                }
+              }
+            }
+          ],
+          "results": [
+            {
+              "jobId": "gp-960c9bea65c51a57beb14c0e",
+              "sha256": "sha256:fa250844ba893478e67a9c9a4961d912b999e3b3b14d1ee7ecbaf5b74a0068e3",
+              "binding": {
+                "resultPackageId": "gp-960c9bea65c51a57beb14c0e:v11",
+                "status": 5,
+                "artifacts": [
+                  {
+                    "artifactId": "gp-960c9bea65c51a57beb14c0e:artifact:1",
+                    "kind": 1,
+                    "label": "featureLayer1",
+                    "uri": "data:application/geo+json;base64,eyJ0eXBlIjoiRmVhdHVyZSIsImdlb21ldHJ5Ijp7InR5cGUiOiJQb2x5Z29uIiwiY29vcmRpbmF0ZXMiOltbWzUxMC4wLDIwLjBdLFs1MDAuMzkyNjQwMjAxNjE1MTcsMTE3LjU0NTE2MTAwODA2NDM1XSxbNDcxLjkzOTc2NjI1NTY0MzI0LDIxMS4zNDE3MTYxODI1NDUxOF0sWzQyNS43MzQ4MDYxNTEyNzI2LDI5Ny43ODUxMTY1MDk4MDEwN10sWzM2My41NTMzOTA1OTMyNzM2NiwzNzMuNTUzMzkwNTkzMjczODNdLFsyODcuNzg1MTE2NTA5ODAwOSw0MzUuNzM0ODA2MTUxMjcyN10sWzIwMS4zNDE3MTYxODI1NDUsNDgxLjkzOTc2NjI1NTY0MzNdLFsxMDcuNTQ1MTYxMDA4MDY0MTYsNTEwLjM5MjY0MDIwMTYxNTJdLFsxMC4wLDUyMC4wXSxbLTg3LjU0NTE2MTAwODA2NDMzLDUxMC4zOTI2NDAyMDE2MTUxN10sWy0xODEuMzQxNzE2MTgyNTQ1MTYsNDgxLjkzOTc2NjI1NTY0MzI0XSxbLTI2Ny43ODUxMTY1MDk4MDEwNyw0MzUuNzM0ODA2MTUxMjcyNl0sWy0zNDMuNTUzMzkwNTkzMjczODMsMzczLjU1MzM5MDU5MzI3MzddLFstNDA1LjczNDgwNjE1MTI3MjcsMjk3Ljc4NTExNjUwOTgwMDk2XSxbLTQ1MS45Mzk3NjYyNTU2NDM0LDIxMS4zNDE3MTYxODI1NDQ4NF0sWy00ODAuMzkyNjQwMjAxNjE1MiwxMTcuNTQ1MTYxMDA4MDY0MThdLFstNDkwLjAsMjAuMF0sWy00ODAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0M10sWy00NTEuOTM5NzY2MjU1NjQzMzUsLTE3MS4zNDE3MTYxODI1NDQ5Nl0sWy00MDUuNzM0ODA2MTUxMjcyNjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWy0zNDMuNTUzMzkwNTkzMjczNywtMzMzLjU1MzM5MDU5MzI3MzhdLFstMjY3Ljc4NTExNjUwOTgwMDk2LC0zOTUuNzM0ODA2MTUxMjcyN10sWy0xODEuMzQxNzE2MTgyNTQ0ODcsLTQ0MS45Mzk3NjYyNTU2NDMzNV0sWy04Ny41NDUxNjEwMDgwNjQxLC00NzAuMzkyNjQwMjAxNjE1Ml0sWzEwLjAsLTQ4MC4wXSxbMTA3LjU0NTE2MTAwODA2NDE3LC00NzAuMzkyNjQwMjAxNjE1Ml0sWzIwMS4zNDE3MTYxODI1NDQ5MywtNDQxLjkzOTc2NjI1NTY0MzM1XSxbMjg3Ljc4NTExNjUwOTgwMTEsLTM5NS43MzQ4MDYxNTEyNzI2XSxbMzYzLjU1MzM5MDU5MzI3MzgsLTMzMy41NTMzOTA1OTMyNzM3XSxbNDI1LjczNDgwNjE1MTI3MjYsLTI1Ny43ODUxMTY1MDk4MDEwN10sWzQ3MS45Mzk3NjYyNTU2NDMzNSwtMTcxLjM0MTcxNjE4MjU0NDldLFs1MDAuMzkyNjQwMjAxNjE1MiwtNzcuNTQ1MTYxMDA4MDY0MTNdLFs1MTAuMCwyMC4wXV1dfSwicHJvcGVydGllcyI6eyJwcm9jZXNzSWQiOiJnZW9tZXRyeS5idWZmZXIiLCJpbnB1dFNyaWQiOjM4NTcsImJ1ZmZlckRpc3RhbmNlIjo1MDB9fQ==",
+                    "contentType": "application/geo+json",
+                    "metadata": {}
+                  }
+                ],
+                "errors": []
+              }
+            }
+          ]
+        }
+      },
+      "runtimeBefore": {
+        "candidateImage": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "candidateSourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+        "containerId": "a93040cf7809cfc0c2a18e57c7189fb5b0fd24a6d64f58d03346d9bce47b726f",
+        "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+        "imageReadback": {
+          "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+          "repoDigests": [
+            "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458"
+          ],
+          "sourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d"
+        },
+        "imageReference": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "running": true,
+        "schema": "honua.mcp-render-runtime/v1",
+        "startedAt": "2026-10-19T16:20:30.595307618Z"
+      },
+      "runtimeRestarted": {
+        "schema": "honua.mcp-render-runtime/v1",
+        "candidateSourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+        "candidateImage": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "running": true,
+        "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+        "imageReference": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "startedAt": "2026-10-19T16:20:47.201462051Z",
+        "containerId": "a93040cf7809cfc0c2a18e57c7189fb5b0fd24a6d64f58d03346d9bce47b726f",
+        "imageReadback": {
+          "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+          "repoDigests": [
+            "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458"
+          ],
+          "sourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d"
+        }
+      },
+      "runtimeAfter": {
+        "candidateImage": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "candidateSourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d",
+        "containerId": "a93040cf7809cfc0c2a18e57c7189fb5b0fd24a6d64f58d03346d9bce47b726f",
+        "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+        "imageReadback": {
+          "imageId": "sha256:2662e07ea75d06c4a5fb4a448f631546182f99a94049ca7b4e9a037a26db029f",
+          "repoDigests": [
+            "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458"
+          ],
+          "sourceSha": "3ecd214c1ce20e96ad4911b6f8447055dee9089d"
+        },
+        "imageReference": "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458",
+        "running": true,
+        "schema": "honua.mcp-render-runtime/v1",
+        "startedAt": "2026-10-19T16:20:47.201462051Z"
+      }
+    }
+  },
+  "bootstrapBase64": "ewogICJzY2hlbWEiOiAiaG9udWEubWNwLXJlbmRlci1ib290c3RyYXAvdjEiLAogICJzdGF0dXMiOiAicHJvdmlzaW9uZWQiLAogICJwaGFzZSI6ICJjb21wbGV0ZSIsCiAgImNhbmRpZGF0ZVNvdXJjZVNoYSI6ICIzZWNkMjE0YzFjZTIwZTk2YWQ0OTExYjZmODQ0NzA1NWRlZTkwODlkIiwKICAiY2FuZGlkYXRlSW1hZ2UiOiAiZ2hjci5pby9ob251YS1pby9ob251YS1zZXJ2ZXJAc2hhMjU2OjYyZTMxMmE4MjEwZGRmNjMyZWM1YjkwM2EyNzU5MzI3MzIxOTY2ZjcyY2JiOWY3NWMwYjJhM2QyYzEyNDM0NTgiLAogICJmaXh0dXJlU2hhMjU2IjogInNoYTI1Njo4MmY3ZmZiMzA1ZjI1YmQ1YzA4YTQwOTIzNmY3MmY1MmNjN2ZiZmVmN2VlYWU1NzcyNGZhZmE4NGEzN2U3NmU3IiwKICAic2VlZFNxbFNoYTI1NiI6ICJzaGEyNTY6ZjllMWUyMjFkYzVlYTc0MTgwYzlkODZhZmI0Y2IzMDc1N2E0ZDUyNzZjMGY2YzlkMjg1Y2QzOWY5ZWY2ZDY1MiIsCiAgImRhdGFiYXNlIjogewogICAgImhvc3QiOiAibG9jYWxob3N0IiwKICAgICJwb3J0IjogNTQzMiwKICAgICJkYXRhYmFzZU5hbWUiOiAiaG9udWFfdGVzdCIsCiAgICAidXNlcm5hbWUiOiAiaG9udWEiLAogICAgInByb3ZpZGVyIjogIlBvc3RHSVMiCiAgfSwKICAiYmFzZVVybCI6ICJodHRwOi8vbG9jYWxob3N0OjgwODAiLAogICJydW50aW1lQmluZGluZyI6IHsKICAgICJzY2hlbWEiOiAiaG9udWEubWNwLXJlbmRlci1ydW50aW1lL3YxIiwKICAgICJjYW5kaWRhdGVTb3VyY2VTaGEiOiAiM2VjZDIxNGMxY2UyMGU5NmFkNDkxMWI2Zjg0NDcwNTVkZWU5MDg5ZCIsCiAgICAiY2FuZGlkYXRlSW1hZ2UiOiAiZ2hjci5pby9ob251YS1pby9ob251YS1zZXJ2ZXJAc2hhMjU2OjYyZTMxMmE4MjEwZGRmNjMyZWM1YjkwM2EyNzU5MzI3MzIxOTY2ZjcyY2JiOWY3NWMwYjJhM2QyYzEyNDM0NTgiLAogICAgInJ1bm5pbmciOiB0cnVlLAogICAgImltYWdlSWQiOiAic2hhMjU2OjI2NjJlMDdlYTc1ZDA2YzRhNWZiNGE0NDhmNjMxNTQ2MTgyZjk5YTk0MDQ5Y2E3YjRlOWEwMzdhMjZkYjAyOWYiLAogICAgImltYWdlUmVmZXJlbmNlIjogImdoY3IuaW8vaG9udWEtaW8vaG9udWEtc2VydmVyQHNoYTI1Njo2MmUzMTJhODIxMGRkZjYzMmVjNWI5MDNhMjc1OTMyNzMyMTk2NmY3MmNiYjlmNzVjMGIyYTNkMmMxMjQzNDU4IiwKICAgICJzdGFydGVkQXQiOiAiMjAyNi0xMC0xOVQxNjoxOToyNy43ODUxOTU2OTNaIiwKICAgICJjb250YWluZXJJZCI6ICJhOTMwNDBjZjc4MDljZmMwYzJhMThlNTdjNzE4OWZiNWIwZmQyNGE2ZDY0ZjU4ZDAzMzQ2ZDliY2U0N2I3MjZmIiwKICAgICJpbWFnZVJlYWRiYWNrIjogewogICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6MjY2MmUwN2VhNzVkMDZjNGE1ZmI0YTQ0OGY2MzE1NDYxODJmOTlhOTQwNDljYTdiNGU5YTAzN2EyNmRiMDI5ZiIsCiAgICAgICJyZXBvRGlnZXN0cyI6IFsKICAgICAgICAiZ2hjci5pby9ob251YS1pby9ob251YS1zZXJ2ZXJAc2hhMjU2OjYyZTMxMmE4MjEwZGRmNjMyZWM1YjkwM2EyNzU5MzI3MzIxOTY2ZjcyY2JiOWY3NWMwYjJhM2QyYzEyNDM0NTgiCiAgICAgIF0sCiAgICAgICJzb3VyY2VTaGEiOiAiM2VjZDIxNGMxY2UyMGU5NmFkNDkxMWI2Zjg0NDcwNTVkZWU5MDg5ZCIKICAgIH0KICB9LAogICJhcmVhUmVhZGJhY2siOiBbCiAgICB7CiAgICAgICJnaWQiOiAxLAogICAgICAibmFtZSI6ICJibG9jayIsCiAgICAgICJlbnZlbG9wZSI6IFsKICAgICAgICAtOTAsCiAgICAgICAgMCwKICAgICAgICAtNDUsCiAgICAgICAgNjAKICAgICAgXSwKICAgICAgInNyaWQiOiA0MzI2LAogICAgICAiZ2VvbWV0cnlUeXBlIjogIlNUX1BvbHlnb24iCiAgICB9CiAgXSwKICAiY29ubmVjdGlvbklkIjogImUxM2NmMTg4LTVjM2YtNDUzOS1hNjE3LWNjY2MyYWFlOTZmZSIsCiAgInB1Ymxpc2hlZCI6IHsKICAgICJzaXRlcyI6IHsKICAgICAgInNlcnZpY2UiOiAic2RrcmVnLXNpdGVzIiwKICAgICAgImxheWVySWQiOiAyCiAgICB9LAogICAgImFyZWEiOiB7CiAgICAgICJzZXJ2aWNlIjogInNka3JlZy1hcmVhIiwKICAgICAgImxheWVySWQiOiAzCiAgICB9LAogICAgImVkaXRzIjoge30KICB9LAogICJvd25lZEFyZWEiOiB7CiAgICAibGF5ZXJJZCI6IDMsCiAgICAibG9jYXRvciI6ICJob251YV9kYXRhLnNka3JlZ19hcmVhIiwKICAgICJzZXJ2aWNlSWQiOiAic3ZjLXB1Ymxpc2gtc2RrcmVnLWFyZWEiLAogICAgInNlcnZpY2VOYW1lIjogInNka3JlZy1hcmVhIiwKICAgICJjb25uZWN0aW9uSWQiOiAiZTEzY2YxODgtNWMzZi00NTM5LWE2MTctY2NjYzJhYWU5NmZlIiwKICAgICJzdG9yYWdlTGF5ZXJJZCI6IDMKICB9Cn0K",
+  "bootstrapBytesSha256": "a0bc2ac7ddb6dfe372129c168c70c8e726098aa92f900c6c145bf5e8d2439c43",
+  "originalSdkResultsSha256": "ff1c6bb694b247a005887caae6126d847108472b4d814118d45771c07b567135"
+}

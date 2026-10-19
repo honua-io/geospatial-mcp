@@ -1,0 +1,78 @@
+name: MCP Producer Source Controls
+
+on:
+  pull_request:
+    paths:
+      - certification/**
+      - .github/workflows/mcp-producer-source-controls.yml
+  push:
+    branches: [trunk]
+    paths:
+      - certification/**
+      - .github/workflows/mcp-producer-source-controls.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: certification
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+          cache: npm
+          cache-dependency-path: certification/package-lock.json
+      - name: Install exact named clients for offline source controls
+        run: npm ci --ignore-scripts
+      - name: Fetch protected immutable oracle dependencies
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run prepare:plan
+          npm run prepare:render
+      - name: Fetch reviewed receipt checker for schema integrity controls only
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import importlib.util, json
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location("governance", "fetch-certification-requirements.py")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          pins = json.loads(Path("requirements-pins.json").read_bytes())
+          path = "tools/check_protocol_certification.py"
+          if pins["repository"] != module.REPOSITORY:
+              raise ValueError("source checker repository differs")
+          data, digest, _ = module.immutable_files(module.REPOSITORY, pins["sourceSha"], (path,))[path]
+          if digest != pins["sha256"][path]:
+              raise ValueError("source checker bytes differ from existing reviewed pins")
+          target = Path(".source-controls/check_protocol_certification.py")
+          target.parent.mkdir(exist_ok=True)
+          target.write_bytes(data)
+          PY
+          echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/certification/.source-controls/check_protocol_certification.py" >> "${GITHUB_ENV}"
+      - name: Verify complete source controls without candidate admission
+        run: |
+          python3 -m unittest discover -s test -p 'test_fetch*.py' -v
+          npm test
+      - name: Retain source-only control provenance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mcp-producer-source-controls-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            certification/.plan-validation/source-binding.json
+            certification/.render-validation/source-binding.json
+            certification/.source-controls/check_protocol_certification.py
+            certification/requirements-pins.json
+            certification/test/fixtures/historical-execute-plan-39284007212.json
+          if-no-files-found: warn
+          retention-days: 90

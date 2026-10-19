@@ -1,5 +1,9 @@
-import { planScenarios } from "../plan-validation.mjs";
-import { renderScenarios } from "../render-validation.mjs";
+import { verifyEntityResolution } from "../entity-resolution.mjs";
+import { verifyCancellationProof } from "../cancellation-proof.mjs";
+import { verifyInspectorPaginationProof } from "../pagination-proof.mjs";
+import { verifyInspectorCancellationProof } from "../inspector-cancellation-proof.mjs";
+import { planScenarios, verifyPlanProof } from "../plan-validation.mjs";
+import { renderScenarios, verifyRenderProof } from "../render-validation.mjs";
 import { controlledRenderBootstrap, controlledRenderResponse, controlledDockerProgram } from "./render-fixture.mjs";
 import { entityObservations } from "./entity-fixture.mjs";
 import assert from "node:assert/strict";
@@ -28,10 +32,20 @@ const requirements = { schema: "honua.protocol-certification-requirements/v1", r
   revision: "test-owned-catalog/v1", requirements: expectedOperations.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
     capability_key, surface: "mcp", operation, canonical_client: client.canonicalClient, client_version: client.version,
     deployment_target: "local-docker", maturity: "supported", required_tier: "nightly",
-    scenario_facets: ["positive", "negative", "media-schema"], fixture_revision: FIXTURE_REVISION,
-    contract_revision: CONTRACT_REVISION, auth_policy_revision: "anonymous-public-v1",
+    scenario_facets: ["positive", "negative", "media-schema", "auth"], fixture_revision: FIXTURE_REVISION,
+    contract_revision: CONTRACT_REVISION, auth_policy_revision: operation.startsWith("tools/call:") || operation.startsWith("resources/read:") ? "mcp-protected-operation-v1" : "anonymous-public-v1",
   }))) };
-const buildFragment = (input) => build({ requirements, executedTier: "nightly", ...input });
+const authPolicy = {
+  schema: "honua.mcp-operation-auth-policy/v1", revision: "mcp-operation-auth-v1",
+  owner_issue: "https://github.com/honua-io/honua-release/issues/695",
+  required_observations: {
+    "anonymous-public-v1": ["anonymous-success", "fresh-anonymous-session", "no-credentials"],
+    "mcp-protected-operation-v1": ["authenticated-success", "fresh-anonymous-refusal", "no-credential-forwarding", "no-authenticated-session-reuse", "caller-session-binding"],
+  },
+  operations: expectedOperations.map(([, operation]) => ({operation, auth_policy_revision:
+    operation.startsWith("tools/call:") || operation.startsWith("resources/read:") ? "mcp-protected-operation-v1" : "anonymous-public-v1"})),
+};
+const buildFragment = (input) => build({ requirements, authPolicy, executedTier: "nightly", ...input });
 
 const identity = {
   sourceSha: "a".repeat(40), producerSourceSha: "c".repeat(40),
@@ -131,17 +145,18 @@ test("preserves failed initialization when negotiation did not complete", () => 
 });
 
 
-test("receipt v2 owns the exact governed identity", async () => {
+test("unobserved public authority retains governed identity without minting receipt v2", async () => {
   const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
     protocolVersion: "2025-06-18", checks: passing(key),
   }])) });
-  const row = fragment.observations.find((row) => row.result === "pass");
-  assert.equal(row.evidence_receipt.schema, "honua.certification-evidence-receipt/v2");
-  assert.equal(row.evidence_receipt.identity.requirements_revision, requirements.revision);
-  assert.equal(row.evidence_receipt.identity.maturity, "supported");
-  assert.equal(row.evidence_receipt.identity.required_tier, "nightly");
-  assert.equal("runtime_environment" in row.evidence_receipt.identity, false);
-  assert.equal("protocol_version" in row.evidence_receipt.identity, false);
+  const row = fragment.observations.find((row) => row.operation === "initialize");
+  assert.equal(row.evidence_receipt, null);
+  assert.equal(row.requirements_revision, requirements.revision);
+  assert.equal(row.maturity, "supported");
+  assert.equal(row.required_tier, "nightly");
+  assert.equal(row.auth_policy_revision, "anonymous-public-v1");
+  assert.deepEqual(row.scenario_facets, ["positive", "negative", "media-schema", "auth"]);
+  assert.match(row.skip_reason, /caller\/session authority/);
 });
 
 test("missing, ambiguous, stale-version and incomplete requirement context fail closed", () => {
@@ -200,11 +215,27 @@ test("semantic and cessation evidence must use the same independently allocated 
 });
 
 
-test("real release consumer accepts v2 and rejects stale context and tampered bytes", { skip: !process.env.HONUA_RELEASE_CHECKER }, () => {
+test("real release consumer validates synthetic v2 schema integrity without granting authority", { skip: !process.env.HONUA_RELEASE_CHECKER }, () => {
   const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, {
     protocolVersion: "2025-06-18", checks: passing(key),
   }])) });
-  const row = fragment.observations.find((row) => row.result === "pass");
+  // Explicit schema-only synthetic fixture: production normalization above
+  // correctly emits no receipt without actual authority. This retains consumer
+  // identity/digest negative controls independently of runtime qualification.
+  const row = structuredClone(fragment.observations.find((row) => row.operation === "initialize"));
+  assert.equal(row.evidence_receipt, null);
+  row.result = "pass";
+  row.skip_reason = null;
+  row.exercised_capabilities = [...row.scenario_facets];
+  const fields = ["capability_key", "surface", "operation", "canonical_client", "client_version", "deployment_target", "source_sha", "producer_source_sha", "image_digest", "fixture_revision", "contract_revision", "auth_policy_revision", "started_at", "completed_at", "maturity", "required_tier", "requirements_revision"];
+  row.evidence_receipt = {schema: "honua.certification-evidence-receipt/v2",
+    identity: Object.fromEntries(fields.map((key) => [key, row[key]])), result: "pass",
+    facets: Object.fromEntries(row.scenario_facets.map((facet) => [facet, "pass"])),
+    payload_base64: Buffer.from("schema-only synthetic test fixture; no candidate authority").toString("base64")};
+  const canonical = (value) => Array.isArray(value) ? `[${value.map(canonical).join(",")}]`
+    : value && typeof value === "object" ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);
+  row.evidence_digest = `sha256:${createHash("sha256").update(canonical(row.evidence_receipt)).digest("hex")}`;
+  row.facet_results = Object.fromEntries(row.scenario_facets.map((facet) => [facet, {result:"pass", evidence_digest:row.evidence_digest}]));
   const code = `import copy,importlib.util,json,sys
 spec=importlib.util.spec_from_file_location("release_checker",sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 row=json.load(sys.stdin);revision=row["requirements_revision"]
@@ -222,10 +253,10 @@ assert m._receipt_digest(bad["evidence_receipt"]) != bad["evidence_digest"]
 });
 
 
-test("semantic read pass requires candidate-bound authored fixture proof", () => {
+test("semantic read fixture proof cannot replace missing per-operation authority", () => {
   const semantic = { result: "pass", value: { schema: "honua.mcp-read-semantic-proof/v1", positive: true, negative: true,
     mediaSchema: true, fixtureSourceSha: identity.sourceSha, seedSqlSha256: `sha256:${"d".repeat(64)}`, allocatedIdsSha256: `sha256:${"e".repeat(64)}` } };
-  for (const [value, expected] of [[semantic, "pass"], [{ ...semantic, value: {} }, "skip"],
+  for (const [value, expected] of [[semantic, "skip"], [{ ...semantic, value: {} }, "skip"],
     [{ ...semantic, value: { ...semantic.value, fixtureSourceSha: "f".repeat(40) } }, "skip"]]) {
     const checks = { ...passing("sdk"), "tools/call:query_features": value };
     const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks }])) });
@@ -240,7 +271,7 @@ test("missing or invalid executed tier cannot create certification receipts", ()
   }
 });
 
-test("only execution at or above the governed tier can mint pass receipts", () => {
+test("governed tier and actual authority are independently required for pass receipts", () => {
   const tiers = ["pr", "nightly", "release"];
   const results = Object.fromEntries(Object.keys(CLIENTS).map((key) => [key, { protocolVersion: "2025-06-18", checks: passing(key) }]));
   for (const executedTier of tiers) {
@@ -249,9 +280,10 @@ test("only execution at or above the governed tier can mint pass receipts", () =
       const fragment = buildFragment({ identity, results, requirements: catalog, executedTier });
       const row = fragment.observations.find((value) => value.operation === "ping");
       if (tiers.indexOf(executedTier) >= tiers.indexOf(requiredTier)) {
-        assert.equal(row.result, "pass");
-        assert.equal(row.evidence_receipt.identity.required_tier, requiredTier);
-        assert.ok(row.evidence_digest);
+        assert.equal(row.result, "skip");
+        assert.equal(row.required_tier, requiredTier);
+        assert.equal(row.evidence_receipt, null);
+        assert.match(row.skip_reason, /caller\/session authority/);
       } else {
         assert.equal(row.result, "skip");
         assert.match(row.skip_reason, /executed .* tier does not satisfy required/);
@@ -287,7 +319,9 @@ test("Inspector apparent passes cannot survive missing or mismatched independent
       inspector: { protocolVersion: "2025-06-18", checks },
     }});
     assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
-    assert.ok(result.observations.some((row) => row.canonical_client === "Official MCP TypeScript SDK" && row.result === "pass"));
+    assert.equal(result.observations.some((row) => row.evidence_receipt), false);
+    assert.equal(verifyInspectorPaginationProof(checks["behavior/resources-pagination"].value, identity.sourceSha, CLIENTS.inspector.version), false);
+    assert.equal(verifyCancellationProof(passing("sdk")["behavior/cancellation"].value, identity.sourceSha, CLIENTS.sdk.canonicalClient), true);
     assert.equal(result.observations.length, 82);
   }
 });
@@ -305,7 +339,9 @@ test("Inspector browser and SDK cancellation proofs cannot substitute for one an
     } });
     assert.equal(fragment.observations.length, 82);
     assert.equal(fragment.observations.filter((row) => row.canonical_client === 'MCP Inspector' && row.result === 'pass').length, 0);
-    assert.ok(fragment.observations.some((row) => row.canonical_client === 'Official MCP TypeScript SDK' && row.result === 'pass'));
+    assert.equal(fragment.observations.some((row) => row.evidence_receipt), false);
+    assert.equal(verifyInspectorCancellationProof(value, identity.sourceSha, CLIENTS.inspector.version, "2025-06-18"), false);
+    assert.equal(verifyCancellationProof(passing("sdk")["behavior/cancellation"].value, identity.sourceSha, CLIENTS.sdk.canonicalClient), true);
   }
 });
 
@@ -326,7 +362,9 @@ test("authored plan evidence is admitted only with exact source, raw oracle proo
       sdk: { protocolVersion: "2025-06-18", checks: sdkChecks },
       inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
     } }).observations.find((item) => item.canonical_client === CLIENTS.sdk.canonicalClient && item.operation === "tools/call:validate_plan");
-    assert.equal(row(checks).result, "pass");
+    assert.equal(verifyPlanProof(checks["tools/call:validate_plan"].value, identity.sourceSha), true);
+    assert.equal(row(checks).result, "skip");
+    assert.match(row(checks).skip_reason, /caller\/session authority/);
     for (const mutation of ["wrong-source", "wrong-helper", "changed-fixture", "invalid-accepted", "missing-observations", "null-observations", "no-auth", "no-cancellation"]) {
       const broken = structuredClone(checks);
       const proof = broken["tools/call:validate_plan"].value;
@@ -337,6 +375,7 @@ test("authored plan evidence is admitted only with exact source, raw oracle proo
       else if (mutation === "missing-observations") delete proof.observations;
       else if (mutation === "null-observations") proof.observations = null;
       else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+      if (!["no-auth", "no-cancellation"].includes(mutation)) assert.equal(verifyPlanProof(proof, identity.sourceSha), false, mutation);
       assert.equal(row(broken).result, "skip", mutation);
       assert.equal(row(broken).evidence_receipt, null, mutation);
     }
@@ -357,7 +396,9 @@ test("entity receipts rejudge raw observations and retain candidate and global b
   const row = (value) => buildFragment({ identity, results: {
     sdk: { protocolVersion: "2025-06-18", checks: value }, inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
   } }).observations.find((entry) => entry.canonical_client === CLIENTS.sdk.canonicalClient && entry.operation === "tools/call:resolve_entity");
-  assert.equal(row(checks).result, "pass");
+  assert.equal(verifyEntityResolution(semantic.value.entityResolution), true);
+  assert.equal(row(checks).result, "skip");
+  assert.match(row(checks).skip_reason, /caller\/session authority/);
   for (const mutation of ["missing-raw", "wrong-raw", "wrong-source", "wrong-seed", "no-auth", "no-cancellation"]) {
     const broken = structuredClone(checks);
     const proof = broken["tools/call:resolve_entity"].value;
@@ -366,6 +407,11 @@ test("entity receipts rejudge raw observations and retain candidate and global b
     else if (mutation === "wrong-source") proof.fixtureSourceSha = "f".repeat(40);
     else if (mutation === "wrong-seed") proof.seedSqlSha256 = `sha256:${"0".repeat(64)}`;
     else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+    if (["missing-raw", "wrong-raw"].includes(mutation)) {
+      let passed = false;
+      try { passed = verifyEntityResolution(proof.entityResolution); } catch {}
+      assert.equal(passed, false, mutation);
+    }
     assert.equal(row(broken).result, "skip", mutation);
     assert.equal(row(broken).evidence_receipt, null, mutation);
   }
@@ -412,7 +458,9 @@ test("render receipts require rejudged raw geometry/media, exact bootstrap/candi
     const row = (sdkChecks) => buildFragment({ identity, results: {
       sdk: { protocolVersion: "2025-06-18", checks: sdkChecks }, inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
     } }).observations.find((item) => item.operation === "tools/call:render_map" && item.canonical_client === CLIENTS.sdk.canonicalClient);
-    assert.equal(row(checks).result, "pass");
+    assert.equal(verifyRenderProof(checks["tools/call:render_map"].value, identity.sourceSha, identity.imageDigest), true);
+    assert.equal(row(checks).result, "skip");
+    assert.match(row(checks).skip_reason, /caller\/session authority/);
     for (const mutation of ["source", "image", "oracle", "media", "negative", "runtime-before", "runtime-after", "missing-raw", "null-raw", "no-auth", "no-cancellation"]) {
       const broken = structuredClone(checks), proof = broken["tools/call:render_map"].value;
       if (mutation === "source") proof.candidateSourceSha = "d".repeat(40);
@@ -424,6 +472,7 @@ test("render receipts require rejudged raw geometry/media, exact bootstrap/candi
       else if (mutation === "missing-raw") delete proof.observations;
       else if (mutation === "null-raw") proof.observations = null;
       else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+      if (!["no-auth", "no-cancellation"].includes(mutation)) assert.equal(verifyRenderProof(proof, identity.sourceSha, identity.imageDigest), false, mutation);
       assert.equal(row(broken).result, "skip", mutation);
       assert.equal(row(broken).evidence_receipt, null, mutation);
     }
@@ -447,7 +496,7 @@ test("protected canonical style claims cannot bypass pinned policy or rejudging"
     const row = fragment.observations.find(item => item.operation === operation && item.canonical_client === CLIENTS.sdk.canonicalClient);
     assert.equal(row.result, "skip");
     assert.equal(row.evidence_receipt, null);
-    assert.match(row.skip_reason, /authenticated style journey conflicts/);
+    assert.match(row.skip_reason, /candidate-bound semantic proof/);
   }
   assert.equal(fragment.observations.length, 82);
 });
@@ -465,7 +514,7 @@ test("protected canonical execution claims cannot bypass pinned policy or rejudg
     const row = fragment.observations.find(item => item.operation === operation && item.canonical_client === CLIENTS.sdk.canonicalClient);
     assert.equal(row.result, "skip");
     assert.equal(row.evidence_receipt, null);
-    assert.match(row.skip_reason, /authenticated execution journey conflicts/);
+    assert.match(row.skip_reason, /candidate-bound semantic proof/);
   }
   assert.equal(fragment.observations.length, 82);
 });
@@ -482,7 +531,7 @@ test("protected worker-result publication claims cannot bypass policy or immutab
     const row = fragment.observations.find(item => item.operation === "tools/call:publish_result" && item.canonical_client === CLIENTS[key].canonicalClient);
     assert.equal(row.result, "skip");
     assert.equal(row.evidence_receipt, null);
-    assert.match(row.skip_reason, /authenticated worker-result publication journey conflicts/);
+    assert.match(row.skip_reason, /candidate-bound semantic proof/);
     assert.equal(fragment.observations.length, 82);
     checks["tools/call:publish_result"].result = "fail";
     const failed = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map(client => [client, {
@@ -491,4 +540,71 @@ test("protected worker-result publication claims cannot bypass policy or immutab
     assert.equal(failed.result, "fail");
     assert.equal(failed.evidence_receipt, null);
   }
+});
+
+test("historical real execute oracle joins full authority, global behavior and tier controls", () => {
+  const retained = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url), "utf8"));
+  assert.match(retained.meaning, /regression only/);
+  assert.equal(retained.originalGlobalResults["behavior/cancellation"], "fail");
+  const historical = retained.identity;
+  // Composite offline regression only: the execute proof is untouched actual
+  // hosted wire evidence; this global vector is explicitly synthetic metadata,
+  // never a claim that the historical run's failed cancellation passed.
+  const checks = { ...passing("sdk"), "behavior/cancellation": { result:"pass", value:{
+    ...syntheticCancellationProof(), fixtureSourceSha:historical.sourceSha}},
+    "tools/call:execute_plan":{result:"pass", value:retained.proof}};
+  const joined = (sdkChecks, executedTier="release", catalog=requirements) => buildFragment({
+    identity:historical, executedTier, requirements:catalog, now:"2026-10-19T16:40:00Z", results:{
+      sdk:{protocolVersion:"2025-06-18", checks:sdkChecks},
+      inspector:{protocolVersion:"2025-06-18", checks:passing("inspector")}}});
+  const selected = (fragment) => fragment.observations.find((row) => row.operation === "tools/call:execute_plan"
+    && row.canonical_client === CLIENTS.sdk.canonicalClient);
+  const bootstrapBefore = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const fixtureDirectory = mkdtempSync(join(tmpdir(), "historical-execute-regression-"));
+  const bootstrapBytes = Buffer.from(retained.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bootstrapBytes).digest("hex"), retained.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(fixtureDirectory, "original-bootstrap.json");
+  writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bootstrapBytes);
+  try {
+  const positive = selected(joined(checks));
+  assert.equal(positive.result,"pass");
+  assert.equal(positive.evidence_receipt.schema,"honua.certification-evidence-receipt/v2");
+  assert.equal(positive.auth_policy_revision,"mcp-protected-operation-v1");
+  assert.deepEqual(positive.scenario_facets,["positive","negative","media-schema","auth"]);
+  assert.equal(positive.evidence_receipt.facets.auth,"pass");
+  assert.equal(positive.evidence_receipt.identity.source_sha,historical.sourceSha);
+  assert.equal(positive.evidence_receipt.identity.image_digest,historical.imageDigest);
+  for (const mutation of ["no-raw","no-anonymous","credential-forwarding","session-reuse","raw-tamper",
+    "no-cancellation","failed-cancellation","no-global-auth","wrong-client","wrong-image","under-tier"]) {
+    const broken=structuredClone(checks), proof=broken["tools/call:execute_plan"].value;
+    if (mutation==="no-raw") delete proof.observations;
+    else if (mutation==="no-anonymous") proof.observations.calls=proof.observations.calls.filter((row)=>row.authenticated);
+    else if (mutation==="credential-forwarding") proof.observations.calls.find((row)=>!row.authenticated).wire.invocation.request.credentialPresent=true;
+    else if (mutation==="session-reuse") proof.observations.calls.find((row)=>!row.authenticated).wire.invocation.request.sessionSha256=
+      proof.observations.calls.find((row)=>row.id==="execute").wire.initialize.response.sessionSha256;
+    else if (mutation==="raw-tamper") proof.observations.calls[0].wire.invocation.response.bodyBase64=Buffer.from('{}').toString('base64');
+    else if (mutation==="wrong-client") proof.canonicalClient="MCP Inspector";
+    else if (mutation==="wrong-image") proof.candidateImage=proof.candidateImage.replace(historical.imageDigest,`sha256:${"0".repeat(64)}`);
+    else if (mutation==="no-cancellation") delete broken["behavior/cancellation"];
+    else if (mutation==="failed-cancellation") broken["behavior/cancellation"].result=retained.originalGlobalResults["behavior/cancellation"];
+    else if (mutation==="no-global-auth") delete broken["behavior/auth"];
+    const row=selected(joined(broken,mutation==="under-tier"?"pr":"release"));
+    assert.notEqual(row.result,"pass",mutation);
+    assert.equal(row.evidence_receipt,null,mutation);
+    assert.equal(row.facet_results,null,mutation);
+  }
+  } finally {
+    if (bootstrapBefore === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+    else process.env.HONUA_MCP_RENDER_BOOTSTRAP = bootstrapBefore;
+    rmSync(fixtureDirectory, {recursive:true, force:true});
+  }
+});
+
+test("source controls run independently of frozen catalog and candidate qualification", () => {
+  const workflow=readFileSync(new URL("../../.github/workflows/mcp-producer-source-controls.yml",import.meta.url),"utf8");
+  for (const expected of ["pull_request:","npm ci --ignore-scripts","npm run prepare:plan","npm run prepare:render",
+    "module.immutable_files",'digest != pins["sha256"][path]',"HONUA_RELEASE_CHECKER=", "python3 -m unittest discover", "npm test"])
+    assert.ok(workflow.includes(expected),expected);
+  for (const absent of ["requirements_ref:","--requirements-revision","continue-on-error:","docker run","train_apply"])
+    assert.equal(workflow.includes(absent),false,absent);
 });

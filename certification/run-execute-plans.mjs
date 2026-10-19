@@ -3,6 +3,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { appPackageScenarios } from "./app-package-validation.mjs";
 import { executePlanScenarios } from "./execute-plan-validation.mjs";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
@@ -28,5 +29,10 @@ for (const [key, canonicalClient, name] of selections) {
     await writeFile(results, JSON.stringify(lane, null, 2) + "\n");
   };
   await executePlanScenarios(record, canonicalClient, metadata.version, results);
+  // Consume only this client's just-recorded real execution observations. Run
+  // map -> app before the next client restarts the candidate; no stale fallback.
+  const executed = lane.checks["tools/call:execute_plan"];
+  await appPackageScenarios(record, canonicalClient, metadata.version,
+    executed?.result === "pass" ? executed.value?.observations : undefined, results);
 }
 if (failed) process.exitCode = 1;

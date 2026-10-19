@@ -354,3 +354,23 @@ historical source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` and image digest
 That run's actual global cancellation failed. A separately labeled synthetic
 global control vector exercises the offline positive join; restoring the actual
 cancellation failure prevents a receipt. This is regression evidence only.
+
+### App package source consumer
+
+The app consumer fetches a separate complete 14-file protected release bundle
+with `npm run prepare:app`. Its source and byte bindings preserve the existing
+historical helper bundle unchanged. The release-owned journey composes an actual
+map package and execution artifact into an app draft, then checks draft resource
+reads and generic declared-requirements validation and preview. Authority checks
+include the actual review calls and anonymous refusals.
+
+Fresh-session draft reads do not prove restart durability. Generic review does
+not resolve or execute opaque package payloads; preview proves the returned plan,
+not an independent database mutation census. Offline oracle vectors and source
+controls grant no installed-client or candidate qualification. All original
+qualification requirements remain in force.
+
+Source controls generate their explicitly offline vector with
+`python3 generate-offline-app-vector.py`, fetching the complete protected
+production and control dependencies at the same reviewed source. The retained
+vector records every source blob and preserves the original bootstrap bytes.

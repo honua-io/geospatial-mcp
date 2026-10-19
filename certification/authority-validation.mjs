@@ -1,5 +1,6 @@
 // Authority credit requires retained actual client/wire proof adjudicated by the
 // protected release-owned oracle. Policy declarations alone grant no credit.
+import { verifyAppPackageProof } from "./app-package-validation.mjs";
 import { verifyMapPackageProof } from "./map-package-validation.mjs";
 import { verifyIngestPublishProof } from "./ingest-publish-validation.mjs";
 import { verifyStyleProof } from "./style-validation.mjs";
@@ -34,7 +35,8 @@ export function authorityDecisions(policy, requirements) {
 }
 
 export function verifyProtectedAuthority(proof, identity, operation, client) {
-  const verifier = ["tools/call:create_map_package", "resources/read:Map package"].includes(operation) ? verifyMapPackageProof
+  const verifier = ["tools/call:create_app_package", "resources/read:App package", "tools/call:validate_package", "tools/call:preview_package"].includes(operation) ? verifyAppPackageProof
+    : ["tools/call:create_map_package", "resources/read:Map package"].includes(operation) ? verifyMapPackageProof
     : ["tools/call:ingest_dataset", "tools/call:publish_service", "resources/read:Published service"].includes(operation) ? verifyIngestPublishProof
     : ["tools/call:get_style", "tools/call:apply_style_preset"].includes(operation) ? verifyStyleProof
     : operation === "tools/call:execute_plan" ? verifyExecutePlanProof
@@ -47,7 +49,7 @@ export function verifyProtectedAuthority(proof, identity, operation, client) {
     operation, client.canonicalClient, client.version)) return false;
   const observed = proof?.observations;
   if (!observed) return false;
-  const calls = [...(observed.calls ?? []), ...(observed.cases ?? []), ...(observed.reads ?? [])];
+  const calls = [...(observed.calls ?? []), ...(observed.cases ?? []), ...(observed.reads ?? []), ...(observed.reviews ?? [])];
   const method = operation.startsWith("tools/call:") ? "tools/call" : "resources/read";
   const matches = calls.filter((entry) => entry.wire?.method === method
     && (method !== "tools/call" || entry.wire.expectedParams?.name === `honua_${operation.split(":")[1]}`));

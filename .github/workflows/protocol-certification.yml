@@ -157,6 +157,12 @@ jobs:
         working-directory: certification
         run: npm run prepare:render
 
+      - name: Fetch immutable protected separate app workflow and oracle bundle
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: certification
+        run: npm run prepare:app
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
@@ -497,6 +503,7 @@ jobs:
             certification/artifacts/*.ingest-publish.raw.json
             certification/artifacts/*.canonical-style.raw.json
             certification/artifacts/*.canonical-execute-plan.raw.json
+            certification/artifacts/*.app-package.raw.json
             certification/artifacts/*.canonical-publish-result.raw.json
             certification/artifacts/*.canonical-publish-result.setup.json
             certification/artifacts/*.canonical-style.raw.json.setup.json
@@ -506,6 +513,8 @@ jobs:
             certification/artifacts/deployment-prerequisites.json
             certification/.plan-validation/source-binding.json
             certification/.render-validation/source-binding.json
+            certification/.app-validation/source-binding.json
+            certification/app-validation-pins.json
             certification/render-validation-pins.json
             certification/.render-validation/mcp_fixed_client_manifest.v1.json
             certification/package.json

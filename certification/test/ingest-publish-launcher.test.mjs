@@ -14,9 +14,9 @@ const { launchCanonicalClient } = await import(pathToFileURL(join(source.directo
 const installationRoot = fileURLToPath(new URL("../node_modules/", import.meta.url));
 const hash = value => `sha256:${createHash("sha256").update(value).digest("hex")}`;
 
-for (const supported of [true, false]) test(`actual anonymous Inspector setup discovery ${supported ? "advertises and invokes" : "unsupported view remains refusal"} without authority`, async () => {
+for (const authenticated of [false, true]) for (const supported of [true, false]) test(`actual ${authenticated ? "authenticated full" : "anonymous setup"} Inspector discovery ${supported ? "advertises and invokes" : "unsupported view remains refusal"}`, async () => {
   const credential = "controlled-ingest-private-key", sessions = new Set(), initializations = [], invocations = [], discovery = [];
-  const names = ["honua_ingest_dataset", "honua_publish_service"];
+  const names = ["honua_ingest_dataset", "honua_publish_service", "honua_get_style", "honua_apply_style_preset"];
   const authority = request => ({ apiKeyPresent: request.headers["x-api-key"] !== undefined,
     authorizationPresent: request.headers.authorization !== undefined, cookiePresent: request.headers.cookie !== undefined });
   const server = createServer(async (request, response) => {
@@ -30,6 +30,7 @@ for (const supported of [true, false]) test(`actual anonymous Inspector setup di
       if (message.method === "initialize") {
         assert.equal(request.headers["mcp-session-id"], undefined);
         const session = randomUUID(); sessions.add(session); response.setHeader("mcp-session-id", session);
+        assert.equal(request.headers["x-api-key"], authenticated ? credential : undefined);
         initializations.push({ sessionSha256: hash(session), ...authority(request) });
         result = { protocolVersion: "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "explicit-offline-setup-control", version: "0.0.0" } };
       } else {
@@ -42,12 +43,15 @@ for (const supported of [true, false]) test(`actual anonymous Inspector setup di
               error: { code: -32602, message: "Controlled unsupported workflow view", data: { code: "invalid_argument" } } }));
             return;
           }
-          result = { tools: view === "setup" ? names.map(name => ({ name, inputSchema: { type: "object", additionalProperties: true } })) : [] };
+          result = { tools: view === (authenticated ? "full" : "setup") ? names.map(name => ({ name, inputSchema: { type: "object", additionalProperties: true } })) : [] };
         } else if (message.method === "tools/call") {
           assert.equal(names.includes(message.params.name), true);
-          invocations.push({ name: message.params.name, sessionSha256: hash(session), ...authority(request) });
-          const denied = { status: "error", code: "unauthenticated", message: "Controlled anonymous invocation refused", requiresReauthentication: true,
-            error: { kind: "AuthorizationDenied", message: "Controlled anonymous invocation refused" } };
+          assert.equal(request.headers["x-api-key"], authenticated ? credential : undefined);
+          invocations.push({ name: message.params.name, arguments: message.params.arguments, sessionSha256: hash(session), ...authority(request) });
+          const message_ = authenticated ? "Controlled authenticated arguments refused" : "Controlled anonymous invocation refused";
+          const denied = { status: "error", code: authenticated ? "invalid_argument" : "unauthenticated", message: message_,
+            ...(!authenticated ? { requiresReauthentication: true } : {}),
+            error: { kind: authenticated ? "InvalidArgument" : "AuthorizationDenied", message: message_ } };
           result = { isError: true, structuredContent: denied, content: [{ type: "text", text: JSON.stringify(denied) }] };
         } else throw new Error("unexpected controlled method");
       }
@@ -60,7 +64,7 @@ for (const supported of [true, false]) test(`actual anonymous Inspector setup di
     for (const name of names) {
       verifiedFixtureSource();
       const client = await launchCanonicalClient({ installationRoot, selector: "inspector", endpoint, method: "tools/call",
-        params: { name, arguments: { controlled: "no candidate mutation" } }, authenticated: false, credential });
+        params: { name, arguments: name === "honua_get_style" ? {} : { controlled: "no candidate mutation" } }, authenticated, credential });
       clients.push({ name, exitCode: client.exitCode, version: client.version, stdoutSha256: hash(client.stdout), stderrSha256: hash(client.stderr) });
       if (supported) assert.equal(client.exitCode, 5);
       else assert.notEqual(client.exitCode, 0);
@@ -69,21 +73,25 @@ for (const supported of [true, false]) test(`actual anonymous Inspector setup di
       if (supported) {
         const output = JSON.parse(client.stdout); const result = output.result ?? output;
         assert.equal(result.isError, true);
-        assert.equal(result.structuredContent.code, "unauthenticated");
+        assert.equal(result.structuredContent.code, authenticated ? "invalid_argument" : "unauthenticated");
       }
     }
     assert.deepEqual(invocations.map(item => item.name), supported ? names : []);
-    assert.equal(initializations.length, 2);
-    assert.equal(new Set(initializations.map(item => item.sessionSha256)).size, 2);
-    assert.equal(new Set(invocations.map(item => item.sessionSha256)).size, supported ? 2 : 0);
-    assert.ok(discovery.length >= 2 && discovery.every(item => item.view === "setup"));
+    if (supported) {
+      assert.deepEqual(invocations.find(item => item.name === "honua_get_style").arguments, {});
+      for (const item of invocations.filter(item => item.name !== "honua_get_style")) assert.deepEqual(item.arguments, { controlled: "no candidate mutation" });
+    }
+    assert.equal(initializations.length, names.length);
+    assert.equal(new Set(initializations.map(item => item.sessionSha256)).size, names.length);
+    assert.equal(new Set(invocations.map(item => item.sessionSha256)).size, supported ? names.length : 0);
+    assert.ok(discovery.length >= names.length && discovery.every(item => item.view === (authenticated ? "full" : "setup")));
     for (const item of [...initializations, ...invocations, ...discovery]) {
-      assert.equal(item.apiKeyPresent, false); assert.equal(item.authorizationPresent, false); assert.equal(item.cookiePresent, false);
+      assert.equal(item.apiKeyPresent, authenticated); assert.equal(item.authorizationPresent, false); assert.equal(item.cookiePresent, false);
     }
     const directory = fileURLToPath(new URL("../artifacts/", import.meta.url)); mkdirSync(directory, { recursive: true });
-    writeFileSync(join(directory, `inspector.ingest-publish-${supported ? "supported" : "unsupported"}.installed-client-control.json`), JSON.stringify({
+    writeFileSync(join(directory, `inspector.ingest-publish-${authenticated ? "authenticated" : "anonymous"}-${supported ? "supported" : "unsupported"}.installed-client-control.json`), JSON.stringify({
       schema: "honua.mcp-installed-client-control/v1", controlPeer: "explicit-offline-setup-control", candidateQualified: false,
-      sourceSha: source.sourceSha, initializations, invocations, discovery, clients,
+      sourceSha: source.sourceSha, authenticated, initializations, invocations, discovery, clients,
     }, null, 2) + "\n");
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
 });

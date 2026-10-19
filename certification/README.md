@@ -209,10 +209,11 @@ The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
 
 The map-package journey consumes the same authenticated `npm run prepare:render`
-path, extended to seventeen files from one protected immutable release revision
+path, extended to twenty files from one protected immutable release revision
 (the eight render/setup dependencies plus map-package Python/JavaScript, the
 transparent wire observer, fixed launcher/SDK runner, package-file manifest and
-three ingest/publication execution/state/oracle files). Hashes bind the complete set before import/setup
+three ingest/publication execution/state/oracle files and three canonical-style
+execution/state/oracle files). Hashes bind the complete set before import/setup
 and each call; no copied or mutable oracle fallback exists. The execution and
 judgment remain release-owned. The fixed launcher creates actual SDK and public
 Inspector processes and new sessions at the owned observer for every call/read.
@@ -267,3 +268,19 @@ approval-pending outcomes remain nonpass and async publication stays open under
 release699. This adds no large-cloud-import or hidden-side-effect-exclusion claim.
 The protected per-operation auth/cohort policy remains an explicit unmet global
 prerequisite; all82 rows and previous behavior requirements remain mandatory.
+
+Canonical style consumption is tracked in #114 and release705. The thin consumer
+invokes release-owned authenticated `get_style` / `apply_style_preset` scenarios,
+original installed-client wire evidence, independent committed-state census,
+authored PNG color/geometry and exact owned-container restart. All executable
+setup/scenario/oracle/state code belongs to honua-release. The unchanged82-row
+catalog still requires per-operation auth/cohort/global/current-candidate proof;
+protected styles cannot satisfy the frozen anonymous-public-v1 policy. Offline
+controls and historical source paths never qualify that boundary.
+
+The owned workflow provisions append-only Redis with an isolated persistent volume,
+`everysec` fsync and `noeviction`, and verifies CONFIG/INFO before startup. It uses
+the documented 2026.1 `Licensing__Mode=Disabled` deployment setting and a private
+operator certificate for the encrypted durable key ring. Startup requires an
+attested durable store; observed license mode and durable-job/proposal availability
+are checked before the journey. No product licensing policy or guardrail is changed.

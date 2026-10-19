@@ -151,7 +151,7 @@ jobs:
         working-directory: certification
         run: npm run prepare:plan
 
-      - name: Fetch immutable protected complete render map-package and ingest source
+      - name: Fetch immutable protected complete render package ingest and style source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: certification
@@ -250,6 +250,34 @@ jobs:
           psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -c "ALTER ROLE honua PASSWORD '${db_password}'"
           echo "HONUA_CERT_DB_PASSWORD=${db_password}" >> "${GITHUB_ENV}"
 
+      - name: Provision and verify durable Redis prerequisite
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="redis:7.2-alpine@sha256:29e8589c3f9ba699b5f7aa4b3c7733c58852a3626439e619aa0ee78de08c6ca0"
+          docker volume create honua-mcp-redis-data
+          docker run -d --name honua-mcp-redis --network host \
+            --mount source=honua-mcp-redis-data,target=/data "${image}" \
+            redis-server --bind 127.0.0.1 --protected-mode yes --appendonly yes --appendfsync everysec --maxmemory-policy noeviction
+          for attempt in $(seq 1 30); do
+            [[ "$(docker exec honua-mcp-redis redis-cli --raw PING 2>/dev/null || true)" == PONG ]] && break
+            sleep 1
+          done
+          [[ "$(docker exec honua-mcp-redis redis-cli --raw PING)" == PONG ]]
+          appendonly="$(docker exec honua-mcp-redis redis-cli --raw CONFIG GET appendonly | tail -n 1)"
+          appendfsync="$(docker exec honua-mcp-redis redis-cli --raw CONFIG GET appendfsync | tail -n 1)"
+          eviction="$(docker exec honua-mcp-redis redis-cli --raw CONFIG GET maxmemory-policy | tail -n 1)"
+          persistence="$(docker exec honua-mcp-redis redis-cli --raw INFO persistence | tr -d '\r')"
+          [[ "${appendonly}" == yes && "${appendfsync}" == everysec && "${eviction}" == noeviction ]]
+          [[ $'\n'"${persistence}"$'\n' == *$'\naof_enabled:1\n'* && $'\n'"${persistence}"$'\n' == *$'\naof_last_write_status:ok\n'* ]]
+          mkdir -p certification/artifacts
+          jq -n --arg image "${image}" --arg container "$(docker inspect -f '{{.Id}}' honua-mcp-redis)" \
+            --arg imageId "$(docker inspect -f '{{.Image}}' honua-mcp-redis)" \
+            --arg appendonly "${appendonly}" --arg appendfsync "${appendfsync}" --arg evictionPolicy "${eviction}" \
+            --arg persistence "${persistence}" --arg observedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{schema:"honua.mcp-redis-prerequisite/v1",image:$image,container:$container,imageId:$imageId,appendonly:$appendonly,appendfsync:$appendfsync,evictionPolicy:$evictionPolicy,persistence:$persistence,observedAt:$observedAt,candidateQualified:false}' \
+            > certification/artifacts/redis-durability.json
+
       - name: Start exact Honua server image
         env:
           SERVER_IMAGE: ${{ steps.identity.outputs.image }}
@@ -258,9 +286,23 @@ jobs:
           set -euo pipefail
           key="$(head -c 32 /dev/urandom | base64)"
           salt="$(head -c 16 /dev/urandom | base64)"
+          # Production durable operations encrypt their Redis-backed key ring with
+          # a separately mounted operator certificate. Keep its private material
+          # outside the workspace and every uploaded receipt.
+          keyring_dir="${RUNNER_TEMP}/mcp-operation-keyring"
+          mkdir -m 700 "${keyring_dir}"
+          export HONUA_CERT_KEYRING_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::${HONUA_CERT_KEYRING_PASSWORD}"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=mcp-canonical-keyring" \
+            -keyout "${keyring_dir}/private.key" -out "${keyring_dir}/certificate.crt" 2>/dev/null
+          openssl pkcs12 -export -out "${keyring_dir}/operation-keyring.pfx" \
+            -inkey "${keyring_dir}/private.key" -in "${keyring_dir}/certificate.crt" -passout env:HONUA_CERT_KEYRING_PASSWORD
+          rm "${keyring_dir}/private.key" "${keyring_dir}/certificate.crt"
+          chmod 444 "${keyring_dir}/operation-keyring.pfx"
+          chmod 755 "${keyring_dir}"
           # Boot against the extension-only database so the server's own migrations own the
           # schema; the seed is applied afterwards (as honua-server's setup-honua-server does).
-          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
+          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e Licensing__Mode=Disabled             -e Operations__SecretChannel__KeyRingCertificatePath=/keyring/operation-keyring.pfx             -e Operations__SecretChannel__KeyRingCertificatePassword="${HONUA_CERT_KEYRING_PASSWORD}"             --mount "type=bind,source=${keyring_dir},target=/keyring,readonly"             -e ConnectionStrings__Redis="localhost:6379"             -e Jobs__RequireDurableStore=true             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             "${SERVER_IMAGE}"
           for i in $(seq 1 60); do
             [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
             if [[ "$(docker inspect -f '{{.State.Running}}' honua-server 2>/dev/null || true)" != true ]]; then
@@ -271,6 +313,25 @@ jobs:
           done
           docker logs honua-server || true
           exit 1
+
+      - name: Verify observed deployment mode and durable job substrate
+        env:
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p certification/artifacts
+          curl --fail --silent --show-error --max-time 20 --header "X-API-Key: ${HONUA_MCP_API_KEY}" \
+            http://localhost:8080/api/v1/admin/license/status > "${RUNNER_TEMP}/mcp-license-status.json"
+          curl --fail --silent --show-error --max-time 20 --header "X-API-Key: ${HONUA_MCP_API_KEY}" \
+            http://localhost:8080/api/v1/capabilities/manifest > "${RUNNER_TEMP}/mcp-capability-manifest.json"
+          jq -e '.data.mode == "disabled" and .data.isValid == true' "${RUNNER_TEMP}/mcp-license-status.json"
+          jq -e '.limits.job.durableJobRuntimeAvailable == true and ([.capabilities[] | select(.id == "operations.proposals" and .available == true)] | length) == 1' \
+            "${RUNNER_TEMP}/mcp-capability-manifest.json"
+          jq -n --slurpfile license "${RUNNER_TEMP}/mcp-license-status.json" \
+            --slurpfile capabilities "${RUNNER_TEMP}/mcp-capability-manifest.json" \
+            '{schema:"honua.mcp-deployment-prerequisite/v1",mode:$license[0].data.mode,isValid:$license[0].data.isValid,durableJobRuntimeAvailable:$capabilities[0].limits.job.durableJobRuntimeAvailable,proposalCapabilities:[$capabilities[0].capabilities[] | select(.id == "operations.proposals")],candidateQualified:false}' \
+            > certification/artifacts/deployment-prerequisites.json
 
       - name: Apply exact seed after migrations
         shell: bash
@@ -353,6 +414,19 @@ jobs:
           HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
         run: node run-ingest-publish.mjs
 
+      - name: Run canonical style application and persisted rendered readback
+        id: canonical-style
+        if: always() && steps.render-bootstrap.outcome == 'success' && steps.sdk.outcome != 'skipped' && steps.inspector.outcome != 'skipped'
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+        run: node run-canonical-styles.mjs
+
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
@@ -395,8 +469,12 @@ jobs:
             certification/artifacts/*.render-validation.raw.json
             certification/artifacts/*.map-package.raw.json
             certification/artifacts/*.ingest-publish.raw.json
+            certification/artifacts/*.canonical-style.raw.json
+            certification/artifacts/*.canonical-style.raw.json.setup.json
             certification/artifacts/*.installed-client-control.json
             certification/artifacts/render-bootstrap.json
+            certification/artifacts/redis-durability.json
+            certification/artifacts/deployment-prerequisites.json
             certification/.plan-validation/source-binding.json
             certification/.render-validation/source-binding.json
             certification/render-validation-pins.json
@@ -414,7 +492,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

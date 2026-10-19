@@ -432,3 +432,22 @@ test("render receipts require rejudged raw geometry/media, exact bootstrap/candi
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+
+test("protected canonical style claims cannot bypass pinned policy or rejudging", () => {
+  const checks = passing("sdk");
+  for (const operation of ["tools/call:get_style", "tools/call:apply_style_preset"]) {
+    checks[operation] = { result: "pass", value: { positive: true, negative: true, coloredRender: true } };
+  }
+  const fragment = buildFragment({ identity, results: {
+    sdk: { protocolVersion: "2025-06-18", checks },
+    inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+  } });
+  for (const operation of ["tools/call:get_style", "tools/call:apply_style_preset"]) {
+    const row = fragment.observations.find(item => item.operation === operation && item.canonical_client === CLIENTS.sdk.canonicalClient);
+    assert.equal(row.result, "skip");
+    assert.equal(row.evidence_receipt, null);
+    assert.match(row.skip_reason, /authenticated style journey conflicts/);
+  }
+  assert.equal(fragment.observations.length, 82);
+});

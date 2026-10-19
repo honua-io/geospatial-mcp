@@ -1,6 +1,6 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "1cbc675337badd498cb1e9ebf08d9752e7722c3a",
+  "sourceSha": "1365795bc29d8cd53a0317e7aedc986eaf94711c",
   "sha256": {
     "certification/installed-clients/mcp_render_bootstrap.py": "edfe304fa96a28745767d178b36421f703a5f0b403eaf0c1ff819445587b5d21",
     "certification/installed-clients/regression.py": "397d5e1c927636f524469ea32de984b98d82c0c2a47c90ec8b1a80ecd481b442",
@@ -13,11 +13,14 @@
     "certification/installed-clients/mcp_map_package_validation.py": "00487a99661d12ef1cb24197f2e5df6510f883c5db3edca03367d44aaeedd947",
     "certification/installed-clients/mcp_map_package_validation.mjs": "db16bc6186f5927d62c599dd57265e66a592e2ef7574a6c8685471831ae920d5",
     "certification/installed-clients/mcp_candidate_wire.mjs": "7ea5804758ef114360c4c4b6dd95b22e290c7238dd75343f064a33c4d4668a23",
-    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "c4e157231d27df51ad163dd8d74e67a7f8da8cb487edf4437e13cfed6e76d699",
+    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "52ae15b05cf5c409a8c3fa89085ede1eb1fb4e074e1622bc9113a1417fbedad0",
     "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
     "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
-    "certification/installed-clients/mcp_ingest_publish_validation.py": "990d8cf2da41e6e9434c8e763ca1a8a91a32eda812e7dae027c83f4b731cf3b2",
-    "certification/installed-clients/mcp_ingest_publish_state.py": "bd71f4c5e54cdabcab89eabfa5dbc6830be2c1cca7a260c1b6380ba73b4d14c6",
-    "certification/installed-clients/mcp_ingest_publish_validation.mjs": "f3df69d77fc4e7e1bf4b028b803d5f72f3160f7225a18bc83a756d81ded0a678"
+    "certification/installed-clients/mcp_ingest_publish_validation.py": "f7aae216e139b9ffeefc5beaea7cf828a3cd3778fc2b1cc038090f8fa12bae33",
+    "certification/installed-clients/mcp_ingest_publish_state.py": "667116c7c22c56bb1749814b0f467caaa5aead7cb2d3c27b21b193057ae1005e",
+    "certification/installed-clients/mcp_ingest_publish_validation.mjs": "f3df69d77fc4e7e1bf4b028b803d5f72f3160f7225a18bc83a756d81ded0a678",
+    "certification/installed-clients/mcp_style_validation.py": "6490df6e39b2eb39db6ed8f7a002c87ffba4a49537c597f4406a0a5b6c128211",
+    "certification/installed-clients/mcp_style_state.py": "8f4a8fa121542f1f3e06c4527b2dd8c005064bb0440eeccb8759aa0fed766ad4",
+    "certification/installed-clients/mcp_style_validation.mjs": "4631c08335253bb7d3015c0903d8b8160ce2e52bf894dee148ed7d1a12bbe3fd"
   }
 }

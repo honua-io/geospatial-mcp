@@ -209,11 +209,11 @@ The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
 
 The map-package journey consumes the same authenticated `npm run prepare:render`
-path, extended to twenty files from one protected immutable release revision
+path, extended to twenty-three files from one protected immutable release revision
 (the eight render/setup dependencies plus map-package Python/JavaScript, the
 transparent wire observer, fixed launcher/SDK runner, package-file manifest and
 three ingest/publication execution/state/oracle files and three canonical-style
-execution/state/oracle files). Hashes bind the complete set before import/setup
+execution/state/oracle files plus three canonical plan-execution files). Hashes bind the complete set before import/setup
 and each call; no copied or mutable oracle fallback exists. The execution and
 judgment remain release-owned. The fixed launcher creates actual SDK and public
 Inspector processes and new sessions at the owned observer for every call/read.
@@ -284,3 +284,14 @@ the documented 2026.1 `Licensing__Mode=Disabled` deployment setting and a privat
 operator certificate for the encrypted durable key ring. Startup requires an
 attested durable store; observed license mode and durable-job/proposal availability
 are checked before the journey. No product licensing policy or guardrail is changed.
+
+The `execute_plan` consumer invokes the protected release-owned authored buffer
+journey through the actual SDK and public Inspector. It retains invalid and fresh
+anonymous invocation refusals, independently censuses durable job/results, replays
+the original idempotency key and reads exact returned resources after a real owned
+server restart. Geometry, mutation, persistence and restart mechanics remain in
+honua-release; this repository only wires verified invocation, results and proof
+rejudging. Full partial raw wire and original client diagnostics are uploaded on
+failure. No fixture planner, cancellation or worker-cessation credit is implied.
+All 82 rows and current auth/cohort/global prerequisites remain required; a failed
+historical-image diagnostic never qualifies the intended release candidate.

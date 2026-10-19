@@ -427,6 +427,19 @@ jobs:
           HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
         run: node run-canonical-styles.mjs
 
+      - name: Run canonical plan execution replay and durable result readback
+        id: execute-plan
+        if: always() && steps.render-bootstrap.outcome == 'success' && steps.sdk.outcome != 'skipped' && steps.inspector.outcome != 'skipped'
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+        run: node run-execute-plans.mjs
+
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
@@ -470,6 +483,7 @@ jobs:
             certification/artifacts/*.map-package.raw.json
             certification/artifacts/*.ingest-publish.raw.json
             certification/artifacts/*.canonical-style.raw.json
+            certification/artifacts/*.canonical-execute-plan.raw.json
             certification/artifacts/*.canonical-style.raw.json.setup.json
             certification/artifacts/*.installed-client-control.json
             certification/artifacts/render-bootstrap.json
@@ -492,7 +506,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

@@ -16,7 +16,7 @@ const hash = value => `sha256:${createHash("sha256").update(value).digest("hex")
 
 for (const authenticated of [false, true]) for (const supported of [true, false]) test(`actual ${authenticated ? "authenticated full" : "anonymous setup"} Inspector discovery ${supported ? "advertises and invokes" : "unsupported view remains refusal"}`, async () => {
   const credential = "controlled-ingest-private-key", sessions = new Set(), initializations = [], invocations = [], discovery = [];
-  const names = ["honua_ingest_dataset", "honua_publish_service", "honua_get_style", "honua_apply_style_preset"];
+  const names = ["honua_ingest_dataset", "honua_publish_service", "honua_get_style", "honua_apply_style_preset", "honua_execute_plan"];
   const authority = request => ({ apiKeyPresent: request.headers["x-api-key"] !== undefined,
     authorizationPresent: request.headers.authorization !== undefined, cookiePresent: request.headers.cookie !== undefined });
   const server = createServer(async (request, response) => {

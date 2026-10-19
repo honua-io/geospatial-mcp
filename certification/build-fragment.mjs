@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyExecutePlanProof } from "./execute-plan-validation.mjs";
 import { verifyStyleProof } from "./style-validation.mjs";
 import { verifyIngestPublishProof } from "./ingest-publish-validation.mjs";
 import { verifyMapPackageProof } from "./map-package-validation.mjs";
@@ -97,7 +98,13 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       // These protected operations cannot satisfy the frozen anonymous-public-v1
       // policy/cohort. Release695 adoption remains explicit and unqualified.
       const stylePolicyPassed = !styleSemantic;
-      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const executeSemantic = operation === "tools/call:execute_plan";
+      const executePassed = !executeSemantic || verifyExecutePlanProof(proof, identity.sourceSha, identity.imageDigest,
+        operation, client.canonicalClient, client.version);
+      // Actual authenticated execution cannot satisfy the frozen public policy;
+      // source implementation is separate from release695 cohort/auth adoption.
+      const executePolicyPassed = !executeSemantic;
+      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
@@ -110,7 +117,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && ingestPublishPassed && ingestPublishPolicyPassed && stylePassed && stylePolicyPassed && entityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && ingestPublishPassed && ingestPublishPolicyPassed && stylePassed && stylePolicyPassed && executePassed && executePolicyPassed && entityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -159,8 +166,9 @@ export function buildFragment({ identity, results, requirements, executedTier, n
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
             : mapPackageSemantic ? `authenticated package journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
             : ingestPublishSemantic ? `authenticated ingest/publication journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
+            : executeSemantic ? `authenticated execution journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
             : styleSemantic ? `authenticated style journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

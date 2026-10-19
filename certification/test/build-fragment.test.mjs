@@ -451,3 +451,21 @@ test("protected canonical style claims cannot bypass pinned policy or rejudging"
   }
   assert.equal(fragment.observations.length, 82);
 });
+
+test("protected canonical execution claims cannot bypass pinned policy or rejudging", () => {
+  const checks = passing("sdk");
+  for (const operation of ["tools/call:execute_plan"]) {
+    checks[operation] = { result: "pass", value: { positive: true, negative: true, idempotentReplay: true, geometricResult: true } };
+  }
+  const fragment = buildFragment({ identity, results: {
+    sdk: { protocolVersion: "2025-06-18", checks },
+    inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+  } });
+  for (const operation of ["tools/call:execute_plan"]) {
+    const row = fragment.observations.find(item => item.operation === operation && item.canonical_client === CLIENTS.sdk.canonicalClient);
+    assert.equal(row.result, "skip");
+    assert.equal(row.evidence_receipt, null);
+    assert.match(row.skip_reason, /authenticated execution journey conflicts/);
+  }
+  assert.equal(fragment.observations.length, 82);
+});

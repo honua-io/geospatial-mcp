@@ -385,6 +385,10 @@ jobs:
             certification/.plan-validation/source-binding.json
             certification/.render-validation/source-binding.json
             certification/render-validation-pins.json
+            certification/.render-validation/mcp_fixed_client_manifest.v1.json
+            certification/package.json
+            certification/package-lock.json
+            artifacts/mcp/builder-input.json
             .certification/protocol-certification-requirements.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql

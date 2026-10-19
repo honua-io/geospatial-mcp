@@ -8,3 +8,5 @@ node_modules/
 # Authenticated shared release scenario fetched at an immutable reviewed revision.
 certification/.plan-validation/
 certification/.render-validation/
+certification/.location-validation/
+certification/test/fixtures/offline-location-oracle-vector.json

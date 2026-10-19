@@ -5,6 +5,7 @@ import { verifyIngestPublishProof } from "./ingest-publish-validation.mjs";
 import { verifyStyleProof } from "./style-validation.mjs";
 import { verifyExecutePlanProof } from "./execute-plan-validation.mjs";
 import { verifyPublishResultProof } from "./publish-result-validation.mjs";
+import { verifyLocationProof } from "./location-validation.mjs";
 
 const publicObservations = ["anonymous-success", "fresh-anonymous-session", "no-credentials"];
 const protectedObservations = ["authenticated-success", "fresh-anonymous-refusal", "no-credential-forwarding", "no-authenticated-session-reuse", "caller-session-binding"];
@@ -38,7 +39,8 @@ export function verifyProtectedAuthority(proof, identity, operation, client) {
     : ["tools/call:ingest_dataset", "tools/call:publish_service", "resources/read:Published service"].includes(operation) ? verifyIngestPublishProof
     : ["tools/call:get_style", "tools/call:apply_style_preset"].includes(operation) ? verifyStyleProof
     : operation === "tools/call:execute_plan" ? verifyExecutePlanProof
-    : operation === "tools/call:publish_result" ? verifyPublishResultProof : null;
+    : operation === "tools/call:publish_result" ? verifyPublishResultProof
+    : ["tools/call:geocode_address", "tools/call:geocode_addresses", "tools/call:solve_route"].includes(operation) ? verifyLocationProof : null;
   // These complete independent oracles verify raw request/response hashes,
   // canonical installed-client launch/result, typed anonymous refusal, credential
   // fingerprints on initialization AND invocation, and fresh distinct sessions.

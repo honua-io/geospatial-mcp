@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { executePlanScenarios } from "./execute-plan-validation.mjs";
+import { locationScenarios } from "./location-validation.mjs";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 const selections = [["sdk", "Official MCP TypeScript SDK", "@modelcontextprotocol/sdk"], ["inspector", "MCP Inspector", "@modelcontextprotocol/inspector"]];
@@ -28,5 +29,6 @@ for (const [key, canonicalClient, name] of selections) {
     await writeFile(results, JSON.stringify(lane, null, 2) + "\n");
   };
   await executePlanScenarios(record, canonicalClient, metadata.version, results);
+  await locationScenarios(record, canonicalClient, metadata.version, results);
 }
 if (failed) process.exitCode = 1;

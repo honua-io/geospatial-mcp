@@ -381,6 +381,7 @@ jobs:
             certification/artifacts/*.plan-validation.raw.json
             certification/artifacts/*.render-validation.raw.json
             certification/artifacts/*.map-package.raw.json
+            certification/artifacts/*.installed-client-control.json
             certification/artifacts/render-bootstrap.json
             certification/.plan-validation/source-binding.json
             certification/.render-validation/source-binding.json

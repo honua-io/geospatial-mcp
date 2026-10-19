@@ -3,7 +3,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { join } from "node:path";
 import { verifiedFixtureSource } from "../render-validation.mjs";
@@ -91,6 +92,14 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
         assert.equal(invocations[index].authorization, undefined); assert.equal(invocations[index].cookie, undefined);
       }
       const outcomes = [created, anonymousTool, unknown, anonymous];
+      const publicSession = ({ session, ...rest }) => ({ ...rest,
+        sessionSha256: `sha256:${createHash("sha256").update(session).digest("hex")}` });
+      const receipt = { qualification: "Explicit offline installed-client control; no candidate or operation-semantic qualification",
+        runner, outcomes, initializations: initializations.map(publicSession), invocations: invocations.map(publicSession) };
+      assert.equal(JSON.stringify(receipt).includes(credential), false);
+      const artifacts = fileURLToPath(new URL("../artifacts/", import.meta.url));
+      mkdirSync(artifacts, { recursive: true });
+      writeFileSync(join(artifacts, `${runner}.installed-client-control.json`), JSON.stringify(receipt, null, 2) + "\n");
       for (const value of outcomes) {
         assert.equal(value.canonicalClient, CLIENTS[runner].canonicalClient);
         assert.equal(value.version, CLIENTS[runner].version);
@@ -109,9 +118,9 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
         assert.equal(new Set(outcomes.map((item) => item.sessionSha256)).size, 4);
       } else {
         assert.equal(created.exitCode, 0);
-        assert.equal(unknown.exitCode, 2);
-        assert.ok([2, 3].includes(anonymous.exitCode));
-        assert.ok([2, 3].includes(anonymousTool.exitCode));
+        assert.equal(unknown.exitCode, 1, unknown.stderr);
+        assert.ok([1, 3].includes(anonymous.exitCode));
+        assert.ok([1, 3].includes(anonymousTool.exitCode));
         assert.equal(anonymousTool.stdout, "");
         assert.match(anonymousTool.stderr, /Controlled creation requires authentication/);
         assert.equal(unknown.stdout, "");

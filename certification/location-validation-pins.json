@@ -1,0 +1,16 @@
+{
+  "repository": "honua-io/honua-release",
+  "sourceSha": "48a19bbf5e9cfb234ea29730e268e82f247036d2",
+  "sha256": {
+    "certification/installed-clients/mcp_location_validation.mjs": "9e12827a9902aa3d413425264a68d78e8a1dfdd15ab96d57828e102787485e1c",
+    "certification/installed-clients/mcp_location_validation.py": "5844937168df7e7a8dbc56170a0b12a82889c5db6a0111e5e7dfb68224af8432",
+    "certification/installed-clients/mcp_map_package_validation.py": "e83005ad0f2ccd571c2ed3db969cd77cb1132c69a87230e0656f96522ae672c0",
+    "certification/installed-clients/mcp_render_validation.py": "7d1ffb3a4df0bb91e0f96c17a833d56dc413ba35408a3ff6659b685ad7802d33",
+    "certification/installed-clients/render_png.py": "d22bcca5698280cd11c5cdf29be57b8a21cd24e6ebbb706e71d4326d63d7b269",
+    "certification/installed-clients/fixture.v1.json": "82f7ffb305f25bd5c08a409236f72f52cc7fbfef7eeae57724fafa84a37e76e7",
+    "certification/installed-clients/mcp_candidate_wire.mjs": "7ea5804758ef114360c4c4b6dd95b22e290c7238dd75343f064a33c4d4668a23",
+    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
+    "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
+    "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e"
+  }
+}

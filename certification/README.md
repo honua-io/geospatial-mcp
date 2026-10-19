@@ -7,8 +7,23 @@ the protected honua-release repository), then run from this directory:
 npm ci --ignore-scripts
 npm run prepare:plan
 npm run prepare:render
+npm run prepare:location
+python3 generate-offline-location-vector.py
 npm test
 ```
+
+`prepare:location` independently authenticates the complete ten-file location
+bundle from protected release source. It preserves the historical render and
+execute-plan bundle identities. The release-owned geocode, batch-geocode and
+pgRouting scenarios run through both installed clients after each client's
+execute-plan journey; every operation is attempted and retained separately.
+The receipt builder rejudges coordinates, CRS, country restrictions, ordered
+partial batch results, routing edges/cost/directions, actual wire/client/runtime
+identity and anonymous refusal. Global behavior, authorization and tier gates
+still apply to every row. Missing actual local-provider/network setup remains
+non-pass; provisioning is tracked by server #6405/#6407 and country semantics
+by server #6409. The vector generator authenticates protected source and creates
+explicitly synthetic offline controls only. It never supplies candidate proof.
 
 `prepare:plan` fetches the exact protected-history release module, Python oracle
 and authored fixture declared in `plan-validation-pins.json`, and verifies all

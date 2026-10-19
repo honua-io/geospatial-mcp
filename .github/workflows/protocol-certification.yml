@@ -155,7 +155,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: certification
-        run: npm run prepare:render
+        run: |
+          npm run prepare:render
+          npm run prepare:location
 
       - name: Fetch immutable protected separate app workflow and oracle bundle
         env:
@@ -503,6 +505,7 @@ jobs:
             certification/artifacts/*.ingest-publish.raw.json
             certification/artifacts/*.canonical-style.raw.json
             certification/artifacts/*.canonical-execute-plan.raw.json
+            certification/artifacts/*.location-*.raw.json
             certification/artifacts/*.app-package.raw.json
             certification/artifacts/*.canonical-publish-result.raw.json
             certification/artifacts/*.canonical-publish-result.setup.json
@@ -516,6 +519,8 @@ jobs:
             certification/.app-validation/source-binding.json
             certification/app-validation-pins.json
             certification/render-validation-pins.json
+            certification/.location-validation/source-binding.json
+            certification/location-validation-pins.json
             certification/.render-validation/mcp_fixed_client_manifest.v1.json
             certification/package.json
             certification/package-lock.json

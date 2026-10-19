@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { appPackageScenarios } from "./app-package-validation.mjs";
 import { executePlanScenarios } from "./execute-plan-validation.mjs";
+import { locationScenarios } from "./location-validation.mjs";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 const selections = [["sdk", "Official MCP TypeScript SDK", "@modelcontextprotocol/sdk"], ["inspector", "MCP Inspector", "@modelcontextprotocol/inspector"]];
@@ -34,5 +35,6 @@ for (const [key, canonicalClient, name] of selections) {
   const executed = lane.checks["tools/call:execute_plan"];
   await appPackageScenarios(record, canonicalClient, metadata.version,
     executed?.result === "pass" ? executed.value?.observations : undefined, results);
+  await locationScenarios(record, canonicalClient, metadata.version, results);
 }
 if (failed) process.exitCode = 1;

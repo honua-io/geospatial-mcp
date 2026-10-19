@@ -1,4 +1,5 @@
 import { planScenarios } from "./plan-validation.mjs";
+import { renderScenarios } from "./render-validation.mjs";
 import { requireInspectorSemanticResult } from "./inspector-semantic-exit.mjs";
 import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
@@ -76,6 +77,17 @@ await planScenarios(async (name, arguments_) => {
     "tools/call", ["--tool-name", name, "--tool-arg", `plan=${JSON.stringify(arguments_.plan)}`]);
   const check = checks[`diagnostic/plan-${arguments_.plan.steps[0].inputs.wkb === "not-base64" ? "invalid" : "valid"}`];
   return requireInspectorSemanticResult(check, output);
+}, async (name, run) => {
+  const startedAt = new Date().toISOString();
+  try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
+  catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
+});
+let renderCall = 0;
+await renderScenarios(async (name, arguments_) => {
+  const diagnostic = `diagnostic/render-${renderCall++}`;
+  const output = await invoke(diagnostic, "tools/call", ["--tool-name", name, "--tool-arg",
+    ...Object.entries(arguments_).map(([key, value]) => `${key}=${JSON.stringify(value)}`)], [0, 5]);
+  return requireInspectorSemanticResult(checks[diagnostic], output);
 }, async (name, run) => {
   const startedAt = new Date().toISOString();
   try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }

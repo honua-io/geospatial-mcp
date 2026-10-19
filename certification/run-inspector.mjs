@@ -1,3 +1,4 @@
+import { requireInspectorSemanticResult } from "./inspector-semantic-exit.mjs";
 import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { loadFixture, readScenarios, verifyQuery } from "./semantic-reads.mjs";
@@ -61,7 +62,9 @@ await invoke("resources/templates/list", "resources/templates/list");
 await readScenarios(async (name, arguments_) => {
   const extra = ["--tool-name", name];
   if (Object.keys(arguments_).length) extra.push("--tool-arg", ...Object.entries(arguments_).map(([key, value]) => `${key}=${JSON.stringify(value)}`));
-  return invoke(`diagnostic/${name}`, "tools/call", extra, [0, 5]);
+  const output = await invoke(`diagnostic/${name}`, "tools/call", extra, [0, 5]);
+  const check = checks[`diagnostic/${name}`];
+  return requireInspectorSemanticResult(check, output);
 }, async (name, run) => {
   const startedAt = new Date().toISOString();
   try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }

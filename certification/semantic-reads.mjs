@@ -1,3 +1,4 @@
+import { entityScenario } from "./entity-resolution.mjs";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { toolOutput } from "./probes.mjs";
@@ -93,6 +94,11 @@ export async function readScenarios(call, record) {
     verifyLayers(output, bound);
     await negative(call, "honua_list_layers", { limit: 0 }, "invalid_argument");
     return prove(bound);
+  });
+  await record("tools/call:resolve_entity", async () => {
+    const bound = await fixture;
+    const entityResolution = await entityScenario(call, bound);
+    return { ...prove(bound), entityResolution };
   });
   await record("tools/call:query_features", async () => {
     const bound = await fixture;

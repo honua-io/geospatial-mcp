@@ -25,7 +25,7 @@ async function execute(mode, runner = "sdk") {
     for await (const chunk of request) chunks.push(chunk);
     const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     calls.push({ method: body.method, name: body.params?.name, authenticated: request.headers["x-api-key"] === "control-key",
-      view: body.params?._meta?.["honua.io/workflow-view"], cursor: body.params?.cursor });
+      view: body.params?._meta?.["honua.io/workflow-view"], cursor: body.params?.cursor, arguments: body.params?.arguments });
     const server = new Server({ name: "deliberately-controlled-test-server", version: "1.0.0" }, {
       capabilities: { tools: {}, resources: {} },
     });
@@ -33,7 +33,7 @@ async function execute(mode, runner = "sdk") {
       const tools = manifest.tools.map((tool) => ({ name: tool.advertisedName, inputSchema: { type: "object" } }));
       if (value.params?._meta?.["honua.io/workflow-view"] !== "full") {
         if (value.params?.cursor) throw new McpError(ErrorCode.InvalidParams, "Full catalog cursor requires the full view");
-        return { tools: tools.filter(({ name }) => ["honua_list_capabilities", "honua_list_layers", "honua_query_features"].includes(name)) };
+        return { tools: tools.filter(({ name }) => ["honua_list_capabilities", "honua_list_layers", "honua_query_features", "honua_resolve_entity"].includes(name)) };
       }
       if (request.headers["x-api-key"] !== "control-key") {
         throw new McpError(ErrorCode.InvalidRequest, "Full catalog requires authentication");
@@ -70,6 +70,19 @@ async function execute(mode, runner = "sdk") {
           { id: 22, type: "Feature", properties: { name: "beta", count: 2 }, geometry: { type: "Point", coordinates: [-122.475, 37.72] } },
         ] } });
       }
+      if (value.params.name === "honua_resolve_entity") {
+        const args = value.params.arguments;
+        if (args.limit === 0 && mode !== "entity-invalid-accepted") return {
+          isError: true, structuredContent: { status: "error", code: "invalid_argument", message: "limit must be positive" }, content: [] };
+        const absent = args.text.startsWith("__certification_entity_");
+        const output = { query: args.text, entityType: "service", matchCount: absent && mode !== "entity-invented" ? 0 : 1,
+          matches: absent && mode !== "entity-invented" ? [] : [{ kind: "service", serviceId: mode === "entity-wrong" ? "other" : "svc-test-service-feature",
+            serviceName: "test_service", name: "test_service", layerId: null, score: 1 }] };
+        const text = structuredClone(output);
+        if (mode === "entity-conflicting") text.matches = [];
+        if (mode === "entity-count") output.matchCount = 99;
+        return { structuredContent: output, content: [{ type: "text", text: JSON.stringify(text) }] };
+      }
       if (mode === "unknown-success") return { structuredContent: { accepted: true }, content: [] };
       throw new McpError(ErrorCode.InvalidParams, `Unknown MCP tool '${value.params.name}'.`, { code: "invalid_argument" });
     });
@@ -94,7 +107,8 @@ async function execute(mode, runner = "sdk") {
     const code = await new Promise((resolve) => child.on("close", resolve));
     clearTimeout(timeout);
     assert.equal(code, 1, errors); // Cancellation remains explicitly incomplete in every case.
-    return { result: JSON.parse(await readFile(destination, "utf8")), calls };
+    return { result: JSON.parse(await readFile(destination, "utf8")), calls,
+      rawEntity: JSON.parse(await readFile(`${destination}.entity-resolution.raw.json`, "utf8")) };
   } finally {
     await new Promise((resolve) => listener.close(resolve));
     await rm(directory, { recursive: true, force: true });
@@ -109,7 +123,7 @@ test("real official SDK runner does not certify successful unknown tools or anon
     assert.equal(result.checks["behavior/error"].result, expectedError);
     assert.equal(result.checks["behavior/auth"].result, expectedAuth);
     assert.equal(result.checks["behavior/cancellation"].result, "skip");
-    for (const name of ["list_capabilities", "list_layers", "query_features"]) {
+    for (const name of ["list_capabilities", "list_layers", "query_features", "resolve_entity"]) {
       assert.equal(result.checks[`tools/call:${name}`].result, mode === "query-corrupt" && name === "query_features" ? "fail" : "pass");
     }
     assert.ok(calls.some((call) => call.name === "__certification_missing_tool__" && call.authenticated));
@@ -127,7 +141,7 @@ test("real Inspector anonymous tool invocation distinguishes denial from leaked 
     for (const name of ["ping", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]) assert.equal(result.checks[name].result, "skip");
     assert.ok(calls.some((call) => call.name === "honua_list_layers" && !call.authenticated));
     assert.equal(calls.some((call) => call.name === "__certification_missing_tool__"), false);
-    for (const name of ["list_capabilities", "list_layers", "query_features"]) assert.equal(result.checks[`tools/call:${name}`].result, "pass", JSON.stringify(result.checks[`tools/call:${name}`]));
+    for (const name of ["list_capabilities", "list_layers", "query_features", "resolve_entity"]) assert.equal(result.checks[`tools/call:${name}`].result, "pass", JSON.stringify(result.checks[`tools/call:${name}`]));
     assert.equal(JSON.stringify(result).includes("control-key"), false);
   }
 });
@@ -146,6 +160,27 @@ for (const runner of ["sdk", "inspector"]) {
       assert.ok(calls.some(({ name, authenticated }) => name === "honua_list_layers" && !authenticated),
         "anonymous control must reach the protected tool, not stop at full-catalog authorization");
       assert.equal(result.checks["behavior/auth"].result, "pass");
+    }
+  });
+}
+
+for (const runner of ["sdk", "inspector"]) {
+  test(`real ${runner} resolves the authored entity and detects wrong, invented and contradictory results`, async () => {
+    for (const mode of ["typed-refusal", "entity-wrong", "entity-invented", "entity-conflicting", "entity-count", "entity-invalid-accepted"]) {
+      const { result, calls, rawEntity } = await execute(mode, runner);
+      assert.equal(result.checks["tools/call:resolve_entity"].result, mode === "typed-refusal" ? "pass" : "fail",
+        JSON.stringify(result.checks["tools/call:resolve_entity"]));
+      const requests = calls.filter(({ name }) => name === "honua_resolve_entity");
+      assert.equal(requests.length, 4);
+      assert.equal(rawEntity.length, 4, "failed semantic responses must remain available");
+      assert.ok(requests.every(({ authenticated }) => authenticated));
+      assert.deepEqual(requests.map(({ arguments: args }) => args), [
+        { text: "svc-test-service-feature", entityType: "service", limit: 50 },
+        { text: "test_service", entityType: "service", limit: 50 },
+        { text: "__certification_entity_does_not_exist_7eacb821__", entityType: "service", limit: 50 },
+        { text: "test_service", entityType: "service", limit: 0 },
+      ]);
+      assert.equal(result.checks["behavior/cancellation"].result, "skip");
     }
   });
 }

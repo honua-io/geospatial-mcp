@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyEntityResolution } from "./entity-resolution.mjs";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
@@ -57,12 +58,16 @@ export function buildFragment({ identity, results, requirements, executedTier, n
     OPERATIONS.map(([capabilityKey, operation]) => {
       const context = contexts.get(`${client.canonicalClient}:${operation}`);
       const execution = results[clientKey]?.checks?.[operation];
-      const semantic = ["tools/call:list_capabilities", "tools/call:list_layers", "tools/call:query_features"].includes(operation);
+      const semantic = ["tools/call:list_capabilities", "tools/call:list_layers", "tools/call:query_features", "tools/call:resolve_entity"].includes(operation);
       const proof = execution?.value;
       const semanticPassed = !semantic || (proof?.schema === "honua.mcp-read-semantic-proof/v1"
         && proof.positive === true && proof.negative === true && proof.mediaSchema === true
         && proof.fixtureSourceSha === identity.sourceSha && /^sha256:[0-9a-f]{64}$/.test(proof.seedSqlSha256)
         && /^sha256:[0-9a-f]{64}$/.test(proof.allocatedIdsSha256));
+      let entityPassed = operation !== "tools/call:resolve_entity";
+      if (!entityPassed) {
+        try { entityPassed = verifyEntityResolution(proof?.entityResolution); } catch { entityPassed = false; }
+      }
       const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
@@ -76,7 +81,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && entityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];

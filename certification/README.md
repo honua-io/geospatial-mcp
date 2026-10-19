@@ -143,3 +143,11 @@ remaining Inspector initial-ping and unknown-tool addressability gaps. Browser
 cancellation controls establish the public path against an authored peer, not
 candidate qualification. A fresh image alone still cannot make the canonical
 lane green.
+
+Entity grounding calls `honua_resolve_entity` through each installed canonical
+client using the candidate-bound authored service name and ID. Exact identity,
+ranking, count and JSON representations must agree. A missing name must return
+no matches; an invalid limit must preserve the typed server refusal. All four
+raw request/response pairs are retained, including failed or partial attempts.
+The fragment builder rejudges those observations and still requires the same
+candidate, seed and global behavior evidence before admitting either row.

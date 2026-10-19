@@ -12,7 +12,8 @@ SPEC = importlib.util.spec_from_file_location("location_source", ROOT / "fetch-l
 SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 SUPPORT = ("mcp_location_validation_controls.py", "mcp_map_package_validation_controls.py",
-           "mcp_render_validation_controls.py", "mcp_render_bootstrap.py", "regression.py", "oracles.py")
+           "mcp_render_validation_controls.py", "mcp_render_bootstrap.py", "regression.py", "oracles.py",
+           "mcp_plan_validation.py")
 
 
 def main():
@@ -38,7 +39,9 @@ print(json.dumps({"proofs":proofs,"bootstrapBase64":base64.b64encode(raw).decode
  "bootstrapBytesSha256":hashlib.sha256(raw).hexdigest()}))
 '''
         result = subprocess.run([sys.executable, "-B", "-c", program], cwd=directory,
-                                check=True, capture_output=True, text=True, timeout=60)
+                                capture_output=True, text=True, timeout=60)
+        if result.returncode:
+            raise RuntimeError("protected offline location generator failed: " + result.stderr[-8000:])
         value = json.loads(result.stdout)
         proofs = {operation: {**item["judged"], "schema": "honua.mcp-location-proof/v1",
                   "helperSourceSha": pins["sourceSha"],

@@ -151,6 +151,12 @@ jobs:
         working-directory: certification
         run: npm run prepare:plan
 
+      - name: Fetch immutable protected complete render scenario and setup source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: certification
+        run: npm run prepare:render
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
@@ -280,6 +286,16 @@ jobs:
             -c "SELECT json_agg(row_to_json(f) ORDER BY f.name) FROM (SELECT objectid AS id, attributes->>'name' AS name FROM features WHERE layer_id=0 AND attributes->>'name' IN ('alpha','beta')) f" \
             > .certification/fixture-row-ids.json
 
+      - name: Provision authored render fixture through verified release-owned bootstrap
+        id: render-bootstrap
+        continue-on-error: true
+        env:
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+        run: node --input-type=module -e 'import { bootstrapRender } from "./certification/render-validation.mjs"; bootstrapRender();'
+
       - name: Exercise MCP through the real official SDK
         id: sdk
         continue-on-error: true
@@ -292,6 +308,7 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
           HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
           HONUA_MCP_OBSERVER_PGPORT: "5432"
@@ -313,6 +330,7 @@ jobs:
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
           HONUA_MCP_SEED_SOURCE_SHA: ${{ steps.identity.outputs.seed-ref }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           HONUA_MCP_CANCELLATION_OBSERVER: postgres-lock-v1
           HONUA_MCP_OBSERVER_PGHOST: 127.0.0.1
           HONUA_MCP_OBSERVER_PGPORT: "5432"

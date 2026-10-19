@@ -1,11 +1,12 @@
 # MCP certification producer
 
 From a clean checkout, authenticate `gh` (or set `GH_TOKEN` with read access to
-public release metadata), then run from this directory:
+the protected honua-release repository), then run from this directory:
 
 ```sh
 npm ci --ignore-scripts
 npm run prepare:plan
+npm run prepare:render
 npm test
 ```
 
@@ -17,6 +18,26 @@ unreviewed ancestry or altered bytes fail closed; no cached or mutable fallback
 is accepted. The Python fetch controls use controlled offline API fixtures and
 never execute their dummy bytes. The workflow separately exercises this real
 protected-source provisioning before the complete installed-client controls.
+
+`prepare:render` applies that same protected-history and byte verification to the
+complete eight-file render scenario, PNG oracle and fixture setup dependency set
+declared in `render-validation-pins.json`. Every dependency is checked again
+before setup or client execution. The release-owned setup independently reads
+the actual running container's image digest and OCI source revision, seeds and
+publishes the authored polygon on the owned disposable candidate, reads its
+PostGIS envelope/SRID/type, and binds the canonical service/publication IDs to
+the allocated storage layer, connection and table. The retained
+`artifacts/render-bootstrap.json` contains identities and safe failure phases,
+never setup credentials. Failed setup prevents render calls and remains nonpass.
+
+Both actual clients call the release-owned authored inline PNG render plus
+reversed-bbox and unknown-owned-layer cases. Raw full/partial tool envelopes are
+retained beside each result as `.render-validation.raw.json`. The producer
+rejudges the original observations with the same pinned oracle and bootstrap;
+matching image media, schema and authored-coordinate pixels are required.
+The default resource-link response and subsequent artifact fetch remain an
+explicit coverage gap. These controls add no governed rows or candidate credit
+when catalog, requirements or global behavior gates fail.
 
 Set `HONUA_RELEASE_CHECKER` to the unchanged `tools/check_protocol_certification.py`
 from the selected immutable honua-release revision to also run the real

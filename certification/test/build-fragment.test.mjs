@@ -368,3 +368,21 @@ test("entity receipts rejudge raw observations and retain candidate and global b
     assert.equal(row(broken).evidence_receipt, null, mutation);
   }
 });
+
+
+test("render claims without retained bound oracle proof never receive receipts", () => {
+  for (const proof of [undefined, null, {}, { schema: "honua.mcp-render-proof/v1", positive: true, negative: true, mediaSchema: true },
+    { schema: "honua.mcp-render-proof/v1", candidateSourceSha: identity.sourceSha, candidateImage: `ghcr.io/honua-io/honua-server@${identity.imageDigest}`,
+      positive: true, negative: true, mediaSchema: true, observations: null }]) {
+    const sdk = passing("sdk");
+    sdk["tools/call:render_map"] = { result: "pass", value: proof };
+    const fragment = buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks: sdk },
+      inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+    } });
+    const row = fragment.observations.find((item) => item.operation === "tools/call:render_map" && item.canonical_client === CLIENTS.sdk.canonicalClient);
+    assert.equal(row.result, "skip");
+    assert.equal(row.evidence_receipt, null);
+    assert.equal(fragment.observations.length, 82);
+  }
+});

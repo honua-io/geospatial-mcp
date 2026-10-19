@@ -1,8 +1,10 @@
 import { planScenarios } from "../plan-validation.mjs";
+import { renderScenarios } from "../render-validation.mjs";
+import { controlledRenderBootstrap, controlledRenderResponse } from "./render-fixture.mjs";
 import { entityObservations } from "./entity-fixture.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -384,5 +386,44 @@ test("render claims without retained bound oracle proof never receive receipts",
     assert.equal(row.result, "skip");
     assert.equal(row.evidence_receipt, null);
     assert.equal(fragment.observations.length, 82);
+  }
+});
+
+test("render receipts require rejudged raw geometry/media, exact bootstrap/candidate and every global behavior", async () => {
+  const keys = ["HONUA_MCP_SERVER_SOURCE_SHA", "HONUA_MCP_SERVER_IMAGE", "HONUA_MCP_RENDER_BOOTSTRAP", "CERT_RESULTS"];
+  const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  const directory = mkdtempSync(join(tmpdir(), "mcp-render-fragment-"));
+  const candidateImage = `ghcr.io/honua-io/honua-server@${identity.imageDigest}`;
+  try {
+    process.env.HONUA_MCP_SERVER_SOURCE_SHA = identity.sourceSha;
+    process.env.HONUA_MCP_SERVER_IMAGE = candidateImage;
+    process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "bootstrap.json");
+    process.env.CERT_RESULTS = join(directory, "results.json");
+    const pins = JSON.parse(readFileSync(new URL("../render-validation-pins.json", import.meta.url), "utf8"));
+    writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, JSON.stringify(controlledRenderBootstrap(identity.sourceSha, candidateImage,
+      `sha256:${pins.sha256["certification/installed-clients/fixture.v1.json"]}`)));
+    const checks = passing("sdk");
+    await renderScenarios(async (_tool, arguments_) => controlledRenderResponse(arguments_),
+      async (name, run) => { checks[name] = { result: "pass", value: await run() }; });
+    const row = (sdkChecks) => buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks: sdkChecks }, inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+    } }).observations.find((item) => item.operation === "tools/call:render_map" && item.canonical_client === CLIENTS.sdk.canonicalClient);
+    assert.equal(row(checks).result, "pass");
+    for (const mutation of ["source", "image", "oracle", "media", "negative", "missing-raw", "null-raw", "no-auth", "no-cancellation"]) {
+      const broken = structuredClone(checks), proof = broken["tools/call:render_map"].value;
+      if (mutation === "source") proof.candidateSourceSha = "d".repeat(40);
+      else if (mutation === "image") proof.candidateImage = candidateImage.replace(identity.imageDigest, `sha256:${"d".repeat(64)}`);
+      else if (mutation === "oracle") proof.pngOracleSha256 = `sha256:${"0".repeat(64)}`;
+      else if (mutation === "media") proof.observations.cases[0].result.content[1].mimeType = "image/jpeg";
+      else if (mutation === "negative") proof.observations.cases[2].result.structuredContent.code = "internal";
+      else if (mutation === "missing-raw") delete proof.observations;
+      else if (mutation === "null-raw") proof.observations = null;
+      else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+      assert.equal(row(broken).result, "skip", mutation);
+      assert.equal(row(broken).evidence_receipt, null, mutation);
+    }
+  } finally {
+    for (const key of keys) { if (before[key] === undefined) delete process.env[key]; else process.env[key] = before[key]; }
+    rmSync(directory, { recursive: true, force: true });
   }
 });

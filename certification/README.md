@@ -143,3 +143,16 @@ remaining Inspector initial-ping and unknown-tool addressability gaps. Browser
 cancellation controls establish the public path against an authored peer, not
 candidate qualification. A fresh image alone still cannot make the canonical
 lane green.
+
+The `validate_plan` semantic pair uses the release-owned pure helper and authored
+metric buffer fixture, retained through `fetch-plan-validation.py` at the exact
+reviewed `plan-validation-pins.json` source. Protected-trunk ancestry and both Git
+blobs are verified before execution; the default requirement-catalog pins remain
+independent. The actual installed SDK and Inspector each submit the valid plan
+and a copy with only WKB corrupted. Both raw outputs survive oracle failure in
+`*.plan-validation.raw.json`. The shared helper requires the complete published
+validation output schema, executable/no-approval success and actionable typed
+invalid-WKB rejection. `build-fragment.mjs` reruns that same oracle and checks its
+source, fixture and candidate binding before admitting this one operation. All
+82 governed rows and existing authentication/error/cancellation/pagination gates
+remain required; this producer does not submit a GP job or qualify missing rows.

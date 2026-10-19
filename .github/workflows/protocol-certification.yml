@@ -145,6 +145,11 @@ jobs:
           python3 certification/fetch-certification-requirements.py "${args[@]}"
           echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/.certification/check_protocol_certification.py" >> "${GITHUB_ENV}"
 
+      - name: Fetch immutable protected shared plan scenario
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 certification/fetch-plan-validation.py --destination certification/.plan-validation
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
@@ -353,6 +358,8 @@ jobs:
             certification/artifacts/sdk-results.json
             certification/artifacts/inspector-results.json
             certification/artifacts/server-harness-source-binding.json
+            certification/artifacts/*.plan-validation.raw.json
+            certification/.plan-validation/source-binding.json
             .certification/protocol-certification-requirements.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql

@@ -17,7 +17,8 @@ PATHS = tuple("certification/installed-clients/" + name for name in (
     "fixture.v1.json", "mcp_render_validation.py", "mcp_render_validation.mjs",
     "mcp_map_package_validation.py", "mcp_map_package_validation.mjs", "mcp_candidate_wire.mjs",
     "mcp_fixed_client_launcher.mjs", "mcp_fixed_sdk_runner.mjs", "mcp_fixed_client_manifest.v1.json",
-    "mcp_ingest_publish_validation.py", "mcp_ingest_publish_state.py", "mcp_ingest_publish_validation.mjs"))
+    "mcp_ingest_publish_validation.py", "mcp_ingest_publish_state.py", "mcp_ingest_publish_validation.mjs",
+    "mcp_style_validation.py", "mcp_style_state.py", "mcp_style_validation.mjs"))
 SCHEMA = "honua.mcp-render-source/v1"
 
 

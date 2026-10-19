@@ -267,3 +267,12 @@ approval-pending outcomes remain nonpass and async publication stays open under
 release699. This adds no large-cloud-import or hidden-side-effect-exclusion claim.
 The protected per-operation auth/cohort policy remains an explicit unmet global
 prerequisite; all82 rows and previous behavior requirements remain mandatory.
+
+Canonical style consumption is tracked in #114 and release705. The thin consumer
+invokes release-owned authenticated `get_style` / `apply_style_preset` scenarios,
+original installed-client wire evidence, independent committed-state census,
+authored PNG color/geometry and exact owned-container restart. All executable
+setup/scenario/oracle/state code belongs to honua-release. The unchanged82-row
+catalog still requires per-operation auth/cohort/global/current-candidate proof;
+protected styles cannot satisfy the frozen anonymous-public-v1 policy. Offline
+controls and historical source paths never qualify that boundary.

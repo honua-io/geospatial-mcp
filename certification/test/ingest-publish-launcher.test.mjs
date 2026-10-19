@@ -16,7 +16,7 @@ const hash = value => `sha256:${createHash("sha256").update(value).digest("hex")
 
 for (const supported of [true, false]) test(`actual anonymous Inspector setup discovery ${supported ? "advertises and invokes" : "unsupported view remains refusal"} without authority`, async () => {
   const credential = "controlled-ingest-private-key", sessions = new Set(), initializations = [], invocations = [], discovery = [];
-  const names = ["honua_ingest_dataset", "honua_publish_service"];
+  const names = ["honua_ingest_dataset", "honua_publish_service", "honua_get_style", "honua_apply_style_preset"];
   const authority = request => ({ apiKeyPresent: request.headers["x-api-key"] !== undefined,
     authorizationPresent: request.headers.authorization !== undefined, cookiePresent: request.headers.cookie !== undefined });
   const server = createServer(async (request, response) => {
@@ -73,10 +73,10 @@ for (const supported of [true, false]) test(`actual anonymous Inspector setup di
       }
     }
     assert.deepEqual(invocations.map(item => item.name), supported ? names : []);
-    assert.equal(initializations.length, 2);
-    assert.equal(new Set(initializations.map(item => item.sessionSha256)).size, 2);
-    assert.equal(new Set(invocations.map(item => item.sessionSha256)).size, supported ? 2 : 0);
-    assert.ok(discovery.length >= 2 && discovery.every(item => item.view === "setup"));
+    assert.equal(initializations.length, names.length);
+    assert.equal(new Set(initializations.map(item => item.sessionSha256)).size, names.length);
+    assert.equal(new Set(invocations.map(item => item.sessionSha256)).size, supported ? names.length : 0);
+    assert.ok(discovery.length >= names.length && discovery.every(item => item.view === "setup"));
     for (const item of [...initializations, ...invocations, ...discovery]) {
       assert.equal(item.apiKeyPresent, false); assert.equal(item.authorizationPresent, false); assert.equal(item.cookiePresent, false);
     }

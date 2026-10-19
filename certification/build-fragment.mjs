@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyStyleProof } from "./style-validation.mjs";
 import { verifyIngestPublishProof } from "./ingest-publish-validation.mjs";
 import { verifyMapPackageProof } from "./map-package-validation.mjs";
 import { verifyPlanProof } from "./plan-validation.mjs";
@@ -90,7 +91,13 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       // These authenticated mutation/read journeys cannot claim the frozen
       // anonymous-public-v1 requirement even when their semantic proof passes.
       const ingestPublishPolicyPassed = !ingestPublishSemantic;
-      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const styleSemantic = ["tools/call:get_style", "tools/call:apply_style_preset"].includes(operation);
+      const stylePassed = !styleSemantic || verifyStyleProof(proof, identity.sourceSha, identity.imageDigest,
+        operation, client.canonicalClient, client.version);
+      // These protected operations cannot satisfy the frozen anonymous-public-v1
+      // policy/cohort. Release695 adoption remains explicit and unqualified.
+      const stylePolicyPassed = !styleSemantic;
+      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
@@ -103,7 +110,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && ingestPublishPassed && ingestPublishPolicyPassed && entityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && ingestPublishPassed && ingestPublishPolicyPassed && stylePassed && stylePolicyPassed && entityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -152,7 +159,8 @@ export function buildFragment({ identity, results, requirements, executedTier, n
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
             : mapPackageSemantic ? `authenticated package journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
             : ingestPublishSemantic ? `authenticated ingest/publication journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : styleSemantic ? `authenticated style journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
+            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

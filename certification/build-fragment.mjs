@@ -151,7 +151,8 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         skip_reason: result === "skip"
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
             : mapPackageSemantic ? `authenticated package journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : (semantic || planSemantic || renderSemantic || mapPackageSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : ingestPublishSemantic ? `authenticated ingest/publication journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
+            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

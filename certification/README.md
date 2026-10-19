@@ -248,7 +248,6 @@ unless an actual anonymous tools/call server observation exists; local
 `tool_not_found` is never typed server refusal evidence. Release issue #695
 continues to own policy/cohort/adoption obligations.
 
-
 The ingest/publication journey runs after both ordinary SDK and Inspector lanes
 have closed their sessions, so restarting the disposable candidate cannot break
 an earlier bootstrap-bound operation mid-flight. It merges only the three new

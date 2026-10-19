@@ -47,7 +47,8 @@ export function bootstrapRender() {
 }
 
 export async function renderScenarios(call, record) {
-  return owned.createRenderValidation(select(verifiedFixtureSource(), runtimeNames)).renderScenarios(call, record, {
+  const verifiedCall = (...args) => { verifiedFixtureSource(); return call(...args); };
+  return owned.createRenderValidation(select(verifiedFixtureSource(), runtimeNames)).renderScenarios(verifiedCall, record, {
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA, candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     results: process.env.CERT_RESULTS ?? "results.json",
   });

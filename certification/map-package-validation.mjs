@@ -12,7 +12,9 @@ const context = () => {
 };
 
 export function mapPackageScenarios(call, readFresh, record, canonicalClient, clientVersion) {
-  return owned.createMapPackageValidation(context()).mapPackageScenarios(call, readFresh, record, {
+  const verifiedCall = (...args) => { verifiedFixtureSource(); return call(...args); };
+  const verifiedRead = (...args) => { verifiedFixtureSource(); return readFresh(...args); };
+  return owned.createMapPackageValidation(context()).mapPackageScenarios(verifiedCall, verifiedRead, record, {
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA, candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     canonicalClient, clientVersion, credential: process.env.HONUA_MCP_API_KEY,
     results: process.env.CERT_RESULTS ?? "results.json",

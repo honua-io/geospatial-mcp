@@ -1,3 +1,4 @@
+import { mapPackageScenarios } from "./map-package-validation.mjs";
 import { planScenarios } from "./plan-validation.mjs";
 import { renderScenarios } from "./render-validation.mjs";
 import { requireInspectorSemanticResult } from "./inspector-semantic-exit.mjs";
@@ -93,6 +94,11 @@ await renderScenarios(async (name, arguments_) => {
   try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
   catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
 });
+await mapPackageScenarios(async (name, run) => {
+  const startedAt = new Date().toISOString();
+  try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
+  catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
+}, CLIENTS.inspector.canonicalClient, CLIENTS.inspector.version);
 const paginationStarted = new Date().toISOString();
 let paginationHarness;
 try {

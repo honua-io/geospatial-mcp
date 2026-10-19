@@ -5,14 +5,16 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const names = ["mcp_render_bootstrap.py", "regression.py", "oracles.py", "mcp_plan_validation.py", "render_png.py",
-  "fixture.v1.json", "mcp_render_validation.py", "mcp_render_validation.mjs"];
+  "fixture.v1.json", "mcp_render_validation.py", "mcp_render_validation.mjs",
+  "mcp_map_package_validation.py", "mcp_map_package_validation.mjs", "mcp_candidate_wire.mjs",
+  "mcp_fixed_client_launcher.mjs", "mcp_fixed_sdk_runner.mjs", "mcp_fixed_client_manifest.v1.json"];
 const setupNames = names.slice(0, 7);
 const runtimeNames = ["mcp_render_validation.py", "render_png.py", "fixture.v1.json"];
 const prefix = "certification/installed-clients/";
 const paths = names.map((name) => prefix + name);
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
-function sharedSource() {
+export function verifiedFixtureSource() {
   const pins = JSON.parse(readFileSync(new URL("./render-validation-pins.json", import.meta.url), "utf8"));
   const directory = fileURLToPath(new URL("./.render-validation/", import.meta.url));
   let binding;
@@ -33,12 +35,12 @@ function sharedSource() {
     bootstrapPath: process.env.HONUA_MCP_RENDER_BOOTSTRAP ?? fileURLToPath(new URL("./artifacts/render-bootstrap.json", import.meta.url)) };
 }
 
-const verified = sharedSource();
+const verified = verifiedFixtureSource();
 const owned = await import(pathToFileURL(join(verified.directory, "mcp_render_validation.mjs")).href);
 const select = (context, selected) => ({ ...context, sha256: Object.fromEntries(selected.map((name) => [name, context.pins.sha256[prefix + name]])) });
 
 export function bootstrapRender() {
-  const context = sharedSource();
+  const context = verifiedFixtureSource();
   return owned.createRenderBootstrap(select(context, setupNames))({
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA, candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     receipt: context.bootstrapPath,
@@ -46,7 +48,8 @@ export function bootstrapRender() {
 }
 
 export async function renderScenarios(call, record) {
-  return owned.createRenderValidation(select(sharedSource(), runtimeNames)).renderScenarios(call, record, {
+  const verifiedCall = (...args) => { verifiedFixtureSource(); return call(...args); };
+  return owned.createRenderValidation(select(verifiedFixtureSource(), runtimeNames)).renderScenarios(verifiedCall, record, {
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA, candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     results: process.env.CERT_RESULTS ?? "results.json",
   });
@@ -56,6 +59,6 @@ export function verifyRenderProof(proof, candidateSourceSha, candidateImageDiges
   try {
     const candidateImage = proof?.candidateImage;
     if (typeof candidateImage !== "string" || candidateImage.split("@").at(-1) !== candidateImageDigest) return false;
-    return owned.createRenderValidation(select(sharedSource(), runtimeNames)).verifyRenderProof(proof, candidateSourceSha, candidateImage);
+    return owned.createRenderValidation(select(verifiedFixtureSource(), runtimeNames)).verifyRenderProof(proof, candidateSourceSha, candidateImage);
   } catch { return false; }
 }

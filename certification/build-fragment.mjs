@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyMapPackageProof } from "./map-package-validation.mjs";
 import { verifyPlanProof } from "./plan-validation.mjs";
 import { verifyRenderProof } from "./render-validation.mjs";
 import { verifyEntityResolution } from "./entity-resolution.mjs";
@@ -74,7 +75,14 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const planPassed = !planSemantic || verifyPlanProof(proof, identity.sourceSha);
       const renderSemantic = operation === "tools/call:render_map";
       const renderPassed = !renderSemantic || verifyRenderProof(proof, identity.sourceSha, identity.imageDigest);
-      const executable = semantic || planSemantic || renderSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const mapPackageSemantic = ["tools/call:create_map_package", "resources/read:Map package"].includes(operation);
+      const mapPackagePassed = !mapPackageSemantic || verifyMapPackageProof(proof, identity.sourceSha, identity.imageDigest,
+        operation, client.canonicalClient, client.version);
+      // The current governed catalog permits only anonymous-public-v1. The
+      // authored package resource requires authentication. Retain adapter
+      // proof, but no receipt can misstate that unresolved policy boundary.
+      const mapPackagePolicyPassed = !mapPackageSemantic;
+      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
@@ -87,7 +95,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && entityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && entityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -134,7 +142,8 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         result,
         skip_reason: result === "skip"
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
-            : (semantic || planSemantic || renderSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : mapPackageSemantic ? `authenticated package journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
+            : (semantic || planSemantic || renderSemantic || mapPackageSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

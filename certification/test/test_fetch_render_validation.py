@@ -37,7 +37,7 @@ class RenderSourceTests(unittest.TestCase):
             binding = MODULE.fetch(pins, Path(directory), get=responses.__getitem__)
             self.assertEqual(pins["sourceSha"], binding["sourceSha"])
             self.assertEqual(set(MODULE.PATHS), set(binding["files"]))
-            self.assertEqual(9, len(list(Path(directory).iterdir())))
+            self.assertEqual(len(MODULE.PATHS) + 1, len(list(Path(directory).iterdir())))
 
     def test_every_dependency_tamper_refuses_before_retaining_any_source(self):
         pins, responses = fixtures()

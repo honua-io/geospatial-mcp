@@ -1,3 +1,5 @@
+import { mapPackageScenarios } from "./map-package-validation.mjs";
+import { CLIENTS } from "./requirements.mjs";
 import { planScenarios } from "./plan-validation.mjs";
 import { renderScenarios } from "./render-validation.mjs";
 import { readFile, writeFile } from "node:fs/promises";
@@ -52,6 +54,7 @@ if (checks.initialize.result === "pass") {
   await readScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await planScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await renderScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
+  await mapPackageScenarios(record, CLIENTS.sdk.canonicalClient, CLIENTS.sdk.version);
   await record("behavior/error", () => missingTool(client));
   if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
     await record("behavior/cancellation", async () => {

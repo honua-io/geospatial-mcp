@@ -1,7 +1,24 @@
 # MCP certification producer
 
-Run `npm ci --ignore-scripts` and `npm test` from this directory. Set
-`HONUA_RELEASE_CHECKER` to the unchanged `tools/check_protocol_certification.py`
+From a clean checkout, authenticate `gh` (or set `GH_TOKEN` with read access to
+public release metadata), then run from this directory:
+
+```sh
+npm ci --ignore-scripts
+npm run prepare:plan
+npm test
+```
+
+`prepare:plan` fetches the exact protected-history release module, Python oracle
+and authored fixture declared in `plan-validation-pins.json`, and verifies all
+Git and SHA256 identities. It must finish before the Node suite or either client
+adapter imports the verified module. Missing authentication, unavailable source,
+unreviewed ancestry or altered bytes fail closed; no cached or mutable fallback
+is accepted. The Python fetch controls use controlled offline API fixtures and
+never execute their dummy bytes. The workflow separately exercises this real
+protected-source provisioning before the complete installed-client controls.
+
+Set `HONUA_RELEASE_CHECKER` to the unchanged `tools/check_protocol_certification.py`
 from the selected immutable honua-release revision to also run the real
 producer-to-consumer receipt controls.
 
@@ -146,9 +163,12 @@ lane green.
 
 The `validate_plan` semantic pair uses the release-owned pure helper and authored
 metric buffer fixture, retained through `fetch-plan-validation.py` at the exact
-reviewed `plan-validation-pins.json` source. Protected-trunk ancestry and both Git
-blobs are verified before execution; the default requirement-catalog pins remain
-independent. The actual installed SDK and Inspector each submit the valid plan
+reviewed `plan-validation-pins.json` source. Protected-trunk ancestry and all
+three Git blobs are verified before execution; the default requirement-catalog
+pins remain independent. The release-owned `mcp_plan_validation.mjs` executes
+through the existing installed-client callbacks; this repository retains only
+the verified bridge and evidence consumer. The actual installed SDK and
+Inspector each submit the valid plan
 and a copy with only WKB corrupted. Both raw outputs survive oracle failure in
 `*.plan-validation.raw.json`. The shared helper requires the complete published
 validation output schema, executable/no-approval success and actionable typed

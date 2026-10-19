@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parent
 SPEC = importlib.util.spec_from_file_location("protected_release_source", ROOT / "fetch-certification-requirements.py")
 SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
-PATHS = ("certification/installed-clients/mcp_plan_validation.py", "certification/installed-clients/fixture.v1.json")
+PATHS = ("certification/installed-clients/mcp_plan_validation.py", "certification/installed-clients/fixture.v1.json",
+         "certification/installed-clients/mcp_plan_validation.mjs")
 SCHEMA = "honua.mcp-plan-validation-source/v1"
 
 
@@ -20,7 +21,7 @@ def fetch(pins, destination, *, get=SOURCE.api):
     if (set(pins) != {"repository", "sourceSha", "sha256"} or pins["repository"] != SOURCE.REPOSITORY
             or not isinstance(pins["sha256"], dict) or set(pins["sha256"]) != set(PATHS)
             or any(not re.fullmatch(r"[0-9a-f]{64}", value or "") for value in pins["sha256"].values())):
-        raise ValueError("shared scenario pins must identify both canonical release files")
+        raise ValueError("shared scenario pins must identify all canonical release files")
     retained = SOURCE.immutable_files(SOURCE.REPOSITORY, pins["sourceSha"], PATHS, get=get)
     if any(retained[path][1] != pins["sha256"][path] for path in PATHS):
         raise ValueError("shared scenario source differs from reviewed file pins")

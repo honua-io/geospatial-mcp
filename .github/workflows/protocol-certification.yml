@@ -148,7 +148,8 @@ jobs:
       - name: Fetch immutable protected shared plan scenario
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 certification/fetch-plan-validation.py --destination certification/.plan-validation
+        working-directory: certification
+        run: npm run prepare:plan
 
       - name: Verify pinned clients and corpus
         run: |

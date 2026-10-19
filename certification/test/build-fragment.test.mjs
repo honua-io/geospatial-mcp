@@ -325,13 +325,15 @@ test("authored plan evidence is admitted only with exact source, raw oracle proo
       inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
     } }).observations.find((item) => item.canonical_client === CLIENTS.sdk.canonicalClient && item.operation === "tools/call:validate_plan");
     assert.equal(row(checks).result, "pass");
-    for (const mutation of ["wrong-source", "wrong-helper", "changed-fixture", "invalid-accepted", "no-auth", "no-cancellation"]) {
+    for (const mutation of ["wrong-source", "wrong-helper", "changed-fixture", "invalid-accepted", "missing-observations", "null-observations", "no-auth", "no-cancellation"]) {
       const broken = structuredClone(checks);
       const proof = broken["tools/call:validate_plan"].value;
       if (mutation === "wrong-source") proof.candidateSourceSha = "d".repeat(40);
       else if (mutation === "wrong-helper") proof.helperSourceSha = "d".repeat(40);
       else if (mutation === "changed-fixture") proof.fixtureSha256 = `sha256:${"0".repeat(64)}`;
       else if (mutation === "invalid-accepted") proof.observations.cases[1].result.structuredContent.isExecutable = true;
+      else if (mutation === "missing-observations") delete proof.observations;
+      else if (mutation === "null-observations") proof.observations = null;
       else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
       assert.equal(row(broken).result, "skip", mutation);
       assert.equal(row(broken).evidence_receipt, null, mutation);

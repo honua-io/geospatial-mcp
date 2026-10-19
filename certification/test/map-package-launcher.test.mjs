@@ -31,6 +31,9 @@ test("fixed launcher verifies actual named root package and every installed pack
 for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invokeClient("inspector")]]) {
   test(`actual ${runner} fixed process launches are asynchronous fresh sessions with isolated anonymous authority`, async () => {
     const credential = "controlled-map-client-key", sessions = new Map(), invocations = [], initializations = [];
+    const authority = (incoming) => ({ authenticated: incoming.headers["x-api-key"] === credential,
+      apiKeyPresent: incoming.headers["x-api-key"] !== undefined,
+      authorizationPresent: incoming.headers.authorization !== undefined, cookiePresent: incoming.headers.cookie !== undefined });
     const authored = { templateId: "controlled-template", styleId: "controlled-style", themeId: "controlled-theme",
       sourceBindings: [{ bindingId: "controlled-area", protocol: "geoservices_feature_service", filter: "name = 'block'",
         metadata: { purpose: "actual-client-argument-control" } }], initialView: { bbox: [-90, 0, -45, 60], crs: 4326 } };
@@ -45,7 +48,7 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
         if (message.method === "initialize") {
           assert.equal(incoming.headers["mcp-session-id"], undefined);
           const session = randomUUID(); sessions.set(session, true);
-          initializations.push({ session, authenticated: incoming.headers["x-api-key"] === credential });
+          initializations.push({ session, ...authority(incoming) });
           outgoing.setHeader("mcp-session-id", session);
           result = { protocolVersion: "2025-06-18", capabilities: { tools: {}, resources: {} },
             serverInfo: { name: "explicit-offline-client-control", version: "0.0.0" } };
@@ -56,14 +59,12 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
             inputSchema: { type: "object", additionalProperties: true } }] };
           else if (message.method === "tools/call") {
             assert.deepEqual(message.params.arguments, authored, "all five nested JSON arguments must reach the actual peer unchanged");
-            invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential,
-              authorization: incoming.headers.authorization, cookie: incoming.headers.cookie });
+            invocations.push({ session, method: message.method, ...authority(incoming) });
             if (incoming.headers["x-api-key"] === credential) result = { content: [{ type: "text", text: "controlled callback transport only" }] };
             else error = { code: -32000, message: "Controlled creation requires authentication", data: {
               code: "unauthenticated", requiresReauthentication: true } };
           } else if (message.method === "resources/read") {
-            invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential,
-              authorization: incoming.headers.authorization, cookie: incoming.headers.cookie });
+            invocations.push({ session, method: message.method, ...authority(incoming) });
             error = incoming.headers["x-api-key"] === credential
               ? { code: -32002, message: "Controlled package missing", data: { code: "not_found" } }
               : { code: -32000, message: "Controlled package requires authentication", data: { code: "unauthenticated", requiresReauthentication: true } };
@@ -89,7 +90,10 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
       assert.deepEqual(initializations.map((item) => item.authenticated), [true, false, true, false]);
       assert.deepEqual(invocations.map((item) => item.authenticated), [true, false, true, false]);
       for (const index of [1, 3]) {
-        assert.equal(invocations[index].authorization, undefined); assert.equal(invocations[index].cookie, undefined);
+        for (const observation of [initializations[index], invocations[index]]) {
+          assert.equal(observation.apiKeyPresent, false);
+          assert.equal(observation.authorizationPresent, false); assert.equal(observation.cookiePresent, false);
+        }
       }
       const outcomes = [created, anonymousTool, unknown, anonymous];
       const publicSession = ({ session, ...rest }) => ({ ...rest,

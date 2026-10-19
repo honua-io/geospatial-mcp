@@ -4,16 +4,31 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
-import { sdkMapRequest, inspectorMapRequest, installedPackageVersion } from "../map-package-client-callbacks.mjs";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { join } from "node:path";
+import { verifiedFixtureSource } from "../render-validation.mjs";
+const source = verifiedFixtureSource();
+const { launchCanonicalClient, verifyInstalledClient } = await import(pathToFileURL(join(source.directory, "mcp_fixed_client_launcher.mjs")).href);
+const installationRoot = fileURLToPath(new URL("../node_modules/", import.meta.url));
+const invokeClient = (selector) => (method, params, { endpoint, authenticated }, credential) => {
+  verifiedFixtureSource();
+  return launchCanonicalClient({ installationRoot, selector, endpoint, method, params, authenticated, credential });
+};
 import { CLIENTS } from "../requirements.mjs";
 
-test("installed SDK version comes from named root metadata rather than export-mapped CJS package", () => {
-  assert.equal(installedPackageVersion("@modelcontextprotocol/sdk", "@modelcontextprotocol/sdk/client/index.js"), CLIENTS.sdk.version);
-  assert.throws(() => installedPackageVersion("unrelated-package", "@modelcontextprotocol/sdk/client/index.js"), /identity missing/);
+test("fixed launcher verifies actual named root package and every installed package file", () => {
+  for (const selector of ["sdk", "inspector"]) {
+    const observed = verifyInstalledClient(installationRoot, selector);
+    assert.equal(observed.package.version, CLIENTS[selector].version);
+    assert.equal(observed.selected.canonicalClient, CLIENTS[selector].canonicalClient);
+    assert.equal(observed.package.fileCount, selector === "sdk" ? 701 : 27);
+    assert.match(observed.package.filesSha256, /^sha256:[a-f0-9]{64}$/);
+  }
+  assert.throws(() => verifyInstalledClient(installationRoot, "unrelated-client"), /selection refused/);
 });
 
-for (const [runner, invoke] of [["sdk", sdkMapRequest], ["inspector", inspectorMapRequest]]) {
-  test(`actual ${runner} map callbacks are asynchronous fresh sessions with isolated anonymous authority`, async () => {
+for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invokeClient("inspector")]]) {
+  test(`actual ${runner} fixed process launches are asynchronous fresh sessions with isolated anonymous authority`, async () => {
     const credential = "controlled-map-client-key", sessions = new Map(), invocations = [], initializations = [];
     const server = createServer(async (incoming, outgoing) => {
       if (incoming.method === "GET") { outgoing.writeHead(405).end(); return; }
@@ -77,7 +92,12 @@ for (const [runner, invoke] of [["sdk", sdkMapRequest], ["inspector", inspectorM
         assert.equal(value.version, CLIENTS[runner].version);
         assert.equal(value.requestUrl, endpoint);
         assert.equal(JSON.stringify(value).includes(credential), false);
+        assert.equal(value.launch.processId, value.processId);
+        assert.equal(value.launch.request.endpoint, endpoint);
+        assert.equal(value.launch.package.version, CLIENTS[runner].version);
+        assert.equal(value.launch.selector, runner);
       }
+      assert.equal(new Set(outcomes.map((item) => item.processId)).size, 4);
       if (runner === "sdk") {
         assert.equal(unknown.output.error.code, -32002);
         assert.equal(anonymousTool.output.error.data.requiresReauthentication, true);

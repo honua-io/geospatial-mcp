@@ -209,12 +209,12 @@ The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
 
 The map-package journey consumes the same authenticated `npm run prepare:render`
-path, extended to eleven files from one protected immutable release revision
-(the eight render/setup dependencies plus the map-package Python/JavaScript and
-transparent wire observer). Hashes bind the complete set before import/setup
+path, extended to fourteen files from one protected immutable release revision
+(the eight render/setup dependencies plus map-package Python/JavaScript, the
+transparent wire observer, fixed launcher/SDK runner and package-file manifest). Hashes bind the complete set before import/setup
 and each call; no copied or mutable oracle fallback exists. The execution and
-judgment remain release-owned. Actual SDK and public Inspector callbacks create
-new sessions/processes at the owned loopback observer for every tool call/read.
+judgment remain release-owned. The fixed launcher creates actual SDK and public
+Inspector processes and new sessions at the owned observer for every call/read.
 Inspector uses asynchronous `spawn` while the observer serves the same event
 loop, and a new empty auth/catalog/storage directory prevents inherited
 anonymous credentials. Original CLI diagnostics remain separate from original
@@ -232,3 +232,17 @@ the current governed policy conflicts with authenticated package reads and
 remains explicitly nonpassing. All 82 governed rows, installed-versus-selected
 client-version mismatch and existing global behavior/cancellation gates remain
 required. A historical image run adds adapter evidence only.
+
+Map-package calls and fresh reads use the protected release-owned fixed launcher,
+SDK child runner and authenticated npm package-file manifest. This producer
+supplies only its installed `node_modules` root and private expected credential;
+no raw callback implementation or client-reported identity is selectable. The
+launcher records actual child PID/exit and verifies every package file before
+and after launch; rejudgment binds its request/output/source identities to wire
+observations. These are trusted producer records, not JSON/process attestation.
+The installed-package controls run actual SDK/Inspector processes against an
+explicit offline protocol fixture and earn no candidate qualification credit.
+The public Inspector's anonymous create discovery limitation remains a failure
+unless an actual anonymous tools/call server observation exists; local
+`tool_not_found` is never typed server refusal evidence. Release issue #695
+continues to own policy/cohort/adoption obligations.

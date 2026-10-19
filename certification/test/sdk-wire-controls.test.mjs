@@ -33,7 +33,7 @@ async function execute(mode, runner = "sdk") {
       const tools = manifest.tools.map((tool) => ({ name: tool.advertisedName, inputSchema: { type: "object" } }));
       if (value.params?._meta?.["honua.io/workflow-view"] !== "full") {
         if (value.params?.cursor) throw new McpError(ErrorCode.InvalidParams, "Full catalog cursor requires the full view");
-        return { tools: tools.filter(({ name }) => ["honua_list_capabilities", "honua_list_layers", "honua_query_features", "honua_resolve_entity"].includes(name)) };
+        return { tools: tools.filter(({ name }) => ["honua_list_capabilities", "honua_list_layers", "honua_query_features", "honua_resolve_entity", "honua_validate_plan"].includes(name)) };
       }
       if (request.headers["x-api-key"] !== "control-key") {
         throw new McpError(ErrorCode.InvalidRequest, "Full catalog requires authentication");
@@ -69,6 +69,14 @@ async function execute(mode, runner = "sdk") {
           { id: 21, type: "Feature", properties: { name: "alpha", count: 1 }, geometry: { type: "Point", coordinates: [mode === "query-corrupt" ? 0 : -122.49, 37.71] } },
           { id: 22, type: "Feature", properties: { name: "beta", count: 2 }, geometry: { type: "Point", coordinates: [-122.475, 37.72] } },
         ] } });
+      }
+      if (value.params.name === "honua_validate_plan") {
+        const invalid = value.params.arguments?.plan?.steps?.[0]?.inputs?.wkb === "not-base64";
+        const output = { isExecutable: !invalid || mode === "plan-invalid-accepted", requiresApproval: false,
+          violations: invalid && mode !== "plan-invalid-accepted" ? [{ code: "INVALID_PARAMETER_VALUE",
+            fieldPath: mode === "plan-wrong-path" ? "steps[other].inputs.wkb" : "steps[buffer].inputs.wkb", message: "Invalid base64 WKB" }] : [], warnings: [] };
+        if (mode === "plan-schema-corrupt") delete output.warnings;
+        return okay(output);
       }
       if (value.params.name === "honua_resolve_entity") {
         const args = value.params.arguments;
@@ -107,7 +115,10 @@ async function execute(mode, runner = "sdk") {
     const code = await new Promise((resolve) => child.on("close", resolve));
     clearTimeout(timeout);
     assert.equal(code, 1, errors); // Cancellation remains explicitly incomplete in every case.
-    return { result: JSON.parse(await readFile(destination, "utf8")), calls,
+    let rawPlan;
+    try { rawPlan = JSON.parse(await readFile(`${destination}.plan-validation.raw.json`, "utf8")); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    return { result: JSON.parse(await readFile(destination, "utf8")), calls, rawPlan,
       rawEntity: JSON.parse(await readFile(`${destination}.entity-resolution.raw.json`, "utf8")) };
   } finally {
     await new Promise((resolve) => listener.close(resolve));
@@ -165,6 +176,31 @@ for (const runner of ["sdk", "inspector"]) {
 }
 
 for (const runner of ["sdk", "inspector"]) {
+  test(`real ${runner} executes both authored plan requests and rejects semantic/schema faults`, async () => {
+    for (const mode of ["typed-refusal", "plan-invalid-accepted", "plan-wrong-path", "plan-schema-corrupt"]) {
+      const { result, calls, rawPlan } = await execute(mode, runner);
+      assert.equal(rawPlan.cases.length, 2, "both raw responses must survive even a failed oracle");
+      assert.equal(result.checks["tools/call:validate_plan"].result, mode === "typed-refusal" ? "pass" : "fail",
+        JSON.stringify(result.checks["tools/call:validate_plan"]));
+      const plans = calls.filter(({ name }) => name === "honua_validate_plan");
+      assert.equal(plans.length, 2);
+      assert.ok(plans.every(({ authenticated }) => authenticated));
+      const valid = plans[0].arguments.plan;
+      const point = Buffer.from(valid.steps[0].inputs.wkb, "base64");
+      assert.equal(point.readDoubleLE(5), 10);
+      assert.equal(point.readDoubleLE(13), 20);
+      assert.equal(valid.steps[0].processId, "geometry.buffer");
+      assert.equal(valid.steps[0].inputs.srid, "3857");
+      assert.equal(valid.steps[0].inputs.distance, "500.0");
+      const invalid = structuredClone(plans[1].arguments.plan);
+      assert.equal(invalid.steps[0].inputs.wkb, "not-base64");
+      invalid.steps[0].inputs.wkb = valid.steps[0].inputs.wkb;
+      assert.deepEqual(invalid, valid);
+      assert.equal(calls.some(({ name }) => name === "honua_execute_plan"), false);
+      assert.equal(result.checks["behavior/cancellation"].result, "skip");
+    }
+  });
+
   test(`real ${runner} resolves the authored entity and detects wrong, invented and contradictory results`, async () => {
     for (const mode of ["typed-refusal", "entity-wrong", "entity-invented", "entity-conflicting", "entity-count", "entity-invalid-accepted"]) {
       const { result, calls, rawEntity } = await execute(mode, runner);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyPlanProof } from "./plan-validation.mjs";
 import { verifyEntityResolution } from "./entity-resolution.mjs";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -68,7 +69,9 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       if (!entityPassed) {
         try { entityPassed = verifyEntityResolution(proof?.entityResolution); } catch { entityPassed = false; }
       }
-      const executable = semantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const planSemantic = operation === "tools/call:validate_plan";
+      const planPassed = !planSemantic || verifyPlanProof(proof, identity.sourceSha);
+      const executable = semantic || planSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
@@ -81,7 +84,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && entityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && entityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema"];
@@ -128,7 +131,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         result,
         skip_reason: result === "skip"
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
-            : semantic ? `candidate-bound read semantic proof did not pass: ${RELEASE_123}`
+            : (semantic || planSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

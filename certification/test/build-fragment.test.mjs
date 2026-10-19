@@ -1,7 +1,10 @@
+import { planScenarios } from "../plan-validation.mjs";
 import { entityObservations } from "./entity-fixture.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { buildFragment as build } from "../build-fragment.mjs";
@@ -301,6 +304,46 @@ test("Inspector browser and SDK cancellation proofs cannot substitute for one an
     assert.equal(fragment.observations.length, 82);
     assert.equal(fragment.observations.filter((row) => row.canonical_client === 'MCP Inspector' && row.result === 'pass').length, 0);
     assert.ok(fragment.observations.some((row) => row.canonical_client === 'Official MCP TypeScript SDK' && row.result === 'pass'));
+  }
+});
+
+test("authored plan evidence is admitted only with exact source, raw oracle proof and global behavior", async () => {
+  const sourceBefore = process.env.HONUA_MCP_SERVER_SOURCE_SHA;
+  const resultsBefore = process.env.CERT_RESULTS;
+  const retained = mkdtempSync(join(tmpdir(), "mcp-plan-fragment-"));
+  process.env.CERT_RESULTS = join(retained, "results.json");
+  process.env.HONUA_MCP_SERVER_SOURCE_SHA = identity.sourceSha;
+  const checks = passing("sdk");
+  try {
+    await planScenarios(async (_name, arguments_) => ({ structuredContent: {
+      isExecutable: arguments_.plan.steps[0].inputs.wkb !== "not-base64", requiresApproval: false, warnings: [],
+      violations: arguments_.plan.steps[0].inputs.wkb === "not-base64" ? [{ code: "INVALID_PARAMETER_VALUE",
+        fieldPath: "steps[buffer].inputs.wkb", message: "Invalid base64" }] : [],
+    } }), async (name, run) => { checks[name] = { result: "pass", value: await run() }; });
+    const row = (sdkChecks) => buildFragment({ identity, results: {
+      sdk: { protocolVersion: "2025-06-18", checks: sdkChecks },
+      inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+    } }).observations.find((item) => item.canonical_client === CLIENTS.sdk.canonicalClient && item.operation === "tools/call:validate_plan");
+    assert.equal(row(checks).result, "pass");
+    for (const mutation of ["wrong-source", "wrong-helper", "changed-fixture", "invalid-accepted", "missing-observations", "null-observations", "no-auth", "no-cancellation"]) {
+      const broken = structuredClone(checks);
+      const proof = broken["tools/call:validate_plan"].value;
+      if (mutation === "wrong-source") proof.candidateSourceSha = "d".repeat(40);
+      else if (mutation === "wrong-helper") proof.helperSourceSha = "d".repeat(40);
+      else if (mutation === "changed-fixture") proof.fixtureSha256 = `sha256:${"0".repeat(64)}`;
+      else if (mutation === "invalid-accepted") proof.observations.cases[1].result.structuredContent.isExecutable = true;
+      else if (mutation === "missing-observations") delete proof.observations;
+      else if (mutation === "null-observations") proof.observations = null;
+      else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+      assert.equal(row(broken).result, "skip", mutation);
+      assert.equal(row(broken).evidence_receipt, null, mutation);
+    }
+  } finally {
+    if (sourceBefore === undefined) delete process.env.HONUA_MCP_SERVER_SOURCE_SHA;
+    else process.env.HONUA_MCP_SERVER_SOURCE_SHA = sourceBefore;
+    if (resultsBefore === undefined) delete process.env.CERT_RESULTS;
+    else process.env.CERT_RESULTS = resultsBefore;
+    rmSync(retained, { recursive: true, force: true });
   }
 });
 

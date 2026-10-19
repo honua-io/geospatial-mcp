@@ -20,7 +20,7 @@ never execute their dummy bytes. The workflow separately exercises this real
 protected-source provisioning before the complete installed-client controls.
 
 `prepare:render` applies that same protected-history and byte verification to the
-complete eight-file render scenario, PNG oracle and fixture setup dependency set
+complete 27-file shared scenario, PNG oracle and fixture setup dependency set
 declared in `render-validation-pins.json`. Every dependency is checked again
 before setup or client execution. The release-owned setup independently reads
 the actual running container's image digest and OCI source revision, seeds and
@@ -295,3 +295,19 @@ rejudging. Full partial raw wire and original client diagnostics are uploaded on
 failure. No fixture planner, cancellation or worker-cessation credit is implied.
 All 82 rows and current auth/cohort/global prerequisites remain required; a failed
 historical-image diagnostic never qualifies the intended release candidate.
+
+
+The thin `publish-result-validation.mjs` consumer invokes the protected
+release-owned genuine worker result publication producer. All Console workflow
+setup, worker/spec/committed receipt correlation, independent SQL/Redis and
+geometry oracles, and restart mechanics remain in honua-release. Both actual
+installed clients consume the real result/artifact, publish it, and retain fresh
+public-resource/query and restart readback evidence. Partial setup and raw wire
+receipts are uploaded on failure. No locally copied oracle or fabricated result
+is accepted; all27 source bytes are verified before import/setup/calls/rejudging.
+The protected source pin is adopted only after normal release producer landing.
+
+This source adapter does not qualify the historical selected image, current
+client-cohort mismatch, unresolved authenticated requirement adoption, or all82
+rows. Actual two-client execution remains required; pending/denied/failed
+publication and Inspector local discovery refusal retain nonpass outcomes.

@@ -469,3 +469,26 @@ test("protected canonical execution claims cannot bypass pinned policy or rejudg
   }
   assert.equal(fragment.observations.length, 82);
 });
+
+
+test("protected worker-result publication claims cannot bypass policy or immutable rejudging", () => {
+  for (const key of Object.keys(CLIENTS)) {
+    const checks = passing(key);
+    checks["tools/call:publish_result"] = { result: "pass", value: { positive: true, negative: true,
+      genuineWorkerResult: true, persistedReadback: true, restartReadback: true } };
+    const fragment = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map(client => [client, {
+      protocolVersion: "2025-06-18", checks: client === key ? checks : passing(client),
+    }])) });
+    const row = fragment.observations.find(item => item.operation === "tools/call:publish_result" && item.canonical_client === CLIENTS[key].canonicalClient);
+    assert.equal(row.result, "skip");
+    assert.equal(row.evidence_receipt, null);
+    assert.match(row.skip_reason, /authenticated worker-result publication journey conflicts/);
+    assert.equal(fragment.observations.length, 82);
+    checks["tools/call:publish_result"].result = "fail";
+    const failed = buildFragment({ identity, results: Object.fromEntries(Object.keys(CLIENTS).map(client => [client, {
+      protocolVersion: "2025-06-18", checks: client === key ? checks : passing(client),
+    }])) }).observations.find(item => item.operation === "tools/call:publish_result" && item.canonical_client === CLIENTS[key].canonicalClient);
+    assert.equal(failed.result, "fail");
+    assert.equal(failed.evidence_receipt, null);
+  }
+});

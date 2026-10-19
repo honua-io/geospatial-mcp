@@ -10,7 +10,8 @@ const names = ["mcp_render_bootstrap.py", "regression.py", "oracles.py", "mcp_pl
   "mcp_fixed_client_launcher.mjs", "mcp_fixed_sdk_runner.mjs", "mcp_fixed_client_manifest.v1.json",
     "mcp_ingest_publish_validation.py", "mcp_ingest_publish_state.py", "mcp_ingest_publish_validation.mjs",
   "mcp_style_validation.py", "mcp_style_state.py", "mcp_style_validation.mjs",
-  "mcp_execute_plan_validation.py", "mcp_execute_plan_state.py", "mcp_execute_plan_validation.mjs"];
+  "mcp_execute_plan_validation.py", "mcp_execute_plan_state.py", "mcp_execute_plan_validation.mjs",
+  "mcp_publish_result_validation.py", "mcp_publish_result_state.py", "mcp_publish_result_setup.py", "mcp_publish_result_validation.mjs"];
 const setupNames = names.slice(0, 7);
 const runtimeNames = ["mcp_render_validation.py", "render_png.py", "fixture.v1.json"];
 const prefix = "certification/installed-clients/";

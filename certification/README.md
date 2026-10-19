@@ -209,9 +209,10 @@ The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
 
 The map-package journey consumes the same authenticated `npm run prepare:render`
-path, extended to fourteen files from one protected immutable release revision
+path, extended to seventeen files from one protected immutable release revision
 (the eight render/setup dependencies plus map-package Python/JavaScript, the
-transparent wire observer, fixed launcher/SDK runner and package-file manifest). Hashes bind the complete set before import/setup
+transparent wire observer, fixed launcher/SDK runner, package-file manifest and
+three ingest/publication execution/state/oracle files). Hashes bind the complete set before import/setup
 and each call; no copied or mutable oracle fallback exists. The execution and
 judgment remain release-owned. The fixed launcher creates actual SDK and public
 Inspector processes and new sessions at the owned observer for every call/read.
@@ -246,3 +247,23 @@ The public Inspector's anonymous create discovery limitation remains a failure
 unless an actual anonymous tools/call server observation exists; local
 `tool_not_found` is never typed server refusal evidence. Release issue #695
 continues to own policy/cohort/adoption obligations.
+
+The ingest/publication journey runs after both ordinary SDK and Inspector lanes
+have closed their sessions, so restarting the disposable candidate cannot break
+an earlier bootstrap-bound operation mid-flight. It merges only the three new
+operation outcomes into each retained lane, using the actually installed root
+package version and the same fixed release-owned launcher. Partial raw evidence
+is uploaded even when publication, readback or anonymous invocation fails.
+
+Inline GeoJSON rows/attributes/geometry come from the authored sites fixture.
+The exact returned ingest tuple selects publication; missing connection hints
+never select the known bootstrap connection instead. Publication physical layer
+IDs remain distinct from public indexes returned by a fresh Published service
+resource. Queries use that actual resource-returned public index, independently
+checked against persisted PostGIS mapping. One committed statement observes data,
+mapping and revision; fresh resource/query sessions repeat after an exact owned
+container/image/source restart. This first path requires Completed; queued or
+approval-pending outcomes remain nonpass and async publication stays open under
+release699. This adds no large-cloud-import or hidden-side-effect-exclusion claim.
+The protected per-operation auth/cohort policy remains an explicit unmet global
+prerequisite; all82 rows and previous behavior requirements remain mandatory.

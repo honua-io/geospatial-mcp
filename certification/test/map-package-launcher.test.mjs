@@ -30,6 +30,9 @@ test("fixed launcher verifies actual named root package and every installed pack
 for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invokeClient("inspector")]]) {
   test(`actual ${runner} fixed process launches are asynchronous fresh sessions with isolated anonymous authority`, async () => {
     const credential = "controlled-map-client-key", sessions = new Map(), invocations = [], initializations = [];
+    const authored = { templateId: "controlled-template", styleId: "controlled-style", themeId: "controlled-theme",
+      sourceBindings: [{ bindingId: "controlled-area", protocol: "geoservices_feature_service", filter: "name = 'block'",
+        metadata: { purpose: "actual-client-argument-control" } }], initialView: { bbox: [-90, 0, -45, 60], crs: 4326 } };
     const server = createServer(async (incoming, outgoing) => {
       if (incoming.method === "GET") { outgoing.writeHead(405).end(); return; }
       if (incoming.method === "DELETE") { outgoing.writeHead(200).end(); return; }
@@ -51,6 +54,7 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
           if (message.method === "tools/list") result = { tools: [{ name: "honua_create_map_package",
             inputSchema: { type: "object", additionalProperties: true } }] };
           else if (message.method === "tools/call") {
+            assert.deepEqual(message.params.arguments, authored, "all five nested JSON arguments must reach the actual peer unchanged");
             invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential,
               authorization: incoming.headers.authorization, cookie: incoming.headers.cookie });
             if (incoming.headers["x-api-key"] === credential) result = { content: [{ type: "text", text: "controlled callback transport only" }] };
@@ -73,9 +77,9 @@ for (const [runner, invoke] of [["sdk", invokeClient("sdk")], ["inspector", invo
     try {
       await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
       const endpoint = `http://127.0.0.1:${server.address().port}/mcp`;
-      const created = await invoke("tools/call", { name: "honua_create_map_package", arguments: { authored: true } },
+      const created = await invoke("tools/call", { name: "honua_create_map_package", arguments: authored },
         { endpoint, authenticated: true }, credential);
-      const anonymousTool = await invoke("tools/call", { name: "honua_create_map_package", arguments: { authored: true } },
+      const anonymousTool = await invoke("tools/call", { name: "honua_create_map_package", arguments: authored },
         { endpoint, authenticated: false }, credential);
       const unknown = await invoke("resources/read", { uri: "honua://map-packages/map_missing" }, { endpoint, authenticated: true }, credential);
       const anonymous = await invoke("resources/read", { uri: "honua://map-packages/map_missing" }, { endpoint, authenticated: false }, credential);

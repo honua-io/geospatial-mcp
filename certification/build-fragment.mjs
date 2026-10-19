@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { authorityDecisions, verifyProtectedAuthority } from "./authority-validation.mjs";
 import { verifyPublishResultProof } from "./publish-result-validation.mjs";
 import { verifyExecutePlanProof } from "./execute-plan-validation.mjs";
 import { verifyStyleProof } from "./style-validation.mjs";
@@ -9,6 +10,7 @@ import { verifyRenderProof } from "./render-validation.mjs";
 import { verifyEntityResolution } from "./entity-resolution.mjs";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
 import { verifyCancellationProof } from "./cancellation-proof.mjs";
 import { verifyInspectorPaginationProof } from "./pagination-proof.mjs";
@@ -21,11 +23,16 @@ const canonical = (value) => Array.isArray(value)
     ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`
     : JSON.stringify(value);
 
-export function buildFragment({ identity, results, requirements, executedTier, now = new Date().toISOString() }) {
+export function buildFragment({ identity, results, requirements, authPolicy, executedTier, now = new Date().toISOString() }) {
   if (requirements?.schema !== "honua.protocol-certification-requirements/v1"
       || requirements.receipt_schema_min !== "v2" || requirements.complete !== true
       || typeof requirements.revision !== "string" || !requirements.revision
       || !Array.isArray(requirements.requirements)) throw new Error("missing governed v2 requirements catalog");
+  const decisions = authorityDecisions(authPolicy, requirements.requirements);
+  if (decisions.size !== OPERATIONS.length || OPERATIONS.some(([, operation]) => !decisions.has(operation))
+      || requirements.requirements.filter((row) => row.surface === "mcp").length !== OPERATIONS.length * Object.keys(CLIENTS).length) {
+    throw new Error("governed MCP source/cohort denominator differs; source convergence is required");
+  }
   const contexts = new Map();
   for (const [capabilityKey, operation] of OPERATIONS) {
     for (const client of Object.values(CLIENTS)) {
@@ -37,11 +44,12 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const row = matches[0];
       if (!["supported", "preview", "deprecated", "roadmap", "experimental", "internal"].includes(row.maturity)
           || !["pr", "nightly", "release"].includes(row.required_tier)
-          || canonical(row.scenario_facets) !== canonical(["positive", "negative", "media-schema"])
+          || canonical(row.scenario_facets) !== canonical(["positive", "negative", "media-schema", "auth"])
           || row.fixture_revision !== FIXTURE_REVISION || row.contract_revision !== CONTRACT_REVISION
-          || row.auth_policy_revision !== "anonymous-public-v1") throw new Error(`incompatible governed MCP context for ${operation}`);
+          || row.auth_policy_revision !== decisions.get(operation)) throw new Error(`incompatible governed MCP context for ${operation}`);
       contexts.set(`${client.canonicalClient}:${operation}`, { maturity: row.maturity,
-        required_tier: row.required_tier, requirements_revision: requirements.revision });
+        required_tier: row.required_tier, requirements_revision: requirements.revision,
+        auth_policy_revision: row.auth_policy_revision });
     }
   }
   const tiers = ["pr", "nightly", "release"];
@@ -82,35 +90,18 @@ export function buildFragment({ identity, results, requirements, executedTier, n
       const mapPackageSemantic = ["tools/call:create_map_package", "resources/read:Map package"].includes(operation);
       const mapPackagePassed = !mapPackageSemantic || verifyMapPackageProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      // The current governed catalog permits only anonymous-public-v1. The
-      // authored package resource requires authentication. Retain adapter
-      // proof, but no receipt can misstate that unresolved policy boundary.
-      const mapPackagePolicyPassed = !mapPackageSemantic;
       const ingestPublishSemantic = ["tools/call:ingest_dataset", "tools/call:publish_service", "resources/read:Published service"].includes(operation);
       const ingestPublishPassed = !ingestPublishSemantic || verifyIngestPublishProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      // Protected-operation policy/cohort adoption remains owned by release695.
-      // These authenticated mutation/read journeys cannot claim the frozen
-      // anonymous-public-v1 requirement even when their semantic proof passes.
-      const ingestPublishPolicyPassed = !ingestPublishSemantic;
       const styleSemantic = ["tools/call:get_style", "tools/call:apply_style_preset"].includes(operation);
       const stylePassed = !styleSemantic || verifyStyleProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      // These protected operations cannot satisfy the frozen anonymous-public-v1
-      // policy/cohort. Release695 adoption remains explicit and unqualified.
-      const stylePolicyPassed = !styleSemantic;
       const executeSemantic = operation === "tools/call:execute_plan";
       const executePassed = !executeSemantic || verifyExecutePlanProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      // Actual authenticated execution cannot satisfy the frozen public policy;
-      // source implementation is separate from release695 cohort/auth adoption.
-      const executePolicyPassed = !executeSemantic;
       const publishResultSemantic = operation === "tools/call:publish_result";
       const publishResultPassed = !publishResultSemantic || verifyPublishResultProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      // Protected publication cannot satisfy the frozen anonymous-public policy.
-      // Keep release695 auth/cohort adoption independent of authored path proof.
-      const publishResultPolicyPassed = !publishResultSemantic;
       const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || publishResultSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
@@ -121,13 +112,15 @@ export function buildFragment({ identity, results, requirements, executedTier, n
           results[clientKey]?.checks?.["behavior/resources-pagination"]?.value, identity.sourceSha, client.version))
         && (!semantic || (cancellation.seedSqlSha256 === proof?.seedSqlSha256
           && cancellation.allocatedIdsSha256 === proof?.allocatedIdsSha256));
+      const authorityPassed = context.auth_policy_revision === "mcp-protected-operation-v1"
+        && verifyProtectedAuthority(proof, identity, operation, client);
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && mapPackagePolicyPassed && ingestPublishPassed && ingestPublishPolicyPassed && stylePassed && stylePolicyPassed && executePassed && executePolicyPassed && publishResultPassed && publishResultPolicyPassed && entityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed && entityPassed && authorityPassed
           ? "pass"
           : "skip";
-      const scenarioFacets = ["positive", "negative", "media-schema"];
+      const scenarioFacets = ["positive", "negative", "media-schema", "auth"];
       const receipt = result === "pass" ? {
         schema: "honua.certification-evidence-receipt/v2",
         identity: {
@@ -143,7 +136,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
           image_digest: identity.imageDigest,
           fixture_revision: FIXTURE_REVISION,
           contract_revision: CONTRACT_REVISION,
-          auth_policy_revision: "anonymous-public-v1",
+          auth_policy_revision: context.auth_policy_revision,
           started_at: execution.startedAt ?? identity.startedAt,
           completed_at: execution.completedAt ?? now,
         },
@@ -171,13 +164,12 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         result,
         skip_reason: result === "skip"
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
-            : mapPackageSemantic ? `authenticated package journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : ingestPublishSemantic ? `authenticated ingest/publication journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : publishResultSemantic ? `authenticated worker-result publication journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : executeSemantic ? `authenticated execution journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : styleSemantic ? `authenticated style journey conflicts with governed anonymous-public-v1 policy: ${RELEASE_123}`
-            : (semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || publishResultSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
-            : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
+            : !executable ? `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
+            : execution?.result !== "pass" ? `${client.canonicalClient} check did not pass: ${RELEASE_123}`
+            : !(semanticPassed && entityPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : !authorityPassed ? `candidate-bound caller/session authority proof did not pass: ${RELEASE_123}`
+            : !behaviorPassed ? `candidate-bound global behavior proof did not pass: ${RELEASE_123}`
+            : `${client.canonicalClient} check did not pass: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,
         producer_source_sha: identity.producerSourceSha,
@@ -185,7 +177,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         runtime_environment: identity.runtimeEnvironment,
         fixture_revision: FIXTURE_REVISION,
         contract_revision: CONTRACT_REVISION,
-        auth_policy_revision: "anonymous-public-v1",
+        auth_policy_revision: context.auth_policy_revision,
         evidence_uri: digest ? `https://evidence.honua.io/data/sha256/${digest.slice(7)}` : null,
         evidence_digest: digest,
         evidence_receipt: receipt,
@@ -208,5 +200,6 @@ export function buildFragment({ identity, results, requirements, executedTier, n
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const input = JSON.parse(await readFile(process.argv[2], "utf8"));
   input.requirements = JSON.parse(await readFile(process.argv[4], "utf8"));
+  input.authPolicy = JSON.parse(await readFile(join(dirname(resolve(process.argv[4])), "mcp-operation-auth-policy.v1.json"), "utf8"));
   await writeFile(process.argv[3], `${JSON.stringify(buildFragment(input), null, 2)}\n`);
 }

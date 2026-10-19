@@ -21,8 +21,12 @@ def fixtures():
     pins.pop("requirementsRevision")
     pins["sha256"] = {new: pins["sha256"][prior] for prior, new in zip(old, MODULE.PATHS[:2], strict=True)}
     tree = responses[f'repos/{pins["repository"]}/git/trees/{pins["sourceSha"]}?recursive=1']
-    for entry, path in zip(tree["tree"], MODULE.PATHS[:2], strict=True):
-        entry["path"] = path
+    # A protected repository tree also contains unrelated governance files.
+    # Remap only the two reviewed source fixtures, preserving that real shape.
+    mapping = dict(zip(old, MODULE.PATHS[:2], strict=True))
+    for entry in tree["tree"]:
+        if entry["path"] in mapping:
+            entry["path"] = mapping[entry["path"]]
     module_bytes = b"// controlled fixture module; never executed\n"
     blob = hashlib.sha1(b"blob " + str(len(module_bytes)).encode() + b"\0" + module_bytes).hexdigest()
     pins["sha256"][MODULE.PATHS[2]] = hashlib.sha256(module_bytes).hexdigest()

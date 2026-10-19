@@ -512,6 +512,7 @@ jobs:
             certification/package-lock.json
             artifacts/mcp/builder-input.json
             .certification/protocol-certification-requirements.v1.json
+            .certification/mcp-operation-auth-policy.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql
             .certification/fixture-row-ids.json

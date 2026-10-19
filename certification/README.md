@@ -277,3 +277,10 @@ setup/scenario/oracle/state code belongs to honua-release. The unchanged82-row
 catalog still requires per-operation auth/cohort/global/current-candidate proof;
 protected styles cannot satisfy the frozen anonymous-public-v1 policy. Offline
 controls and historical source paths never qualify that boundary.
+
+The owned workflow provisions append-only Redis with an isolated persistent volume,
+`everysec` fsync and `noeviction`, and verifies CONFIG/INFO before startup. It uses
+the documented 2026.1 `Licensing__Mode=Disabled` deployment setting and a private
+operator certificate for the encrypted durable key ring. Startup requires an
+attested durable store; observed license mode and durable-job/proposal availability
+are checked before the journey. No product licensing policy or guardrail is changed.

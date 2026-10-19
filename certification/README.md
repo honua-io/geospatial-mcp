@@ -390,7 +390,6 @@ Source controls generate their explicitly offline vector with
 production and control dependencies at the same reviewed source. The retained
 vector records every source blob and preserves the original bootstrap bytes.
 
-
 The Ops health consumer uses a separate complete 18-file protected bundle through
 `npm run prepare:ops-health`. Both original operations run through the installed
 SDK and Inspector, retaining independent owned Postgres/Redis observations,

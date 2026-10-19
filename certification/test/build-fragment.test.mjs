@@ -672,3 +672,56 @@ test("source controls run independently of frozen catalog and candidate qualific
   for (const absent of ["requirements_ref:","--requirements-revision","continue-on-error:","docker run","train_apply"])
     assert.equal(workflow.includes(absent),false,absent);
 });
+
+test("complete offline app oracle joins all four primary operations, review authority and unchanged global gates", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-app-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /offline.*no.*candidate/i);
+  const proof = vector.proof;
+  const selectedIdentity = { ...identity, sourceSha: proof.candidateSourceSha, imageDigest: proof.candidateImage.split("@").at(-1) };
+  const operations = ["tools/call:create_app_package", "resources/read:App package", "tools/call:validate_package", "tools/call:preview_package"];
+  const checks = { ...passing("sdk"), "behavior/cancellation": { result: "pass", value: {
+    ...syntheticCancellationProof(), fixtureSourceSha: selectedIdentity.sourceSha } },
+  ...Object.fromEntries(operations.map(operation => [operation, { result: "pass", value: proof }])) };
+  const joined = (sdkChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: { sdk: { protocolVersion: "2025-06-18", checks: sdkChecks },
+      inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") } } });
+  const selected = fragment => fragment.observations.filter(row => operations.includes(row.operation)
+    && row.canonical_client === CLIENTS.sdk.canonicalClient);
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const directory = mkdtempSync(join(tmpdir(), "offline-app-join-"));
+  const bytes = Buffer.from(vector.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), vector.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json"); writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bytes);
+  try {
+    const positive = selected(joined(checks));
+    assert.equal(positive.length, 4);
+    for (const row of positive) {
+      assert.equal(row.result, "pass", row.operation);
+      assert.equal(row.evidence_receipt.facets.auth, "pass");
+      assert.deepEqual(row.scenario_facets, ["positive", "negative", "media-schema", "auth"]);
+    }
+    for (const mutation of ["no-reviews", "no-review-anonymous", "review-credentials", "review-session", "wrong-review-tool",
+      "fake-map", "fake-artifact", "no-raw", "no-cancellation", "failed-cancellation", "no-global-auth", "under-tier"]) {
+      const broken = structuredClone(checks), changed = broken[operations[0]].value;
+      if (mutation === "no-reviews") delete changed.observations.reviews;
+      else if (mutation === "no-review-anonymous") changed.observations.reviews = changed.observations.reviews.filter(item => item.authenticated);
+      else if (mutation === "review-credentials") changed.observations.reviews.find(item => !item.authenticated).wire.invocation.request.credentialPresent = true;
+      else if (mutation === "review-session") changed.observations.reviews[0].wire.initialize.response.sessionSha256 =
+        changed.observations.cases[0].wire.initialize.response.sessionSha256;
+      else if (mutation === "wrong-review-tool") changed.observations.reviews[0].wire.expectedParams.name = "honua_preview_package";
+      else if (mutation === "fake-map") changed.observations.prerequisites.map.result.structuredContent.package.mapPackageId = "map_uncreated";
+      else if (mutation === "fake-artifact") changed.observations.prerequisites.execution.snapshots.completed.results = [];
+      else if (mutation === "no-raw") delete changed.observations;
+      else if (mutation === "no-cancellation") delete broken["behavior/cancellation"];
+      else if (mutation === "failed-cancellation") broken["behavior/cancellation"].result = "fail";
+      else if (mutation === "no-global-auth") delete broken["behavior/auth"];
+      for (const row of selected(joined(broken, mutation === "under-tier" ? "pr" : "release"))) {
+        assert.notEqual(row.result, "pass", `${mutation}: ${row.operation}`);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

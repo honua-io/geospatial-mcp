@@ -37,6 +37,8 @@ jobs:
         run: |
           npm run prepare:plan
           npm run prepare:render
+          npm run prepare:app
+          python3 generate-offline-app-vector.py
           npm run prepare:location
       - name: Generate protected-source offline location oracle vectors
         env:
@@ -79,6 +81,9 @@ jobs:
             certification/.location-validation/source-binding.json
             certification/location-validation-pins.json
             certification/test/fixtures/offline-location-oracle-vector.json
+            certification/.app-validation/source-binding.json
+            certification/app-validation-pins.json
+            certification/test/fixtures/offline-app-oracle-vector.json
             certification/.source-controls/check_protocol_certification.py
             certification/requirements-pins.json
             certification/test/fixtures/historical-execute-plan-39284007212.json

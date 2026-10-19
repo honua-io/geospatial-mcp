@@ -10,3 +10,9 @@ certification/.plan-validation/
 certification/.render-validation/
 certification/.location-validation/
 certification/test/fixtures/offline-location-oracle-vector.json
+
+certification/.app-validation/
+
+certification/.source-controls/
+
+certification/test/fixtures/offline-app-oracle-vector.json

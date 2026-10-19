@@ -151,7 +151,7 @@ jobs:
         working-directory: certification
         run: npm run prepare:plan
 
-      - name: Fetch immutable protected complete render scenario and setup source
+      - name: Fetch immutable protected complete render and map-package source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: certification
@@ -380,6 +380,7 @@ jobs:
             certification/artifacts/server-harness-source-binding.json
             certification/artifacts/*.plan-validation.raw.json
             certification/artifacts/*.render-validation.raw.json
+            certification/artifacts/*.map-package.raw.json
             certification/artifacts/render-bootstrap.json
             certification/.plan-validation/source-binding.json
             certification/.render-validation/source-binding.json

@@ -207,3 +207,27 @@ no matches; an invalid limit must preserve the typed server refusal. All four
 raw request/response pairs are retained, including failed or partial attempts.
 The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
+
+The map-package journey consumes the same authenticated `npm run prepare:render`
+path, extended to eleven files from one protected immutable release revision
+(the eight render/setup dependencies plus the map-package Python/JavaScript and
+transparent wire observer). Hashes bind the complete set before import/setup
+and each call; no copied or mutable oracle fallback exists. The execution and
+judgment remain release-owned. Actual SDK and public Inspector callbacks create
+new sessions/processes at the owned loopback observer for every tool call/read.
+Inspector uses asynchronous `spawn` while the observer serves the same event
+loop, and a new empty auth/catalog/storage directory prevents inherited
+anonymous credentials. Original CLI diagnostics remain separate from original
+server wire bytes; numeric errors discarded by Inspector are observer evidence.
+Only credential fingerprints (salted scrypt) and session hashes are retained.
+
+This journey checks explicit source selectors/filter/metadata and independently
+authored extent, two typed invalid selectors, fresh identifier/lifecycle readback,
+unknown URI and anonymous refusal. The current draft store is bounded per-replica
+scratch; restart/another replica may lose it. This does not prove durable save,
+full saved-body readback, deployment, catalog/style resolution or live-model
+composition. Its raw adapter proof cannot mint an anonymous-public-v1 receipt:
+the current governed policy conflicts with authenticated package reads and
+remains explicitly nonpassing. All 82 governed rows, installed-versus-selected
+client-version mismatch and existing global behavior/cancellation gates remain
+required. A historical image run adds adapter evidence only.

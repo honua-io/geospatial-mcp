@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const names = ["mcp_render_bootstrap.py", "regression.py", "oracles.py", "mcp_plan_validation.py", "render_png.py",
   "fixture.v1.json", "mcp_render_validation.py", "mcp_render_validation.mjs"];
-const setupNames = names.slice(0, 6);
+const setupNames = names.slice(0, 7);
 const runtimeNames = ["mcp_render_validation.py", "render_png.py", "fixture.v1.json"];
 const prefix = "certification/installed-clients/";
 const paths = names.map((name) => prefix + name);

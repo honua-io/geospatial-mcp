@@ -1,12 +1,12 @@
 import { planScenarios } from "../plan-validation.mjs";
 import { renderScenarios } from "../render-validation.mjs";
-import { controlledRenderBootstrap, controlledRenderResponse } from "./render-fixture.mjs";
+import { controlledRenderBootstrap, controlledRenderResponse, controlledDockerProgram } from "./render-fixture.mjs";
 import { entityObservations } from "./entity-fixture.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, delimiter } from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { buildFragment as build } from "../build-fragment.mjs";
@@ -390,7 +390,7 @@ test("render claims without retained bound oracle proof never receive receipts",
 });
 
 test("render receipts require rejudged raw geometry/media, exact bootstrap/candidate and every global behavior", async () => {
-  const keys = ["HONUA_MCP_SERVER_SOURCE_SHA", "HONUA_MCP_SERVER_IMAGE", "HONUA_MCP_RENDER_BOOTSTRAP", "CERT_RESULTS"];
+  const keys = ["HONUA_MCP_SERVER_SOURCE_SHA", "HONUA_MCP_SERVER_IMAGE", "HONUA_MCP_RENDER_BOOTSTRAP", "CERT_RESULTS", "PATH"];
   const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   const directory = mkdtempSync(join(tmpdir(), "mcp-render-fragment-"));
   const candidateImage = `ghcr.io/honua-io/honua-server@${identity.imageDigest}`;
@@ -400,8 +400,11 @@ test("render receipts require rejudged raw geometry/media, exact bootstrap/candi
     process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "bootstrap.json");
     process.env.CERT_RESULTS = join(directory, "results.json");
     const pins = JSON.parse(readFileSync(new URL("../render-validation-pins.json", import.meta.url), "utf8"));
-    writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, JSON.stringify(controlledRenderBootstrap(identity.sourceSha, candidateImage,
-      `sha256:${pins.sha256["certification/installed-clients/fixture.v1.json"]}`)));
+    const bootstrap = controlledRenderBootstrap(identity.sourceSha, candidateImage,
+      `sha256:${pins.sha256["certification/installed-clients/fixture.v1.json"]}`);
+    writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, JSON.stringify(bootstrap));
+    writeFileSync(join(directory, "docker"), controlledDockerProgram(bootstrap.runtimeBinding), { mode: 0o755 });
+    process.env.PATH = directory + delimiter + before.PATH;
     const checks = passing("sdk");
     await renderScenarios(async (_tool, arguments_) => controlledRenderResponse(arguments_),
       async (name, run) => { checks[name] = { result: "pass", value: await run() }; });
@@ -409,13 +412,14 @@ test("render receipts require rejudged raw geometry/media, exact bootstrap/candi
       sdk: { protocolVersion: "2025-06-18", checks: sdkChecks }, inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
     } }).observations.find((item) => item.operation === "tools/call:render_map" && item.canonical_client === CLIENTS.sdk.canonicalClient);
     assert.equal(row(checks).result, "pass");
-    for (const mutation of ["source", "image", "oracle", "media", "negative", "missing-raw", "null-raw", "no-auth", "no-cancellation"]) {
+    for (const mutation of ["source", "image", "oracle", "media", "negative", "runtime-before", "runtime-after", "missing-raw", "null-raw", "no-auth", "no-cancellation"]) {
       const broken = structuredClone(checks), proof = broken["tools/call:render_map"].value;
       if (mutation === "source") proof.candidateSourceSha = "d".repeat(40);
       else if (mutation === "image") proof.candidateImage = candidateImage.replace(identity.imageDigest, `sha256:${"d".repeat(64)}`);
       else if (mutation === "oracle") proof.pngOracleSha256 = `sha256:${"0".repeat(64)}`;
       else if (mutation === "media") proof.observations.cases[0].result.content[1].mimeType = "image/jpeg";
       else if (mutation === "negative") proof.observations.cases[2].result.structuredContent.code = "internal";
+      else if (mutation === "runtime-before" || mutation === "runtime-after") proof.observations[mutation === "runtime-before" ? "runtimeBefore" : "runtimeAfter"].startedAt = "changed";
       else if (mutation === "missing-raw") delete proof.observations;
       else if (mutation === "null-raw") proof.observations = null;
       else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";

@@ -29,6 +29,9 @@ PostGIS envelope/SRID/type, and binds the canonical service/publication IDs to
 the allocated storage layer, connection and table. The retained
 `artifacts/render-bootstrap.json` contains identities and safe failure phases,
 never setup credentials. Failed setup prevents render calls and remains nonpass.
+The release-owned scenario rechecks the actual container before and after each
+client's calls and retains both observations; changed container/image/start
+identity cannot inherit the bootstrap's source attribution.
 
 Both actual clients call the release-owned authored inline PNG render plus
 reversed-bbox and unknown-owned-layer cases. Raw full/partial tool envelopes are

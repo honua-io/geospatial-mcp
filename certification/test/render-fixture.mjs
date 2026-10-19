@@ -28,6 +28,12 @@ export function controlledRenderBootstrap(candidateSourceSha, candidateImage, fi
   };
 }
 
+export function controlledDockerProgram(runtime) {
+  // Explicit offline executable fixture for the release-owned live inspector.
+  // Canonical producers inherit the real Docker binary and never import this.
+  return `#!/usr/bin/env node\nconst state=${JSON.stringify(runtime)};\nconsole.log(JSON.stringify(process.argv[2]==='image' ? {imageId:state.imageId,sourceSha:state.candidateSourceSha,repoDigests:[state.candidateImage]} : Object.fromEntries(['running','imageId','imageReference','startedAt','containerId'].map(key=>[key,state[key]]))));\n`;
+}
+
 export function controlledRenderResponse(arguments_) {
   const invalidBbox = arguments_.bbox[0] > arguments_.bbox[2];
   const missing = arguments_.layers[0].layerId === 2147483647;

@@ -385,6 +385,7 @@ test("render claims without retained bound oracle proof never receive receipts",
     const row = fragment.observations.find((item) => item.operation === "tools/call:render_map" && item.canonical_client === CLIENTS.sdk.canonicalClient);
     assert.equal(row.result, "skip");
     assert.equal(row.evidence_receipt, null);
+    assert.match(row.skip_reason, /candidate-bound semantic proof did not pass:.*release\/issues\/123/);
     assert.equal(fragment.observations.length, 82);
   }
 });

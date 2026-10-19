@@ -134,7 +134,7 @@ export function buildFragment({ identity, results, requirements, executedTier, n
         result,
         skip_reason: result === "skip"
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
-            : (semantic || planSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : (semantic || planSemantic || renderSemantic) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : executable ? `${client.canonicalClient} check did not pass` : `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
           : null,
         source_sha: identity.sourceSha,

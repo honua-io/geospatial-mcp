@@ -96,7 +96,7 @@ await renderScenarios(async (name, arguments_) => {
   catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
 });
 await mapPackageScenarios((name, arguments_, options) => inspectorMapRequest("tools/call", { name, arguments: arguments_ },
-  { ...options, authenticated: true }, process.env.HONUA_MCP_API_KEY),
+  options, process.env.HONUA_MCP_API_KEY),
 (uri, options) => inspectorMapRequest("resources/read", { uri }, options, process.env.HONUA_MCP_API_KEY),
 async (name, run) => {
   const startedAt = new Date().toISOString();

@@ -56,7 +56,7 @@ if (checks.initialize.result === "pass") {
   await planScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await renderScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await mapPackageScenarios((name, arguments_, options) => sdkMapRequest("tools/call", { name, arguments: arguments_ },
-    { ...options, authenticated: true }, process.env.HONUA_MCP_API_KEY),
+    options, process.env.HONUA_MCP_API_KEY),
   (uri, options) => sdkMapRequest("resources/read", { uri }, options, process.env.HONUA_MCP_API_KEY),
   record, CLIENTS.sdk.canonicalClient, CLIENTS.sdk.version);
   await record("behavior/error", () => missingTool(client));

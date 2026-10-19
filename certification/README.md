@@ -223,7 +223,8 @@ Only credential fingerprints (salted scrypt) and session hashes are retained.
 
 This journey checks explicit source selectors/filter/metadata and independently
 authored extent, two typed invalid selectors, fresh identifier/lifecycle readback,
-unknown URI and anonymous refusal. The current draft store is bounded per-replica
+unknown URI and fresh anonymous creation/resource refusals. A local Inspector
+catalog refusal without the actual tool wire request remains nonpass. The current draft store is bounded per-replica
 scratch; restart/another replica may lose it. This does not prove durable save,
 full saved-body readback, deployment, catalog/style resolution or live-model
 composition. Its raw adapter proof cannot mint an anonymous-public-v1 receipt:

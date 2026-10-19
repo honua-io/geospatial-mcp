@@ -36,8 +36,11 @@ for (const [runner, invoke] of [["sdk", sdkMapRequest], ["inspector", inspectorM
           if (message.method === "tools/list") result = { tools: [{ name: "honua_create_map_package",
             inputSchema: { type: "object", additionalProperties: true } }] };
           else if (message.method === "tools/call") {
-            invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential });
-            result = { content: [{ type: "text", text: "controlled callback transport only" }] };
+            invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential,
+              authorization: incoming.headers.authorization, cookie: incoming.headers.cookie });
+            if (incoming.headers["x-api-key"] === credential) result = { content: [{ type: "text", text: "controlled callback transport only" }] };
+            else error = { code: -32000, message: "Controlled creation requires authentication", data: {
+              code: "unauthenticated", requiresReauthentication: true } };
           } else if (message.method === "resources/read") {
             invocations.push({ session, method: message.method, authenticated: incoming.headers["x-api-key"] === credential,
               authorization: incoming.headers.authorization, cookie: incoming.headers.cookie });
@@ -57,14 +60,19 @@ for (const [runner, invoke] of [["sdk", sdkMapRequest], ["inspector", inspectorM
       const endpoint = `http://127.0.0.1:${server.address().port}/mcp`;
       const created = await invoke("tools/call", { name: "honua_create_map_package", arguments: { authored: true } },
         { endpoint, authenticated: true }, credential);
+      const anonymousTool = await invoke("tools/call", { name: "honua_create_map_package", arguments: { authored: true } },
+        { endpoint, authenticated: false }, credential);
       const unknown = await invoke("resources/read", { uri: "honua://map-packages/map_missing" }, { endpoint, authenticated: true }, credential);
       const anonymous = await invoke("resources/read", { uri: "honua://map-packages/map_missing" }, { endpoint, authenticated: false }, credential);
-      assert.equal(initializations.length, 3);
-      assert.equal(new Set(initializations.map((item) => item.session)).size, 3);
-      assert.deepEqual(initializations.map((item) => item.authenticated), [true, true, false]);
-      assert.deepEqual(invocations.map((item) => item.authenticated), [true, true, false]);
-      assert.equal(invocations[2].authorization, undefined); assert.equal(invocations[2].cookie, undefined);
-      for (const value of [created, unknown, anonymous]) {
+      assert.equal(initializations.length, 4);
+      assert.equal(new Set(initializations.map((item) => item.session)).size, 4);
+      assert.deepEqual(initializations.map((item) => item.authenticated), [true, false, true, false]);
+      assert.deepEqual(invocations.map((item) => item.authenticated), [true, false, true, false]);
+      for (const index of [1, 3]) {
+        assert.equal(invocations[index].authorization, undefined); assert.equal(invocations[index].cookie, undefined);
+      }
+      const outcomes = [created, anonymousTool, unknown, anonymous];
+      for (const value of outcomes) {
         assert.equal(value.canonicalClient, CLIENTS[runner].canonicalClient);
         assert.equal(value.version, CLIENTS[runner].version);
         assert.equal(value.requestUrl, endpoint);
@@ -72,17 +80,21 @@ for (const [runner, invoke] of [["sdk", sdkMapRequest], ["inspector", inspectorM
       }
       if (runner === "sdk") {
         assert.equal(unknown.output.error.code, -32002);
+        assert.equal(anonymousTool.output.error.data.requiresReauthentication, true);
         assert.equal(anonymous.output.error.data.requiresReauthentication, true);
-        assert.equal(new Set([created, unknown, anonymous].map((item) => item.sessionSha256)).size, 3);
+        assert.equal(new Set(outcomes.map((item) => item.sessionSha256)).size, 4);
       } else {
         assert.equal(created.exitCode, 0);
         assert.equal(unknown.exitCode, 2);
         assert.ok([2, 3].includes(anonymous.exitCode));
+        assert.ok([2, 3].includes(anonymousTool.exitCode));
+        assert.equal(anonymousTool.stdout, "");
+        assert.match(anonymousTool.stderr, /Controlled creation requires authentication/);
         assert.equal(unknown.stdout, "");
         assert.match(unknown.stderr, /Controlled package missing/);
         assert.match(anonymous.stderr, /Controlled package requires authentication/);
-        assert.equal(new Set([created, unknown, anonymous].map((item) => item.processId)).size, 3);
-        assert.ok([created, unknown, anonymous].every((item) => item.exitSignal === null && item.timedOut === false));
+        assert.equal(new Set(outcomes.map((item) => item.processId)).size, 4);
+        assert.ok(outcomes.every((item) => item.exitSignal === null && item.timedOut === false));
       }
     } finally { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
   });

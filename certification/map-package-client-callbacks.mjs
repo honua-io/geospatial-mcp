@@ -65,8 +65,11 @@ export async function inspectorMapRequest(method, params, { endpoint, authentica
   const url = endpointUrl(endpoint);
   const directory = await mkdtemp(join(tmpdir(), "mcp-map-package-inspector-"));
   const args = ["--cli", url.href, "--transport", "http", "--method", method, "--format", "json", "--stored-auth-only"];
-  if (method === "tools/call") args.push("--metadata", 'honua.io/workflow-view="full"', "--tool-name", params.name, "--tool-arg",
-    ...Object.entries(params.arguments).map(([key, value]) => `${key}=${JSON.stringify(value)}`));
+  if (method === "tools/call") {
+    args.push("--tool-name", params.name, "--tool-arg",
+      ...Object.entries(params.arguments).map(([key, value]) => `${key}=${JSON.stringify(value)}`));
+    if (authenticated) args.push("--metadata", 'honua.io/workflow-view="full"');
+  }
   else if (method === "resources/read") args.push("--uri", params.uri);
   else { await rm(directory, { recursive: true, force: true }); throw new Error("unsupported actual map client method"); }
   if (authenticated) args.push("--header", `X-API-Key: ${credential}`);

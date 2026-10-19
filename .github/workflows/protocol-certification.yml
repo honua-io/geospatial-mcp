@@ -166,6 +166,15 @@ jobs:
         working-directory: certification
         run: npm run prepare:app
 
+      - name: Generate protected-source offline oracle controls
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: certification
+        run: |
+          python3 generate-offline-app-vector.py
+          python3 generate-offline-location-vector.py
+          python3 generate-offline-ops-health-vector.py
+
       - name: Verify pinned clients and corpus
         run: |
           npm ci --ignore-scripts
@@ -525,6 +534,9 @@ jobs:
             certification/location-validation-pins.json
             certification/.ops-health-validation/source-binding.json
             certification/ops-health-validation-pins.json
+            certification/test/fixtures/offline-app-oracle-vector.json
+            certification/test/fixtures/offline-location-oracle-vector.json
+            certification/test/fixtures/offline-ops-health-oracle-vector.json
             certification/.render-validation/mcp_fixed_client_manifest.v1.json
             certification/package.json
             certification/package-lock.json

@@ -296,7 +296,6 @@ failure. No fixture planner, cancellation or worker-cessation credit is implied.
 All 82 rows and current auth/cohort/global prerequisites remain required; a failed
 historical-image diagnostic never qualifies the intended release candidate.
 
-
 The thin `publish-result-validation.mjs` consumer invokes the protected
 release-owned genuine worker result publication producer. All Console workflow
 setup, worker/spec/committed receipt correlation, independent SQL/Redis and

@@ -23,7 +23,8 @@ export function controlledRenderBootstrap(candidateSourceSha, candidateImage, fi
     ownedArea: { serviceId: "controlled-service-id", serviceName: "sdkreg-area", layerId: 3,
       storageLayerId: 17, locator: "honua_data.sdkreg_area", connectionId: "controlled-connection" },
     runtimeBinding: { schema: "honua.mcp-render-runtime/v1", running: true, candidateSourceSha, candidateImage,
-      imageReference: candidateImage, imageId: `sha256:${"d".repeat(64)}`, containerId: "f".repeat(64), startedAt: "2026-10-19T00:00:00Z" },
+      imageReference: candidateImage, imageId: `sha256:${"d".repeat(64)}`, containerId: "f".repeat(64), startedAt: "2026-10-19T00:00:00Z",
+      imageReadback: { imageId: `sha256:${"d".repeat(64)}`, sourceSha: candidateSourceSha, repoDigests: [candidateImage] } },
     areaReadback: [{ gid: 1, name: "block", envelope: [-90, 0, -45, 60], srid: 4326, geometryType: "ST_Polygon" }],
   };
 }
@@ -31,7 +32,7 @@ export function controlledRenderBootstrap(candidateSourceSha, candidateImage, fi
 export function controlledDockerProgram(runtime) {
   // Explicit offline executable fixture for the release-owned live inspector.
   // Canonical producers inherit the real Docker binary and never import this.
-  return `#!/usr/bin/env node\nconst state=${JSON.stringify(runtime)};\nconsole.log(JSON.stringify(process.argv[2]==='image' ? {imageId:state.imageId,sourceSha:state.candidateSourceSha,repoDigests:[state.candidateImage]} : Object.fromEntries(['running','imageId','imageReference','startedAt','containerId'].map(key=>[key,state[key]]))));\n`;
+  return `#!/usr/bin/env node\nconst state=${JSON.stringify(runtime)};\nconsole.log(JSON.stringify(process.argv[2]==='image' ? state.imageReadback : Object.fromEntries(['running','imageId','imageReference','startedAt','containerId'].map(key=>[key,state[key]]))));\n`;
 }
 
 export function controlledRenderResponse(arguments_) {

@@ -7,7 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const names = ["mcp_render_bootstrap.py", "regression.py", "oracles.py", "mcp_plan_validation.py", "render_png.py",
   "fixture.v1.json", "mcp_render_validation.py", "mcp_render_validation.mjs",
   "mcp_map_package_validation.py", "mcp_map_package_validation.mjs", "mcp_candidate_wire.mjs",
-  "mcp_fixed_client_launcher.mjs", "mcp_fixed_sdk_runner.mjs", "mcp_fixed_client_manifest.v1.json"];
+  "mcp_fixed_client_launcher.mjs", "mcp_fixed_sdk_runner.mjs", "mcp_fixed_client_manifest.v1.json",
+    "mcp_ingest_publish_validation.py", "mcp_ingest_publish_state.py", "mcp_ingest_publish_validation.mjs"];
 const setupNames = names.slice(0, 7);
 const runtimeNames = ["mcp_render_validation.py", "render_png.py", "fixture.v1.json"];
 const prefix = "certification/installed-clients/";

@@ -357,6 +357,7 @@ jobs:
             artifacts/mcp/protocol-certification-fragment.json
             certification/artifacts/sdk-results.json
             certification/artifacts/inspector-results.json
+            certification/artifacts/*.entity-resolution.raw.json
             certification/artifacts/server-harness-source-binding.json
             certification/artifacts/*.plan-validation.raw.json
             certification/.plan-validation/source-binding.json

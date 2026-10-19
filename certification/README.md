@@ -156,3 +156,10 @@ invalid-WKB rejection. `build-fragment.mjs` reruns that same oracle and checks i
 source, fixture and candidate binding before admitting this one operation. All
 82 governed rows and existing authentication/error/cancellation/pagination gates
 remain required; this producer does not submit a GP job or qualify missing rows.
+Entity grounding calls `honua_resolve_entity` through each installed canonical
+client using the candidate-bound authored service name and ID. Exact identity,
+ranking, count and JSON representations must agree. A missing name must return
+no matches; an invalid limit must preserve the typed server refusal. All four
+raw request/response pairs are retained, including failed or partial attempts.
+The fragment builder rejudges those observations and still requires the same
+candidate, seed and global behavior evidence before admitting either row.

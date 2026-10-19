@@ -1,4 +1,5 @@
 import { planScenarios } from "../plan-validation.mjs";
+import { entityObservations } from "./entity-fixture.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, mkdtempSync, rmSync } from "node:fs";
@@ -341,5 +342,27 @@ test("authored plan evidence is admitted only with exact source, raw oracle proo
     if (resultsBefore === undefined) delete process.env.CERT_RESULTS;
     else process.env.CERT_RESULTS = resultsBefore;
     rmSync(retained, { recursive: true, force: true });
+  }
+});
+
+test("entity receipts rejudge raw observations and retain candidate and global behavior requirements", () => {
+  const semantic = { result: "pass", value: { schema: "honua.mcp-read-semantic-proof/v1", positive: true, negative: true,
+    mediaSchema: true, fixtureSourceSha: identity.sourceSha, seedSqlSha256: `sha256:${"d".repeat(64)}`,
+    allocatedIdsSha256: `sha256:${"e".repeat(64)}`, entityResolution: entityObservations() } };
+  const checks = { ...passing("sdk"), "tools/call:resolve_entity": semantic };
+  const row = (value) => buildFragment({ identity, results: {
+    sdk: { protocolVersion: "2025-06-18", checks: value }, inspector: { protocolVersion: "2025-06-18", checks: passing("inspector") },
+  } }).observations.find((entry) => entry.canonical_client === CLIENTS.sdk.canonicalClient && entry.operation === "tools/call:resolve_entity");
+  assert.equal(row(checks).result, "pass");
+  for (const mutation of ["missing-raw", "wrong-raw", "wrong-source", "wrong-seed", "no-auth", "no-cancellation"]) {
+    const broken = structuredClone(checks);
+    const proof = broken["tools/call:resolve_entity"].value;
+    if (mutation === "missing-raw") delete proof.entityResolution;
+    else if (mutation === "wrong-raw") proof.entityResolution[0].result.structuredContent.matches = [];
+    else if (mutation === "wrong-source") proof.fixtureSourceSha = "f".repeat(40);
+    else if (mutation === "wrong-seed") proof.seedSqlSha256 = `sha256:${"0".repeat(64)}`;
+    else broken[mutation === "no-auth" ? "behavior/auth" : "behavior/cancellation"].result = "skip";
+    assert.equal(row(broken).result, "skip", mutation);
+    assert.equal(row(broken).evidence_receipt, null, mutation);
   }
 });

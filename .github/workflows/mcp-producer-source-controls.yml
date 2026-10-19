@@ -40,10 +40,16 @@ jobs:
           npm run prepare:app
           python3 generate-offline-app-vector.py
           npm run prepare:location
+          npm run prepare:ops-health
       - name: Generate protected-source offline location oracle vectors
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 generate-offline-location-vector.py
+      - name: Generate protected-source offline Ops health oracle vector
+        working-directory: certification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 generate-offline-ops-health-vector.py
       - name: Fetch reviewed receipt checker for schema integrity controls only
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +86,10 @@ jobs:
             certification/.render-validation/source-binding.json
             certification/.location-validation/source-binding.json
             certification/location-validation-pins.json
+            certification/.ops-health-validation/source-binding.json
+            certification/ops-health-validation-pins.json
             certification/test/fixtures/offline-location-oracle-vector.json
+            certification/test/fixtures/offline-ops-health-oracle-vector.json
             certification/.app-validation/source-binding.json
             certification/app-validation-pins.json
             certification/test/fixtures/offline-app-oracle-vector.json

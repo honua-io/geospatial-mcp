@@ -389,3 +389,16 @@ Source controls generate their explicitly offline vector with
 `python3 generate-offline-app-vector.py`, fetching the complete protected
 production and control dependencies at the same reviewed source. The retained
 vector records every source blob and preserves the original bootstrap bytes.
+
+The Ops health consumer uses a separate complete 18-file protected bundle through
+`npm run prepare:ops-health`. Both original operations run through the installed
+SDK and Inspector, retaining independent owned Postgres/Redis observations,
+fresh authenticated and anonymous sessions, typed refusals, and same-container
+restart followed by live recomputation. The snapshot is computed on demand;
+this does not establish persisted health history or deployment success.
+
+`python3 generate-offline-ops-health-vector.py` authenticates the production
+bundle and its complete control dependencies from one protected source. Its
+explicitly offline SDK and Inspector vectors retain every source blob and the
+original bootstrap bytes. These controls grant no installed-client or candidate
+qualification and preserve all 82 original rows and existing admission gates.

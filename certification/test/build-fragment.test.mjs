@@ -63,6 +63,72 @@ const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passin
   ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
     value: syntheticInspectorPaginationProof() } } : {}) });
 
+test("offline Ops health joins all four original rows through protected semantics and authority", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-ops-health-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /offline.*no.*candidate/i);
+  const operations = ["tools/call:ops_health", "resources/read:Ops health"];
+  const selectedIdentity = { ...identity, sourceSha: vector.proof.candidateSourceSha,
+    imageDigest: vector.proof.candidateImage.split("@").at(-1) };
+  const checks = {};
+  for (const key of ["sdk", "inspector"]) {
+    const proof = key === "sdk" ? vector.proof : vector.inspectorProof;
+    checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation =>
+      [operation, { result: "pass", value: structuredClone(proof) }])) };
+    checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+  }
+  const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
+  const selected = fragment => fragment.observations.filter(row => operations.includes(row.operation));
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const directory = mkdtempSync(join(tmpdir(), "offline-ops-health-join-"));
+  const bytes = Buffer.from(vector.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), vector.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json");
+  writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bytes);
+  try {
+    const fragment = joined(checks), rows = selected(fragment);
+    assert.equal(fragment.observations.length, 82);
+    assert.equal(rows.length, 4);
+    for (const row of rows) {
+      assert.equal(row.result, "pass", row.operation + row.canonical_client);
+      assert.deepEqual(row.scenario_facets, ["positive", "negative", "media-schema", "auth"]);
+      assert.equal(row.evidence_receipt.facets.auth, "pass");
+    }
+    for (const key of ["sdk", "inspector"]) for (const operation of operations) {
+      for (const mutation of ["no-raw", "helper", "image", "flag", "session", "anonymous-credentials", "queue", "restart"]) {
+        const broken = structuredClone(checks), proof = broken[key][operation].value;
+        if (mutation === "no-raw") delete proof.observations;
+        else if (mutation === "helper") proof.helperSourceSha = "f".repeat(40);
+        else if (mutation === "image") proof.candidateImage += "-other";
+        else if (mutation === "flag") proof.independentStores = false;
+        else if (mutation === "session") proof.observations.calls[1].wire.initialize.response.sessionSha256 = proof.observations.calls[0].wire.initialize.response.sessionSha256;
+        else if (mutation === "anonymous-credentials") proof.observations.calls.find(call => call.authenticated === false).wire.invocation.request.credentialPresent = true;
+        else if (mutation === "queue") proof.observations.calls[0].before.redis.jobs = [];
+        else proof.observations.runtimeRestarted.startedAt = proof.observations.runtimeBefore.startedAt;
+        const row = selected(joined(broken)).find(item => item.operation === operation && item.canonical_client === CLIENTS[key].canonicalClient);
+        assert.notEqual(row.result, "pass", `${key} ${operation} ${mutation}`);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+    for (const mutation of ["missing-auth", "missing-cancellation", "failed-cancellation", "under-tier"]) {
+      const broken = structuredClone(checks);
+      for (const key of ["sdk", "inspector"]) {
+        if (mutation === "missing-auth") delete broken[key]["behavior/auth"];
+        else if (mutation === "missing-cancellation") delete broken[key]["behavior/cancellation"];
+        else if (mutation === "failed-cancellation") broken[key]["behavior/cancellation"].result = "fail";
+      }
+      for (const row of selected(joined(broken, mutation === "under-tier" ? "pr" : "release"))) {
+        assert.notEqual(row.result, "pass", mutation);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("offline location proofs join all three primary paths with authority and global gates intact", () => {
   const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-location-oracle-vector.json", import.meta.url)));
   assert.match(vector.meaning, /offline.*no.*candidate/i);

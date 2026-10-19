@@ -16,3 +16,6 @@ certification/.app-validation/
 certification/.source-controls/
 
 certification/test/fixtures/offline-app-oracle-vector.json
+
+certification/.ops-health-validation/
+certification/test/fixtures/offline-ops-health-oracle-vector.json

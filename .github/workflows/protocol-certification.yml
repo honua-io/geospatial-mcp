@@ -379,7 +379,11 @@ jobs:
             certification/artifacts/*.entity-resolution.raw.json
             certification/artifacts/server-harness-source-binding.json
             certification/artifacts/*.plan-validation.raw.json
+            certification/artifacts/*.render-validation.raw.json
+            certification/artifacts/render-bootstrap.json
             certification/.plan-validation/source-binding.json
+            certification/.render-validation/source-binding.json
+            certification/render-validation-pins.json
             .certification/protocol-certification-requirements.v1.json
             .certification/source-binding.json
             .certification/base-schema.sql
@@ -390,7 +394,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

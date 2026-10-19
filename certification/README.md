@@ -209,10 +209,11 @@ The fragment builder rejudges those observations and still requires the same
 candidate, seed and global behavior evidence before admitting either row.
 
 The map-package journey consumes the same authenticated `npm run prepare:render`
-path, extended to seventeen files from one protected immutable release revision
+path, extended to twenty files from one protected immutable release revision
 (the eight render/setup dependencies plus map-package Python/JavaScript, the
 transparent wire observer, fixed launcher/SDK runner, package-file manifest and
-three ingest/publication execution/state/oracle files). Hashes bind the complete set before import/setup
+three ingest/publication execution/state/oracle files and three canonical-style
+execution/state/oracle files). Hashes bind the complete set before import/setup
 and each call; no copied or mutable oracle fallback exists. The execution and
 judgment remain release-owned. The fixed launcher creates actual SDK and public
 Inspector processes and new sessions at the owned observer for every call/read.

@@ -63,6 +63,81 @@ const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passin
   ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
     value: syntheticInspectorPaginationProof() } } : {}) });
 
+test("offline grounding and declared status join all six original rows without candidate credit", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-grounding-status-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /synthetic.*no actual candidate/i);
+  const operations = ["tools/call:ground_candidates", "tools/call:clarify_intent", "tools/call:platform_release_status"];
+  const sample = vector.sdk.proof;
+  const selectedIdentity = { ...identity, sourceSha: sample.candidateSourceSha,
+    imageDigest: sample.candidateImage.split("@").at(-1) };
+  const checks = {};
+  for (const key of ["sdk", "inspector"]) {
+    const proof = vector[key].proof;
+    checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation =>
+      [operation, { result: "pass", value: structuredClone(proof) }])) };
+    checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+  }
+  const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
+  const selected = fragment => fragment.observations.filter(row => operations.includes(row.operation));
+  const directory = mkdtempSync(join(tmpdir(), "offline-grounding-join-"));
+  const manifest = Buffer.from(vector.sdk.manifestBase64, "base64");
+  const binding = { schema: "honua.mcp-ops-events-manifest/v1", repository: "honua-io/honua-release",
+    sourceSha: vector.sdk.manifestSourceSha, path: "platform-manifest.yaml",
+    sha256: createHash("sha256").update(manifest).digest("hex"),
+    gitBlob: createHash("sha1").update(Buffer.concat([Buffer.from(`blob ${manifest.length}\0`), manifest])).digest("hex") };
+  const inputs = {
+    HONUA_MCP_RENDER_BOOTSTRAP: ["original-bootstrap.json", Buffer.from(vector.sdk.bootstrapBase64, "base64")],
+    HONUA_MCP_OPS_MANIFEST: ["original-manifest.yaml", manifest],
+    HONUA_MCP_OPS_MANIFEST_BINDING: ["original-manifest-binding.json", JSON.stringify(binding)],
+    HONUA_MCP_OPS_GOVERNANCE_BINDING: ["original-governance-binding.json", JSON.stringify({
+      repository: binding.repository, sourceSha: binding.sourceSha })],
+  };
+  const before = Object.fromEntries(Object.keys(inputs).map(name => [name, process.env[name]]));
+  for (const [name, [file, bytes]] of Object.entries(inputs)) {
+    process.env[name] = join(directory, file); writeFileSync(process.env[name], bytes);
+  }
+  try {
+    const fragment = joined(checks), rows = selected(fragment);
+    assert.equal(fragment.observations.length, 82);
+    assert.equal(rows.length, 6);
+    for (const row of rows) {
+      assert.equal(row.result, "pass", row.operation + row.canonical_client);
+      assert.equal(row.evidence_receipt.facets.auth, "pass");
+    }
+    for (const key of ["sdk", "inspector"]) for (const operation of operations) {
+      for (const mutation of ["no-raw", "helper", "image", "caller", "intent", "status", "cleanup"]) {
+        const broken = structuredClone(checks), proof = broken[key][operation].value;
+        if (mutation === "no-raw") delete proof.observations;
+        else if (mutation === "helper") proof.helperSourceSha = "f".repeat(40);
+        else if (mutation === "image") proof.candidateImage += "-other";
+        else if (mutation === "caller") proof.observations.calls[3].wire.expectedCredentialFingerprint = "scrypt:" + "a".repeat(32) + ":" + "f".repeat(64);
+        else if (mutation === "intent") proof.observations.calls[3].params.arguments.intentId = "different-intent";
+        else if (mutation === "status") proof.observations.calls[4].result.structuredContent.skewedIds = [];
+        else proof.observations.limitedIdentityFixture.cleanupComplete = false;
+        const row = selected(joined(broken)).find(item => item.operation === operation && item.canonical_client === CLIENTS[key].canonicalClient);
+        assert.notEqual(row.result, "pass", `${key} ${operation} ${mutation}`);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+    for (const mutation of ["missing-operation", "missing-auth", "under-tier"]) {
+      const broken = structuredClone(checks);
+      if (mutation === "missing-operation") delete broken.sdk[operations[1]];
+      else if (mutation === "missing-auth") { delete broken.sdk["behavior/auth"]; delete broken.inspector["behavior/auth"]; }
+      const rows = selected(joined(broken, mutation === "under-tier" ? "pr" : "release"));
+      assert.equal(rows.length, 6);
+      assert.ok(rows.some(row => row.result !== "pass"), mutation);
+      if (mutation !== "missing-operation") assert.ok(rows.every(row => row.result !== "pass"), mutation);
+    }
+  } finally {
+    for (const [name, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("offline findings and event reads join all eight original rows through protected semantics and authority", () => {
   const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-ops-events-oracle-vector.json", import.meta.url)));
   assert.match(vector.meaning, /offline.*no.*candidate/i);

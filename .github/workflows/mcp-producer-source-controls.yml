@@ -51,6 +51,7 @@ jobs:
           npm run prepare:location
           npm run prepare:ops-health
           npm run prepare:ops-events
+          npm run prepare:grounding-status
           python3 fetch-certification-requirements.py --destination ../.certification
           python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts
       - name: Generate protected-source offline location oracle vectors
@@ -66,6 +67,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 generate-offline-ops-events-vector.py
+      - name: Generate protected-source offline grounding and status vectors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 generate-offline-grounding-status-vector.py
       - name: Fetch reviewed receipt checker for schema integrity controls only
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,11 +111,14 @@ jobs:
             certification/ops-health-validation-pins.json
             certification/.ops-events-validation/source-binding.json
             certification/ops-events-validation-pins.json
+            certification/.grounding-status-validation/source-binding.json
+            certification/grounding-status-validation-pins.json
             certification/artifacts/ops-events-platform-manifest.yaml
             certification/artifacts/ops-events-manifest-binding.json
             certification/test/fixtures/offline-location-oracle-vector.json
             certification/test/fixtures/offline-ops-health-oracle-vector.json
             certification/test/fixtures/offline-ops-events-oracle-vector.json
+            certification/test/fixtures/offline-grounding-status-oracle-vector.json
             certification/.app-validation/source-binding.json
             certification/app-validation-pins.json
             certification/test/fixtures/offline-app-oracle-vector.json

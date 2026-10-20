@@ -436,3 +436,19 @@ mutation, OAuth scope or tenant isolation. The offline generator uses synthetic
 manifest, client, caller and candidate vectors solely to test this consumer and
 its complete fragment builder. Source controls and a merged consumer do not
 qualify a candidate. Refs #128 and honua-io/honua-release#727.
+
+## Grounding, clarification and declared status
+
+The grounding/status consumer fetches all 20 producer dependencies from one
+protected release commit and verifies both SHA-256 and Git blob identities.
+It reuses the original governed platform manifest and the authenticated render
+bootstrap. The release-owned producer, not this thin adapter, performs the
+graph, process-catalog, managed-caller, admin-preflight and actual-wire checks
+for `ground_candidates`, `clarify_intent` and `platform_release_status` in both
+installed clients. The protected fragment builder requires its independent
+judgment for each of the six original operation/client rows.
+
+Declared release status is a configuration projection. These checks do not
+establish deployed health, a live model, or an exact candidate pass from an
+offline vector or source-only workflow. Actual candidate execution and the
+original 82-row gates remain separate. Refs #127 and honua-io/honua-release#728.

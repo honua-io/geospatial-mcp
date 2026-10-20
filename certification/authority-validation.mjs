@@ -9,6 +9,7 @@ import { verifyPublishResultProof } from "./publish-result-validation.mjs";
 import { verifyLocationProof } from "./location-validation.mjs";
 import { verifyOpsHealthProof } from "./ops-health-validation.mjs";
 import { verifyOpsEventsProof } from "./ops-events-validation.mjs";
+import { verifyGroundingStatusProof } from "./grounding-status-validation.mjs";
 
 const publicObservations = ["anonymous-success", "fresh-anonymous-session", "no-credentials"];
 const protectedObservations = ["authenticated-success", "fresh-anonymous-refusal", "no-credential-forwarding", "no-authenticated-session-reuse", "caller-session-binding"];
@@ -45,6 +46,7 @@ export function verifyProtectedAuthority(proof, identity, operation, client) {
     : operation === "tools/call:execute_plan" ? verifyExecutePlanProof
     : operation === "tools/call:publish_result" ? verifyPublishResultProof
     : ["tools/call:ops_findings", "tools/call:alert_events", "tools/call:operate_events", "resources/read:Ops findings"].includes(operation) ? verifyOpsEventsProof
+    : ["tools/call:ground_candidates", "tools/call:clarify_intent", "tools/call:platform_release_status"].includes(operation) ? verifyGroundingStatusProof
     : ["tools/call:ops_health", "resources/read:Ops health"].includes(operation) ? verifyOpsHealthProof
     : ["tools/call:geocode_address", "tools/call:geocode_addresses", "tools/call:solve_route"].includes(operation) ? verifyLocationProof : null;
   // These complete independent oracles verify raw request/response hashes,

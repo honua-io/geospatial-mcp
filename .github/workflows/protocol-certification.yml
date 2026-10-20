@@ -169,6 +169,7 @@ jobs:
           npm run prepare:location
           npm run prepare:ops-health
           npm run prepare:ops-events
+          npm run prepare:grounding-status
           python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts
 
       - name: Fetch immutable protected separate app workflow and oracle bundle
@@ -186,6 +187,7 @@ jobs:
           python3 generate-offline-location-vector.py
           python3 generate-offline-ops-health-vector.py
           python3 generate-offline-ops-events-vector.py
+          python3 generate-offline-grounding-status-vector.py
 
       - name: Verify pinned clients and corpus
         run: |
@@ -462,6 +464,19 @@ jobs:
           HONUA_MCP_OBSERVER_PGSERVER_APP_NAME: honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}
         run: node run-inspector.mjs
 
+      - name: Run grounded intent, clarification and declared status with both distributed clients
+        id: grounding-status
+        if: always() && steps.render-bootstrap.outcome == 'success' && steps.sdk.outcome != 'skipped' && steps.inspector.outcome != 'skipped'
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+        run: node run-grounding-status.mjs
+
       - name: Run canonical ingest publish and persisted restart readback
         id: ingest-publish
         if: always() && steps.render-bootstrap.outcome == 'success' && steps.sdk.outcome != 'skipped' && steps.inspector.outcome != 'skipped'
@@ -574,6 +589,7 @@ jobs:
             certification/artifacts/*.location-*.raw.json
             certification/artifacts/*.ops-health.raw.json
             certification/artifacts/*.ops-events.raw.json
+            certification/artifacts/*.grounding-status.raw.json
             certification/artifacts/ops-events-setup.json
             certification/artifacts/ops-events-platform-manifest.yaml
             certification/artifacts/ops-events-manifest-binding.json
@@ -597,10 +613,13 @@ jobs:
             certification/ops-health-validation-pins.json
             certification/.ops-events-validation/source-binding.json
             certification/ops-events-validation-pins.json
+            certification/.grounding-status-validation/source-binding.json
+            certification/grounding-status-validation-pins.json
             certification/test/fixtures/offline-app-oracle-vector.json
             certification/test/fixtures/offline-location-oracle-vector.json
             certification/test/fixtures/offline-ops-health-oracle-vector.json
             certification/test/fixtures/offline-ops-events-oracle-vector.json
+            certification/test/fixtures/offline-grounding-status-oracle-vector.json
             certification/.render-validation/mcp_fixed_client_manifest.v1.json
             certification/package.json
             certification/package-lock.json
@@ -616,7 +635,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.grounding-status.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

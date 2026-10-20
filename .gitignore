@@ -28,3 +28,6 @@ certification/test/fixtures/offline-grounding-status-oracle-vector.json
 
 certification/.planning-validation/
 certification/test/fixtures/offline-planning-oracle-vector.json
+
+certification/.direct-cancel-validation/
+certification/test/fixtures/offline-direct-cancel-oracle-vector.json

@@ -1,3 +1,4 @@
+import { verifyDirectCancelProof } from "./direct-cancel-validation.mjs";
 import { verifyPlanningProof } from "./planning-validation.mjs";
 // Authority credit requires retained actual client/wire proof adjudicated by the
 // protected release-owned oracle. Policy declarations alone grant no credit.
@@ -44,6 +45,7 @@ export function verifyProtectedAuthority(proof, identity, operation, client) {
     : ["tools/call:create_map_package", "resources/read:Map package"].includes(operation) ? verifyMapPackageProof
     : ["tools/call:ingest_dataset", "tools/call:publish_service", "resources/read:Published service"].includes(operation) ? verifyIngestPublishProof
     : ["tools/call:get_style", "tools/call:apply_style_preset"].includes(operation) ? verifyStyleProof
+    : operation === "tools/call:cancel_job" ? verifyDirectCancelProof
     : operation === "tools/call:plan_analysis" ? verifyPlanningProof
     : operation === "tools/call:execute_plan" ? verifyExecutePlanProof
     : operation === "tools/call:publish_result" ? verifyPublishResultProof

@@ -9,6 +9,7 @@
     "test": "node --test test/*.test.mjs",
     "run:sdk": "node run-sdk.mjs",
     "prepare:plan": "python3 fetch-plan-validation.py --destination .plan-validation",
+    "prepare:planning": "python3 fetch-planning-validation.py --destination .planning-validation",
     "prepare:ops-health": "python3 fetch-ops-health-validation.py --destination .ops-health-validation",
     "prepare:location": "python3 fetch-location-validation.py --destination .location-validation",
     "prepare:render": "python3 fetch-render-validation.py --destination .render-validation",

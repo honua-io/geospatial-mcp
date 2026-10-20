@@ -1,14 +1,29 @@
 # MCP certification producer
 
 From a clean checkout, authenticate `gh` (or set `GH_TOKEN` with read access to
-the protected honua-release repository), then run from this directory:
+the protected honua-release repository), then run from this directory in an
+activated Linux CPython 3.12 environment with Node 22.19. These versions mirror
+the source-control workflow; the configuration wheel is platform-pinned:
 
 ```sh
+python3 -m pip install --require-hashes --only-binary=:all: -r ../.github/requirements/mcp-ops.lock
 npm ci --ignore-scripts
 npm run prepare:plan
 npm run prepare:render
+npm run prepare:app
 npm run prepare:location
+npm run prepare:planning
+npm run prepare:ops-health
+npm run prepare:ops-events
+npm run prepare:grounding-status
+python3 fetch-certification-requirements.py --destination ../.certification
+python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts
+python3 generate-offline-app-vector.py
 python3 generate-offline-location-vector.py
+python3 generate-offline-planning-vector.py
+python3 generate-offline-ops-health-vector.py
+python3 generate-offline-ops-events-vector.py
+python3 generate-offline-grounding-status-vector.py
 npm test
 ```
 
@@ -72,12 +87,14 @@ SDK receipt producer's reviewed governance-fetch contract. `build-fragment.mjs I
 requires one matching governed row for every declared operation/client/version,
 including its maturity, tier, facets, and fixture/contract/auth policy revisions.
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
-or incompatible context fails closed. The current default catalog still pins
-older MCP client versions: pin convergence is tracked under honua-release#181
-and the honua-release#652 audit rollup.
-It is not evidence that the current producer has qualified the release. Raw SDK
-and Inspector result JSON is retained even when governed fragment construction
-refuses the mismatched catalog, so blocked/failing checks remain inspectable.
+or incompatible context fails closed. The default catalog at protected commit `577b4ef3`, revision
+`2026-10-19-complete.25`, pins SDK `1.32.1` and Inspector `2.10.1`, matching
+the installed package lock.
+Candidate source/image, the original governed manifest, tier and runtime still
+require independent agreement; matching client versions does not qualify the
+release. Historical receipts for older clients cannot transfer that qualification.
+Raw SDK and Inspector result JSON remains retained when context or fragment
+construction refuses, so blocked/failing checks stay inspectable.
 
 The real SDK runner checks the implemented manifest against the live tool roster,
 sends a missing-tool call with the authenticated API key, and separately invokes
@@ -452,3 +469,17 @@ Declared release status is a configuration projection. These checks do not
 establish deployed health, a live model, or an exact candidate pass from an
 offline vector or source-only workflow. Actual candidate execution and the
 original 82-row gates remain separate. Refs #127 and honua-io/honua-release#728.
+
+## Planning disclosure and validation handoff
+
+Planning disclosure is executed for both installed canonical clients after the
+baseline sessions and before any restart journey, using `node run-planning.mjs`.
+The separate protected planning bundle retains the original publication bootstrap,
+normal managed full/read caller grants and revocations, seven fresh wire sessions,
+and two independent durable job/result censuses. The canned planner must disclose
+fixture/demo mode and direct an unmatched intent to the client model and supported
+catalog/validation workflow. A separate hand-authored buffer plan is validated.
+This proves neither real-model intent compilation nor plan execution. Direct job
+cancellation and native AWS cessation remain open in #133 and release#745/#679.
+The offline builder tests exercise both original rows, coherent output mutations,
+auth, global behavior, exact clients and tier; they qualify no actual candidate.

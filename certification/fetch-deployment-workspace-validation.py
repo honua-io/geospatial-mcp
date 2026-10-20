@@ -16,12 +16,16 @@ PATHS = ('certification/installed-clients/mcp_deployment_workspace_cohort.mjs', 
 SCHEMA = "honua.mcp-deployment-workspace-source/v1"
 
 
-def fetch(pins, destination, *, get=SOURCE.api):
+def validate_pins(pins):
     if (not isinstance(pins, dict) or set(pins) != {"repository", "sourceSha", "sha256"}
             or pins["repository"] != SOURCE.REPOSITORY or not isinstance(pins["sha256"], dict)
             or set(pins["sha256"]) != set(PATHS)
             or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in pins["sha256"].values())):
         raise ValueError("deployment-workspace pins must identify all canonical release dependencies")
+
+
+def fetch(pins, destination, *, get=SOURCE.api):
+    validate_pins(pins)
     retained = SOURCE.immutable_files(SOURCE.REPOSITORY, pins["sourceSha"], PATHS, get=get)
     if any(retained[path][1] != pins["sha256"][path] for path in PATHS):
         raise ValueError("deployment-workspace source differs from reviewed file pins")

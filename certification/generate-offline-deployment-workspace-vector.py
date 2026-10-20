@@ -15,17 +15,15 @@ SUPPORT = ('mcp_deployment_workspace_full_controls.py', 'mcp_deployment_workspac
 
 
 def verified_sources(pins, directory, *, get=SOURCE.SOURCE.api):
-    # One invocation shares an authenticated response snapshot. Both existing
-    # validators still rejudge complete protected history, pin shape and every
-    # blob hash; immutable dependency bytes are not downloaded twice.
-    responses = {}
-    def once(path):
-        if path not in responses:
-            responses[path] = get(path)
-        return responses[path]
-    SOURCE.fetch(pins, directory, get=once)
+    # Share the production pin-shape validator, then authenticate one complete
+    # protected source set. All reviewed production hashes must match before
+    # any file is written or executed; support bytes retain Git blob identities.
+    SOURCE.validate_pins(pins)
     paths = SOURCE.PATHS + tuple("certification/installed-clients/" + name for name in SUPPORT)
-    return SOURCE.SOURCE.immutable_files(SOURCE.SOURCE.REPOSITORY, pins["sourceSha"], paths, get=once)
+    retained = SOURCE.SOURCE.immutable_files(SOURCE.SOURCE.REPOSITORY, pins["sourceSha"], paths, get=get)
+    if any(retained[path][1] != pins["sha256"][path] for path in SOURCE.PATHS):
+        raise ValueError("offline generator differs from reviewed production pins")
+    return retained
 
 
 def main():

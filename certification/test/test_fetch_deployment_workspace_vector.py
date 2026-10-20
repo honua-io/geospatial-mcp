@@ -1,4 +1,4 @@
-"""One offline generator snapshot preserves both complete source validators."""
+"""One protected source fetch preserves complete production pin validation."""
 import base64
 from copy import deepcopy
 import hashlib
@@ -46,7 +46,7 @@ class OfflineSourceSnapshotTests(unittest.TestCase):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as work, self.assertRaises(ValueError):
                 MODULE.verified_sources(pins, Path(work), get=changed.__getitem__)
 
-    def test_cached_snapshot_preserves_production_pin_and_protected_history_refusals(self):
+    def test_single_fetch_preserves_production_pin_and_protected_history_refusals(self):
         pins, responses = complete()
         for mode in ("pin", "unprotected"):
             changed_pins, changed = deepcopy(pins), deepcopy(responses)

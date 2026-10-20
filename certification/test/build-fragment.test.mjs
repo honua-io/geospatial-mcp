@@ -1028,3 +1028,71 @@ test("complete offline app oracle joins all four primary operations, review auth
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+
+test("complete offline deployment cohort joins all eight original semantic and authority rows", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-deployment-workspace-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /offline.*no.*candidate/i);
+  const operations = ["tools/call:deploy_operations", "tools/call:propose_rollback", "resources/read:Deployment", "resources/read:Workspace"];
+  const selectedIdentity = { ...identity, sourceSha: vector.proof.candidateSourceSha, imageDigest: vector.proof.candidateImage.split("@").at(-1) };
+  const checks = {};
+  for (const key of ["sdk", "inspector"]) {
+    const proof = key === "sdk" ? vector.proof : vector.inspectorProof;
+    assert.equal(proof.semanticOnly, false); assert.equal(proof.deploymentActuationProven, false); assert.equal(proof.runtimeHealthProven, false);
+    checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation => [operation, { result: "pass", value: structuredClone(proof) }])) };
+    checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+  }
+  const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
+  const selected = fragment => fragment.observations.filter(row => operations.includes(row.operation));
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP, directory = mkdtempSync(join(tmpdir(), "offline-deployment-join-"));
+  const bytes = Buffer.from(vector.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), vector.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "bootstrap.json"); writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bytes);
+  try {
+    const fragment = joined(checks), rows = selected(fragment);
+    assert.equal(fragment.observations.length, 82); assert.equal(rows.length, 8);
+    for (const row of rows) { assert.equal(row.result, "pass", row.operation); assert.equal(row.evidence_receipt.facets.auth, "pass"); }
+    for (const key of ["sdk", "inspector"]) {
+      for (const mutation of ["raw", "cohort", "other-client", "session", "tenant", "history", "restart", "helper", "semantic-only", "actuation"]) {
+        const broken = structuredClone(checks);
+        for (const operation of operations) {
+        const proof = broken[key][operation].value;
+        if (mutation === "raw") delete proof.observations;
+        if (mutation === "cohort") delete proof.identityCohort;
+        if (mutation === "other-client") proof.identityCohort.roleReceipt.cohort.journeys.pop();
+        if (mutation === "session") proof.observations.calls[0].wire.initialize.response.sessionSha256 = "sha256:" + "0".repeat(64);
+        if (mutation === "tenant") proof.observations.semantic.calls[0].wire.expectedTenantId = "foreign";
+        if (mutation === "history") proof.observations.semantic.storeBefore.succeededWorkflowHistory = [];
+        if (mutation === "restart") proof.observations.semantic.runtimeAfter.containerId = "foreign";
+        if (mutation === "helper") proof.helperSourceSha = "f".repeat(40);
+        if (mutation === "semantic-only") proof.semanticOnly = true;
+        if (mutation === "actuation") proof.deploymentActuationProven = true;
+        }
+        const mutatedRows = selected(joined(broken));
+        assert.equal(mutatedRows.length, 8);
+        for (const row of mutatedRows) {
+          if (row.canonical_client === CLIENTS[key].canonicalClient) {
+            assert.notEqual(row.result, "pass", `${key} ${row.operation} ${mutation}`);
+            assert.equal(row.evidence_receipt, null);
+          } else {
+            assert.equal(row.result, "pass", `other client ${row.operation} ${mutation}`);
+            assert.equal(row.evidence_receipt.facets.auth, "pass");
+          }
+        }
+      }
+    }
+    for (const mutation of ["cancel", "tier", "auth"]) {
+      const broken = structuredClone(checks);
+      for (const key of ["sdk", "inspector"]) {
+        if (mutation === "cancel") delete broken[key]["behavior/cancellation"];
+        if (mutation === "auth") for (const operation of operations) delete broken[key][operation].value.observations;
+      }
+      assert.ok(selected(joined(broken, mutation === "tier" ? "pr" : "release")).every(row => row.result !== "pass"), mutation);
+    }
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

@@ -483,3 +483,27 @@ This proves neither real-model intent compilation nor plan execution. Direct job
 cancellation and native AWS cessation remain open in #133 and release#745/#679.
 The offline builder tests exercise both original rows, coherent output mutations,
 auth, global behavior, exact clients and tier; they qualify no actual candidate.
+
+## Deployment and workspace proof
+
+The deployment/workspace bridge pins the complete protected release-owned v2
+cohort. One invocation runs both canonical installed clients with a shared role
+and four managed keys; cleanup follows both original journeys. All four original
+operations require full semantic and caller/session authority rejudging. A
+semantic component, offline vector, partial cohort or second credential alone
+grants no row credit.
+
+The optional dispatch `deployment_target_id` identifies a real owned target with
+independently observed succeeded workflow history. Missing target/history,
+protected canonical publication writer, declared owned tenant configuration,
+normal identity binding or original client evidence remains NONPASS. A rollback
+proposal proves neither approval nor actuation or deployment health. Offline
+source controls preserve the 82-row denominator and grant no candidate credit.
+
+The owned certification boot explicitly composes the protected tenant and Studio
+end-user authorization options with the existing declared ControlPlane options
+before starting the image. The separate public declaration identifies this
+nondefault test posture and grants no qualification. Each complete journey still
+requires the original safe Docker configuration observation and independent
+normal caller, tenant, owner and role joins. Normal admin bypass remains part of
+the tested policy.

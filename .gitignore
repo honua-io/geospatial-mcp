@@ -28,3 +28,6 @@ certification/test/fixtures/offline-grounding-status-oracle-vector.json
 
 certification/.planning-validation/
 certification/test/fixtures/offline-planning-oracle-vector.json
+
+certification/.deployment-workspace-validation/
+certification/test/fixtures/offline-deployment-workspace-oracle-vector.json

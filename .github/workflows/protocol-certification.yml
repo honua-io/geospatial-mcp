@@ -41,6 +41,9 @@ on:
       requirements_revision:
         description: Exact governed catalog revision (required for release)
         required: false
+      deployment_target_id:
+        description: Actual owned target with independently observed succeeded deployment history
+        required: false
       release_cut:
         description: Independently frozen RFC 3339 release cut
         required: false
@@ -168,6 +171,7 @@ jobs:
           npm run prepare:render
           npm run prepare:location
           npm run prepare:planning
+          npm run prepare:deployment-workspace
           npm run prepare:ops-health
           npm run prepare:ops-events
           npm run prepare:grounding-status
@@ -187,6 +191,7 @@ jobs:
           python3 generate-offline-app-vector.py
           python3 generate-offline-location-vector.py
           python3 generate-offline-planning-vector.py
+          python3 generate-offline-deployment-workspace-vector.py
           python3 generate-offline-ops-health-vector.py
           python3 generate-offline-ops-events-vector.py
           python3 generate-offline-grounding-status-vector.py
@@ -312,7 +317,7 @@ jobs:
             '{schema:"honua.mcp-redis-prerequisite/v1",image:$image,container:$container,imageId:$imageId,appendonly:$appendonly,appendfsync:$appendfsync,evictionPolicy:$evictionPolicy,persistence:$persistence,observedAt:$observedAt,candidateQualified:false}' \
             > certification/artifacts/redis-durability.json
 
-      - name: Derive safe declared skew from the actual governed candidate manifest
+      - name: Derive declared skew and explicit owned authorization before candidate boot
         env:
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
           HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
@@ -323,11 +328,11 @@ jobs:
           node --input-type=module <<'JS'
           import { writeFileSync } from "node:fs";
           import { prepareOpsEventsConfiguration } from "./certification/ops-events-validation.mjs";
+          import { composeOwnedCandidateEnvironment } from "./certification/deployment-workspace-validation.mjs";
           const declared = prepareOpsEventsConfiguration();
-          const entries = Object.entries(declared.environment);
-          if (!entries.length || entries.some(([key, value]) => !/^ControlPlane__[A-Za-z0-9_]+$/.test(key)
-            || typeof value !== "string" || /[\r\n\0]/.test(value))) throw new Error("unsafe declared configuration framing");
-          writeFileSync(process.env.HONUA_MCP_OPS_ENV_FILE, entries.map(([key, value]) => `${key}=${value}`).join("\n") + "\n", { mode: 0o600, flag: "wx" });
+          const composed = composeOwnedCandidateEnvironment(declared.environment);
+          writeFileSync(process.env.HONUA_MCP_OPS_ENV_FILE, composed.lines.join("\n") + "\n", { mode: 0o600, flag: "wx" });
+          writeFileSync("certification/artifacts/owned-authorization-declaration.json", JSON.stringify(composed.declaration, null, 2) + "\n");
           writeFileSync("certification/artifacts/ops-events-declaration.json", JSON.stringify(declared, null, 2) + "\n");
           JS
           echo "HONUA_MCP_OPS_ENV_FILE=${HONUA_MCP_OPS_ENV_FILE}" >> "${GITHUB_ENV}"
@@ -556,6 +561,20 @@ jobs:
           HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
         run: node run-publish-results.mjs
 
+      - name: Run complete original deployment workspace two-client cohort
+        id: deployment-workspace
+        if: always() && steps.render-bootstrap.outcome == 'success' && steps.sdk.outcome != 'skipped' && steps.inspector.outcome != 'skipped'
+        continue-on-error: true
+        working-directory: certification
+        env:
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
+          HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
+          HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_MCP_TARGET_ID: ${{ inputs.deployment_target_id }}
+        run: node run-deployment-workspace.mjs
+
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
@@ -602,6 +621,7 @@ jobs:
             certification/artifacts/*.canonical-execute-plan.raw.json
             certification/artifacts/*.location-*.raw.json
             certification/artifacts/*.planning.raw.json
+            certification/artifacts/deployment-workspace-results.json*
             certification/artifacts/*.ops-health.raw.json
             certification/artifacts/*.ops-events.raw.json
             certification/artifacts/*.grounding-status.raw.json
@@ -609,6 +629,7 @@ jobs:
             certification/artifacts/ops-events-platform-manifest.yaml
             certification/artifacts/ops-events-manifest-binding.json
             certification/artifacts/ops-events-declaration.json
+            certification/artifacts/owned-authorization-declaration.json
             certification/artifacts/*.app-package.raw.json
             certification/artifacts/*.canonical-publish-result.raw.json
             certification/artifacts/*.canonical-publish-result.setup.json
@@ -624,6 +645,9 @@ jobs:
             certification/render-validation-pins.json
             certification/.location-validation/source-binding.json
             certification/location-validation-pins.json
+            certification/.deployment-workspace-validation/source-binding.json
+            certification/deployment-workspace-validation-pins.json
+            certification/test/fixtures/offline-deployment-workspace-oracle-vector.json
             certification/.planning-validation/source-binding.json
             certification/planning-validation-pins.json
             certification/test/fixtures/offline-planning-oracle-vector.json
@@ -653,7 +677,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.planning.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.grounding-status.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.deployment-workspace.outcome }}" == "failure" || "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.planning.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.grounding-status.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

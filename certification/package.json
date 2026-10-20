@@ -15,7 +15,8 @@
     "prepare:render": "python3 fetch-render-validation.py --destination .render-validation",
     "prepare:app": "python3 fetch-app-validation.py --destination .app-validation",
     "prepare:ops-events": "python3 fetch-ops-events-validation.py --destination .ops-events-validation",
-    "prepare:grounding-status": "python3 fetch-grounding-status-validation.py --destination .grounding-status-validation"
+    "prepare:grounding-status": "python3 fetch-grounding-status-validation.py --destination .grounding-status-validation",
+    "prepare:deployment-workspace": "python3 fetch-deployment-workspace-validation.py --destination .deployment-workspace-validation"
   },
   "dependencies": {
     "@modelcontextprotocol/inspector": "2.10.1",

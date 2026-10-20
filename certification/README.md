@@ -402,3 +402,37 @@ bundle and its complete control dependencies from one protected source. Its
 explicitly offline SDK and Inspector vectors retain every source blob and the
 original bootstrap bytes. These controls grant no installed-client or candidate
 qualification and preserve all 82 original rows and existing admission gates.
+
+## Findings and durable event reads
+
+The separate findings/event consumer uses a complete 22-file protected release
+bundle, including its configuration, single-use SQL setup, managed-caller
+fixture and independent observer/oracle dependencies. Its four primary keys are
+`tools/call:ops_findings`, `tools/call:alert_events`, `tools/call:operate_events`
+and `resources/read:Ops findings`. Both installed canonical clients must exercise
+them; the original 82-row denominator, authority policy, global behavior and tier
+requirements are preserved.
+
+The workflow retains `platform-manifest.yaml` from the same authenticated release
+revision as the governed requirements context. Before boot, the release-owned
+configuration helper must bind that manifest to the selected immutable image and
+source. It declares eight nonsecret options for an explicit L1 configuration-skew
+test target. A different manifest/candidate combination fails; no manifest or
+image is relabeled. This declaration does not observe deployed target health or
+request deployment actuation.
+
+One bounded fixture setup runs after the authenticated publication bootstrap.
+Both clients reuse its original durable alert/lifecycle rows and SQL receipt,
+including across their real container restarts. The normal limited managed key
+must first read the owned nonempty layer successfully before its Ops permission
+denials can count. The protected release oracle rechecks original bytes, semantic
+results, filters, actual cursor paging, source posture, fresh sessions, runtime,
+managed caller identities and successful normal cleanup. Missing setup or cleanup
+stays nonpassing and its original partial observations are retained.
+
+The SQL records are explicit read fixtures, with inactive rules and no delivery
+channels. They do not qualify alert evaluation, notification delivery, lifecycle
+mutation, OAuth scope or tenant isolation. The offline generator uses synthetic
+manifest, client, caller and candidate vectors solely to test this consumer and
+its complete fragment builder. Source controls and a merged consumer do not
+qualify a candidate. Refs #128 and honua-io/honua-release#727.

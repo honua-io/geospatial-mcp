@@ -14,14 +14,26 @@ SPEC.loader.exec_module(SOURCE)
 SUPPORT = ('mcp_deployment_workspace_full_controls.py', 'mcp_deployment_workspace_validation_controls.py', 'mcp_deployment_identity_role_controls.py', 'mcp_managed_identity_fixture_controls.py', 'mcp_map_package_validation_controls.py', 'mcp_render_validation_controls.py', 'mcp_render_bootstrap.py', 'regression.py', 'oracles.py')
 
 
+def verified_sources(pins, directory, *, get=SOURCE.SOURCE.api):
+    # One invocation shares an authenticated response snapshot. Both existing
+    # validators still rejudge complete protected history, pin shape and every
+    # blob hash; immutable dependency bytes are not downloaded twice.
+    responses = {}
+    def once(path):
+        if path not in responses:
+            responses[path] = get(path)
+        return responses[path]
+    SOURCE.fetch(pins, directory, get=once)
+    paths = SOURCE.PATHS + tuple("certification/installed-clients/" + name for name in SUPPORT)
+    return SOURCE.SOURCE.immutable_files(SOURCE.SOURCE.REPOSITORY, pins["sourceSha"], paths, get=once)
+
+
 def main():
     pins = json.loads((ROOT / "deployment-workspace-validation-pins.json").read_bytes())
     # Reuse full production pin-shape and protected-history validation first.
     with tempfile.TemporaryDirectory(prefix="mcp-deployment-workspace-offline-") as work:
         directory = Path(work)
-        SOURCE.fetch(pins, directory)
-        paths = SOURCE.PATHS + tuple("certification/installed-clients/" + name for name in SUPPORT)
-        retained = SOURCE.SOURCE.immutable_files(SOURCE.SOURCE.REPOSITORY, pins["sourceSha"], paths)
+        retained = verified_sources(pins, directory)
         for path, (data, digest, _) in retained.items():
             if path in pins["sha256"] and digest != pins["sha256"][path]:
                 raise ValueError("offline generator differs from production pins")

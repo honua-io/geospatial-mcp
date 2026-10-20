@@ -5,11 +5,13 @@ on:
     paths:
       - certification/**
       - .github/workflows/mcp-producer-source-controls.yml
+      - .github/requirements/mcp-ops.lock
   push:
     branches: [trunk]
     paths:
       - certification/**
       - .github/workflows/mcp-producer-source-controls.yml
+      - .github/requirements/mcp-ops.lock
   workflow_dispatch:
 
 permissions:
@@ -24,6 +26,13 @@ jobs:
         working-directory: certification
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install exact configuration parser dependency
+        working-directory: ${{ github.workspace }}
+        run: |
+          python3 -m pip install --require-hashes --only-binary=:all: -r .github/requirements/mcp-ops.lock
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22.19.0"
@@ -41,6 +50,9 @@ jobs:
           python3 generate-offline-app-vector.py
           npm run prepare:location
           npm run prepare:ops-health
+          npm run prepare:ops-events
+          python3 fetch-certification-requirements.py --destination ../.certification
+          python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts
       - name: Generate protected-source offline location oracle vectors
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,6 +62,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 generate-offline-ops-health-vector.py
+      - name: Generate protected-source offline findings and event oracle vectors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 generate-offline-ops-events-vector.py
       - name: Fetch reviewed receipt checker for schema integrity controls only
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,8 +104,13 @@ jobs:
             certification/location-validation-pins.json
             certification/.ops-health-validation/source-binding.json
             certification/ops-health-validation-pins.json
+            certification/.ops-events-validation/source-binding.json
+            certification/ops-events-validation-pins.json
+            certification/artifacts/ops-events-platform-manifest.yaml
+            certification/artifacts/ops-events-manifest-binding.json
             certification/test/fixtures/offline-location-oracle-vector.json
             certification/test/fixtures/offline-ops-health-oracle-vector.json
+            certification/test/fixtures/offline-ops-events-oracle-vector.json
             certification/.app-validation/source-binding.json
             certification/app-validation-pins.json
             certification/test/fixtures/offline-app-oracle-vector.json

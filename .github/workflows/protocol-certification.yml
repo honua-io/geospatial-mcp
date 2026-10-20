@@ -621,8 +621,7 @@ jobs:
             certification/artifacts/*.canonical-execute-plan.raw.json
             certification/artifacts/*.location-*.raw.json
             certification/artifacts/*.planning.raw.json
-            certification/artifacts/*deployment-cohort*.json
-            certification/artifacts/*deployment*journey*.json
+            certification/artifacts/deployment-workspace-results.json*
             certification/artifacts/*.ops-health.raw.json
             certification/artifacts/*.ops-events.raw.json
             certification/artifacts/*.grounding-status.raw.json

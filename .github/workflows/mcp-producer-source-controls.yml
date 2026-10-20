@@ -50,6 +50,7 @@ jobs:
           python3 generate-offline-app-vector.py
           npm run prepare:location
           npm run prepare:planning
+          npm run prepare:direct-cancel
           npm run prepare:deployment-workspace
           npm run prepare:ops-health
           npm run prepare:ops-events
@@ -77,6 +78,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 generate-offline-planning-vector.py
+      - name: Generate protected-source offline direct cancellation vectors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 generate-offline-direct-cancel-vector.py
       - name: Generate protected-source offline complete deployment workspace vectors
         env:
           GH_TOKEN: ${{ github.token }}
@@ -121,6 +126,9 @@ jobs:
             certification/deployment-workspace-validation-pins.json
             certification/test/fixtures/offline-deployment-workspace-oracle-vector.json
             certification/.planning-validation/source-binding.json
+            certification/.direct-cancel-validation/source-binding.json
+            certification/direct-cancel-validation-pins.json
+            certification/test/fixtures/offline-direct-cancel-oracle-vector.json
             certification/planning-validation-pins.json
             certification/test/fixtures/offline-planning-oracle-vector.json
             certification/.ops-health-validation/source-binding.json

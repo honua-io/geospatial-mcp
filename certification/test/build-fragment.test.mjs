@@ -1096,3 +1096,136 @@ test("complete offline deployment cohort joins all eight original semantic and a
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("offline direct cancellation joins both original rows with durable and authority gates intact", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-direct-cancel-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /synthetic.*no actual/i);
+  const operation = "tools/call:cancel_job", sample = vector.proof;
+  const selectedIdentity = { ...identity, sourceSha: sample.candidateSourceSha,
+    imageDigest: sample.candidateImage.split("@").at(-1) };
+  const checks = {};
+  for (const key of ["sdk", "inspector"]) {
+    const proof = key === "sdk" ? vector.proof : vector.inspectorProof;
+    checks[key] = { ...passing(key), [operation]: { result: "pass", value: structuredClone(proof) } };
+    checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+  }
+  const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
+  const selected = fragment => fragment.observations.filter(row => row.operation === operation);
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP, directory = mkdtempSync(join(tmpdir(), "offline-direct-cancel-join-"));
+  const bytes = Buffer.from(vector.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), vector.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json");
+  writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bytes);
+  try {
+    const fragment = joined(checks), rows = selected(fragment);
+    assert.equal(fragment.observations.length, 82);
+    assert.equal(rows.length, 2);
+    for (const row of rows) {
+      assert.equal(row.result, "pass", row.canonical_client);
+      assert.equal(row.evidence_receipt.facets.auth, "pass");
+      assert.equal(row.evidence_receipt.identity.source_sha, selectedIdentity.sourceSha);
+      assert.deepEqual(row.scenario_facets, ["positive", "negative", "media-schema", "auth"]);
+    }
+    for (const key of ["sdk", "inspector"]) {
+      for (const name of ["ack-only", "coherent-tenant", "late-output", "cleanup", "configuration", "coherent-ack-job",
+        "coherent-request-job", "coherent-caller", "coherent-session", "coherent-source", "coherent-durable-owner",
+        "missing-terminal", "missing-continuation"]) {
+        const broken = structuredClone(checks), raw = broken[key][operation].value.observations;
+        if (name === "ack-only") raw.snapshots.terminal.job.status = 2;
+        else if (name === "coherent-tenant") {
+          raw.snapshots.running.job.tenantId = "public";
+          raw.snapshots.running.job.submitterTenantId = "public";
+        } else if (name === "late-output") raw.snapshots.late.value.results[0].binding.artifacts = [{ artifactId: "unexpected" }];
+        else if (name === "cleanup") raw.identityFixtures.limited.cleanupComplete = false;
+        else if (name === "configuration") raw.configuration.observation.environment.MultiTenancy__DefaultTenantId = "other";
+        else if (name === "coherent-ack-job") {
+          const index = raw.calls.findIndex(item => item.id === "owner-cancel");
+          assert.ok(index >= 0);
+          raw.calls[index] = structuredClone(vector.coherentWrongJobAcknowledgements[key]);
+        } else if (name === "coherent-request-job") {
+          const index = raw.calls.findIndex(item => item.id === "repeat-cancel");
+          assert.ok(index >= 0);
+          raw.calls[index] = structuredClone(vector.coherentWrongJobRequests[key]);
+        } else if (name === "coherent-caller") {
+          const call = raw.calls.find(item => item.id === "limited-target");
+          const full = raw.identityFixtures.full.identity.credentialFingerprint;
+          call.wire.expectedCredentialFingerprint = full;
+          for (const phase of ["initialize", "invocation"]) call.wire[phase].request.credentialFingerprint = full;
+        } else if (name === "coherent-session") {
+          const selected = raw.calls.find(item => !item.authenticated), prior = raw.calls.find(item => item.authenticated);
+          const session = prior.wire.initialize.response.sessionSha256;
+          selected.wire.initialize.response.sessionSha256 = session;
+          selected.wire.invocation.request.sessionSha256 = session;
+          if (key === "sdk") {
+            selected.client.sessionSha256 = session;
+            const output = JSON.parse(selected.client.stdout);
+            output.sessionSha256 = session;
+            selected.client.stdout = JSON.stringify(output);
+            selected.client.launch.stdoutSha256 = `sha256:${createHash("sha256").update(selected.client.stdout).digest("hex")}`;
+          }
+        } else if (name === "coherent-source") {
+          const change = value => {
+            if (!value || typeof value !== "object") return;
+            for (const [field, item] of Object.entries(value)) {
+              if (["candidateSourceSha", "sourceSha"].includes(field) && item === selectedIdentity.sourceSha) value[field] = "f".repeat(40);
+              else change(item);
+            }
+          };
+          change(broken[key][operation].value);
+        } else if (name === "coherent-durable-owner") {
+          const actor = "ApiKey:api-key:33333333-3333-4333-8333-333333333333";
+          for (const snapshot of Object.values(raw.snapshots)) if (snapshot.job) {
+            snapshot.job.requestedBy = snapshot.job.submitterPrincipalId = snapshot.job.submitterOwnerActorId = actor;
+            snapshot.job.submitterWorkspaceOwnerId = actor.slice("ApiKey:api-key:".length);
+          }
+        } else if (name === "missing-terminal") delete raw.snapshots.terminal;
+        else if (name === "missing-continuation") delete raw.snapshots.late;
+        else throw new Error(`unhandled direct cancellation mutation ${name}`);
+        const next = joined(broken), rows = selected(next);
+        assert.equal(next.observations.length, 82);
+        assert.equal(rows.length, 2);
+        const row = rows.find(item => item.canonical_client === CLIENTS[key].canonicalClient);
+        assert.notEqual(row.result, "pass", `${key} ${name}`);
+        assert.equal(row.evidence_receipt, null);
+        assert.equal(row.facet_results, null);
+        const other = rows.find(item => item.canonical_client !== CLIENTS[key].canonicalClient);
+        assert.equal(other.result, "pass", `${key} ${name} preserves the other original client`);
+        assert.equal(other.evidence_receipt.facets.auth, "pass");
+      }
+      for (const mutation of ["no-raw", "source", "image", "client", "no-anonymous", "session", "no-global-auth", "no-cancellation", "failed-global", "missing-operation", "under-tier"]) {
+        const broken = structuredClone(checks), proof = broken[key][operation].value;
+        if (mutation === "no-raw") delete proof.observations;
+        else if (mutation === "source") proof.helperSourceSha = "f".repeat(40);
+        else if (mutation === "image") proof.candidateImage += "-wrong";
+        else if (mutation === "client") proof.clientVersion = "0.0.0";
+        else if (mutation === "no-anonymous") proof.observations.calls = proof.observations.calls.filter(item => item.authenticated);
+        else if (mutation === "session") proof.observations.calls.find(item => !item.authenticated).wire.initialize.response.sessionSha256 = proof.observations.calls.find(item => item.authenticated).wire.initialize.response.sessionSha256;
+        else if (mutation === "no-global-auth") delete broken[key]["behavior/auth"];
+        else if (mutation === "no-cancellation") delete broken[key]["behavior/cancellation"];
+        else if (mutation === "failed-global") broken[key]["behavior/cancellation"].result = "fail";
+        else if (mutation === "missing-operation") delete broken[key][operation];
+        const fragment = joined(broken, mutation === "under-tier" ? "pr" : "release"), next = selected(fragment);
+        assert.equal(fragment.observations.length, 82);
+        assert.equal(next.length, 2);
+        const row = next.find(item => item.canonical_client === CLIENTS[key].canonicalClient);
+        assert.notEqual(row.result, "pass", `${key} ${mutation}`);
+        assert.equal(row.evidence_receipt, null);
+        assert.equal(row.facet_results, null);
+        const other = next.find(item => item.canonical_client !== CLIENTS[key].canonicalClient);
+        if (mutation === "under-tier") {
+          assert.notEqual(other.result, "pass", "global tier applies to both originals");
+          assert.equal(other.evidence_receipt, null);
+          assert.equal(other.facet_results, null);
+        } else {
+          assert.equal(other.result, "pass", `${key} ${mutation} preserves the other original client`);
+          assert.equal(other.evidence_receipt.facets.auth, "pass");
+        }
+      }
+    }
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

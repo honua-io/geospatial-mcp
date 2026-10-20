@@ -13,6 +13,7 @@ npm run prepare:render
 npm run prepare:app
 npm run prepare:location
 npm run prepare:planning
+npm run prepare:direct-cancel
 npm run prepare:ops-health
 npm run prepare:ops-events
 npm run prepare:grounding-status
@@ -21,6 +22,7 @@ python3 fetch-ops-events-manifest.py --governance-binding ../.certification/sour
 python3 generate-offline-app-vector.py
 python3 generate-offline-location-vector.py
 python3 generate-offline-planning-vector.py
+python3 generate-offline-direct-cancel-vector.py
 python3 generate-offline-ops-health-vector.py
 python3 generate-offline-ops-events-vector.py
 python3 generate-offline-grounding-status-vector.py
@@ -483,6 +485,21 @@ This proves neither real-model intent compilation nor plan execution. Direct job
 cancellation and native AWS cessation remain open in #133 and release#745/#679.
 The offline builder tests exercise both original rows, coherent output mutations,
 auth, global behavior, exact clients and tier; they qualify no actual candidate.
+
+`prepare:direct-cancel` authenticates the complete protected release-owned
+cancellation bundle. The runner extends both original canonical client lanes
+before restart-sensitive journeys. It requires a genuinely Running owned job,
+normal anonymous/read-only/other-tenant refusals, the owner's cancellation,
+durable Cancelled readback, an empty result package and a bounded late read
+without outputs. An acknowledgement alone cannot qualify either row. Missing
+runtime configuration, early completion, source/cohort mismatch or ambiguous
+managed-key cleanup remains nonpass. The fixture's admin tenant refusal does
+not establish nonadmin owner isolation or native process cessation; those
+original release obligations remain separate. Private managed keys stay in
+local temporary files; public raw and partial outcomes remain in artifacts.
+The offline generator supplies synthetic regression controls only. Receipt
+creation still requires the protected oracle plus the unchanged authorization,
+client, source, image, global behavior, required tier and complete82-row gates.
 
 ## Deployment and workspace proof
 

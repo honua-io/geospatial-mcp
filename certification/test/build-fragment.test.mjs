@@ -220,6 +220,86 @@ test("offline findings and event reads join all eight original rows through prot
 });
 
 
+test("offline fixture planning joins both original rows without live-model credit", () => {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-planning-oracle-vector.json", import.meta.url)));
+  assert.match(vector.meaning, /offline.*no.*candidate/i);
+  const operation = "tools/call:plan_analysis";
+  const selectedIdentity = { ...identity, sourceSha: vector.proof.candidateSourceSha,
+    imageDigest: vector.proof.candidateImage.split("@").at(-1) };
+  const checks = {};
+  for (const key of ["sdk", "inspector"]) {
+    const proof = key === "sdk" ? vector.proof : vector.inspectorProof;
+    assert.equal(proof.liveModelProven, false);
+    assert.equal(proof.executionProven, false);
+    checks[key] = { ...passing(key), [operation]: { result: "pass", value: structuredClone(proof) } };
+    checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+  }
+  const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
+    results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
+  const selected = fragment => fragment.observations.filter(row => row.operation === operation);
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const directory = mkdtempSync(join(tmpdir(), "offline-planning-join-"));
+  const bytes = Buffer.from(vector.bootstrapBase64, "base64");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), vector.bootstrapBytesSha256);
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json");
+  writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bytes);
+  try {
+    const fragment = joined(checks), rows = selected(fragment);
+    assert.equal(fragment.observations.length, 82);
+    assert.equal(rows.length, 2);
+    for (const row of rows) {
+      assert.equal(row.result, "pass", row.canonical_client);
+      assert.deepEqual(row.scenario_facets, ["positive", "negative", "media-schema", "auth"]);
+      assert.equal(row.evidence_receipt.facets.auth, "pass");
+    }
+    for (const key of ["sdk", "inspector"]) {
+      const mutations = ["no-raw", "helper", "image", "version", "session", "caller", "anonymous-credentials",
+        "store", "cleanup", "time", "model-credit", "execution-credit", ...Object.keys(vector.mutants[key])];
+      for (const mutation of mutations) {
+        const broken = structuredClone(checks), proof = broken[key][operation].value;
+        if (mutation === "no-raw") delete proof.observations;
+        else if (mutation === "helper") proof.helperSourceSha = "f".repeat(40);
+        else if (mutation === "image") proof.candidateImage += "-other";
+        else if (mutation === "version") proof.clientVersion = "0.0.0";
+        else if (mutation === "model-credit") proof.liveModelProven = true;
+        else if (mutation === "execution-credit") proof.executionProven = true;
+        else if (mutation === "session") proof.observations.calls[1].wire.initialize.response.sessionSha256 = proof.observations.calls[0].wire.initialize.response.sessionSha256;
+        else if (mutation === "caller") {
+          const entry = proof.observations.calls[2];
+          const fingerprint = proof.observations.identityFixtures.full.identity.credentialFingerprint;
+          entry.wire.expectedCredentialFingerprint = fingerprint;
+          for (const phase of ["initialize", "invocation"]) entry.wire[phase].request.credentialFingerprint = fingerprint;
+        }
+        else if (mutation === "anonymous-credentials") proof.observations.calls.find(call => call.authenticated === false).wire.invocation.request.credentialPresent = true;
+        else if (mutation === "store") proof.observations.snapshots[1].value.jobs.push({ jobId: "extra", sha256: "sha256:" + "a".repeat(64), binding: {} });
+        else if (mutation === "cleanup") proof.observations.identityFixtures.limited.cleanupComplete = false;
+        else if (mutation === "time") proof.observations.calls[0].startedAt = "2000-01-01T00:00:00Z";
+        else proof.observations = structuredClone(vector.mutants[key][mutation]);
+        const row = selected(joined(broken)).find(item => item.canonical_client === CLIENTS[key].canonicalClient);
+        assert.notEqual(row.result, "pass", `${key} ${mutation}`);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+    for (const mutation of ["missing-auth", "missing-cancellation", "failed-cancellation", "missing-pagination", "under-tier"]) {
+      const broken = structuredClone(checks);
+      for (const key of ["sdk", "inspector"]) {
+        if (mutation === "missing-auth") delete broken[key]["behavior/auth"];
+        else if (mutation === "missing-cancellation") delete broken[key]["behavior/cancellation"];
+        else if (mutation === "failed-cancellation") broken[key]["behavior/cancellation"].result = "fail";
+        else if (mutation === "missing-pagination") delete broken[key]["behavior/resources-pagination"];
+      }
+      for (const row of selected(joined(broken, mutation === "under-tier" ? "pr" : "release"))) {
+        assert.notEqual(row.result, "pass", mutation);
+        assert.equal(row.evidence_receipt, null);
+      }
+    }
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("offline Ops health joins all four original rows through protected semantics and authority", () => {
   const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-ops-health-oracle-vector.json", import.meta.url)));
   assert.match(vector.meaning, /offline.*no.*candidate/i);

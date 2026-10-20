@@ -25,3 +25,6 @@ certification/test/fixtures/offline-ops-events-oracle-vector.json
 
 certification/.grounding-status-validation/
 certification/test/fixtures/offline-grounding-status-oracle-vector.json
+
+certification/.planning-validation/
+certification/test/fixtures/offline-planning-oracle-vector.json

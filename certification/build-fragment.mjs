@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyPlanningProof } from "./planning-validation.mjs";
 import { authorityDecisions, verifyProtectedAuthority } from "./authority-validation.mjs";
 import { verifyAppPackageProof } from "./app-package-validation.mjs";
 import { verifyPublishResultProof } from "./publish-result-validation.mjs";
@@ -110,6 +111,9 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
       const locationSemantic = ["tools/call:geocode_address", "tools/call:geocode_addresses", "tools/call:solve_route"].includes(operation);
       const locationPassed = !locationSemantic || verifyLocationProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
+      const planningSemantic = operation === "tools/call:plan_analysis";
+      const planningPassed = !planningSemantic || verifyPlanningProof(proof, identity.sourceSha, identity.imageDigest,
+        operation, client.canonicalClient, client.version);
       const opsEventsSemantic = ["tools/call:ops_findings", "tools/call:alert_events", "tools/call:operate_events", "resources/read:Ops findings"].includes(operation);
       const opsEventsPassed = !opsEventsSemantic || verifyOpsEventsProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
@@ -122,7 +126,7 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
       const appPackageSemantic = ["tools/call:create_app_package", "resources/read:App package", "tools/call:validate_package", "tools/call:preview_package"].includes(operation);
       const appPackagePassed = !appPackageSemantic || verifyAppPackageProof(proof, identity.sourceSha, identity.imageDigest,
         operation, client.canonicalClient, client.version);
-      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || publishResultSemantic || appPackageSemantic || locationSemantic || opsHealthSemantic || opsEventsSemantic || groundingStatusSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
+      const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || publishResultSemantic || appPackageSemantic || locationSemantic || opsHealthSemantic || opsEventsSemantic || groundingStatusSemantic || planningSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
       const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
@@ -137,7 +141,7 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
       const tierSatisfied = tiers.indexOf(executedTier) >= tiers.indexOf(context.required_tier);
       const result = execution?.result === "fail"
         ? "fail"
-        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed && appPackagePassed && locationPassed && opsHealthPassed && opsEventsPassed && groundingStatusPassed && entityPassed && authorityPassed
+        : tierSatisfied && executable && execution?.result === "pass" && behaviorPassed && semanticPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed && appPackagePassed && locationPassed && opsHealthPassed && opsEventsPassed && groundingStatusPassed && planningPassed && entityPassed && authorityPassed
           ? "pass"
           : "skip";
       const scenarioFacets = ["positive", "negative", "media-schema", "auth"];
@@ -186,7 +190,7 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
           ? !tierSatisfied ? `executed ${executedTier} tier does not satisfy required ${context.required_tier} tier`
             : !executable ? `blocked on deterministic terminal-journey adapter: ${RELEASE_123}`
             : execution?.result !== "pass" ? `${client.canonicalClient} check did not pass: ${RELEASE_123}`
-            : !(semanticPassed && entityPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed && appPackagePassed && locationPassed && opsHealthPassed && opsEventsPassed && groundingStatusPassed) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
+            : !(semanticPassed && entityPassed && planPassed && renderPassed && mapPackagePassed && ingestPublishPassed && stylePassed && executePassed && publishResultPassed && appPackagePassed && locationPassed && opsHealthPassed && opsEventsPassed && groundingStatusPassed && planningPassed) ? `candidate-bound semantic proof did not pass: ${RELEASE_123}`
             : !authorityPassed ? `candidate-bound caller/session authority proof did not pass: ${RELEASE_123}`
             : !behaviorPassed ? `candidate-bound global behavior proof did not pass: ${RELEASE_123}`
             : `${client.canonicalClient} check did not pass: ${RELEASE_123}`

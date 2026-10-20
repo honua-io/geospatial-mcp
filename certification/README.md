@@ -499,3 +499,11 @@ protected canonical publication writer, declared owned tenant configuration,
 normal identity binding or original client evidence remains NONPASS. A rollback
 proposal proves neither approval nor actuation or deployment health. Offline
 source controls preserve the 82-row denominator and grant no candidate credit.
+
+The owned certification boot explicitly composes the protected tenant and Studio
+end-user authorization options with the existing declared ControlPlane options
+before starting the image. The separate public declaration identifies this
+nondefault test posture and grants no qualification. Each complete journey still
+requires the original safe Docker configuration observation and independent
+normal caller, tenant, owner and role joins. Normal admin bypass remains part of
+the tested policy.

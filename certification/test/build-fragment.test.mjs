@@ -1054,9 +1054,11 @@ test("complete offline deployment cohort joins all eight original semantic and a
     const fragment = joined(checks), rows = selected(fragment);
     assert.equal(fragment.observations.length, 82); assert.equal(rows.length, 8);
     for (const row of rows) { assert.equal(row.result, "pass", row.operation); assert.equal(row.evidence_receipt.facets.auth, "pass"); }
-    for (const key of ["sdk", "inspector"]) for (const operation of operations) {
+    for (const key of ["sdk", "inspector"]) {
       for (const mutation of ["raw", "cohort", "other-client", "session", "tenant", "history", "restart", "helper", "semantic-only", "actuation"]) {
-        const broken = structuredClone(checks), proof = broken[key][operation].value;
+        const broken = structuredClone(checks);
+        for (const operation of operations) {
+        const proof = broken[key][operation].value;
         if (mutation === "raw") delete proof.observations;
         if (mutation === "cohort") delete proof.identityCohort;
         if (mutation === "other-client") proof.identityCohort.roleReceipt.cohort.journeys.pop();
@@ -1067,7 +1069,18 @@ test("complete offline deployment cohort joins all eight original semantic and a
         if (mutation === "helper") proof.helperSourceSha = "f".repeat(40);
         if (mutation === "semantic-only") proof.semanticOnly = true;
         if (mutation === "actuation") proof.deploymentActuationProven = true;
-        assert.notEqual(selected(joined(broken)).find(row => row.operation === operation && row.canonical_client === CLIENTS[key].canonicalClient).result, "pass", `${key} ${operation} ${mutation}`);
+        }
+        const mutatedRows = selected(joined(broken));
+        assert.equal(mutatedRows.length, 8);
+        for (const row of mutatedRows) {
+          if (row.canonical_client === CLIENTS[key].canonicalClient) {
+            assert.notEqual(row.result, "pass", `${key} ${row.operation} ${mutation}`);
+            assert.equal(row.evidence_receipt, null);
+          } else {
+            assert.equal(row.result, "pass", `other client ${row.operation} ${mutation}`);
+            assert.equal(row.evidence_receipt.facets.auth, "pass");
+          }
+        }
       }
     }
     for (const mutation of ["cancel", "tier", "auth"]) {

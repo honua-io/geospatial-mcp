@@ -1,5 +1,6 @@
 // Thin protected-source bridge; the deployment-workspace scenarios and oracle are release-owned.
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -35,6 +36,37 @@ export function verifiedDeploymentWorkspaceSource() {
 
 const initial = verifiedDeploymentWorkspaceSource();
 const owned = await import(pathToFileURL(join(initial.directory, "mcp_deployment_workspace_cohort.mjs")).href);
+
+// Explicit owned certification posture; never a default-product assertion.
+export function prepareOwnedAuthorizationConfiguration() {
+  const source = verifiedDeploymentWorkspaceSource();
+  const helper = "mcp_deployment_identity_configuration.py";
+  const result = spawnSync("python3", ["-I", "-B", "-c",
+    "import json,runpy,sys; print(json.dumps(runpy.run_path(sys.argv[1])['ENV']))", join(source.directory, helper)],
+    { encoding: "utf8", timeout: 15_000, maxBuffer: 16 * 1024 });
+  if (result.error || result.status !== 0) throw new Error("protected owned authorization declaration unavailable");
+  const environment = JSON.parse(result.stdout);
+  const names = ["MultiTenancy__Enabled", "MultiTenancy__DefaultTenantId", "MultiTenancy__MultiTenantAdminRoles__0",
+    "MultiTenancy__MultiTenantAdminRoles__1", "MultiTenancy__MultiTenantAdminRoles__2", "Studio__EndUserAuthorization__Enabled"];
+  if (!environment || typeof environment !== "object" || Array.isArray(environment)
+      || Object.keys(environment).toSorted().join() !== names.toSorted().join()
+      || Object.values(environment).some(value => typeof value !== "string" || !value || /[\r\n\0]/.test(value))) {
+    throw new Error("unsafe protected owned authorization environment");
+  }
+  verifiedDeploymentWorkspaceSource();
+  return { schema: "honua.mcp-owned-authorization-options/v1", protectedSourceSha: source.sourceSha,
+    configurationHelperSha256: `sha256:${source.sha256[helper]}`, environment,
+    nonDefaultOwnedFixture: true, candidateQualified: false };
+}
+
+export function composeOwnedCandidateEnvironment(controlPlaneEnvironment) {
+  if (!controlPlaneEnvironment || typeof controlPlaneEnvironment !== "object" || Array.isArray(controlPlaneEnvironment)) throw new Error("safe ControlPlane environment required");
+  const entries = Object.entries(controlPlaneEnvironment);
+  if (!entries.length || entries.some(([key, value]) => !/^ControlPlane__[A-Za-z0-9_]+$/.test(key)
+      || typeof value !== "string" || /[\r\n\0]/.test(value))) throw new Error("unsafe ControlPlane environment framing");
+  const declaration = prepareOwnedAuthorizationConfiguration();
+  return { declaration, lines: [...entries, ...Object.entries(declaration.environment)].map(([key, value]) => `${key}=${value}`) };
+}
 
 export function deploymentWorkspaceCohortScenarios(records, clients, results) {
   return owned.createDeploymentWorkspaceCohort(verifiedDeploymentWorkspaceSource()).deploymentWorkspaceCohortScenarios(records, {

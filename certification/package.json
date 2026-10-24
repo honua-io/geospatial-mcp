@@ -20,7 +20,7 @@
     "prepare:deployment-workspace": "python3 fetch-deployment-workspace-validation.py --destination .deployment-workspace-validation"
   },
   "dependencies": {
-    "@modelcontextprotocol/inspector": "2.10.1",
+    "@modelcontextprotocol/inspector": "2.11.0",
     "@modelcontextprotocol/sdk": "1.32.1"
   }
 }

@@ -24,7 +24,10 @@ Every normative change follows the same three steps. Small editorial fixes
    additive, uncontroversial fields may fold the rationale into the PR instead;
    anything that reconciles or supersedes an existing decision needs an ADR.
 
-3. **Schema PR with conformance fixtures.** Implement the decision:
+3. **Schema PR with conformance fixtures.** Honua Geo Inc. maintainers implement the
+   decision; the standard does not take code or schema pull requests from outside the
+   organization (they are closed automatically). Reviewers and adopters shape the
+   change through the issue and the ADR. The maintainer PR:
    - add or edit the JSON Schema under [`spec/schemas/`](spec/schemas/) and the
      matching entry in [`spec/schemas/index.json`](spec/schemas/index.json)
      (including its `profile`, if not `base`);
@@ -33,7 +36,7 @@ Every normative change follows the same three steps. Small editorial fixes
    - update the reference manifest
      ([`conformance/manifests/honua.manifest.json`](conformance/manifests/honua.manifest.json))
      and the affected spec prose (`spec/*.md`, `CONFORMANCE.md`);
-   - reference the issue and ADR in the PR description.
+   - references the issue and ADR in the PR description.
 
 ## Local checks (what CI runs)
 

@@ -3,6 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { deploymentWorkspaceCohortScenarios } from "./deployment-workspace-validation.mjs";
+import { deploymentTargetConfigured, recordUntargetedDeploymentWorkspace } from "./deployment-workspace-target.mjs";
 const root = fileURLToPath(new URL("./", import.meta.url));
 const selections = [["sdk", "Official MCP TypeScript SDK", "@modelcontextprotocol/sdk"], ["inspector", "MCP Inspector", "@modelcontextprotocol/inspector"]];
 const records = {}, clients = {};
@@ -21,5 +22,13 @@ for (const [key, canonicalClient, name] of selections) {
     await writeFile(results, JSON.stringify(lane, null, 2) + "\n");
   };
 }
-await deploymentWorkspaceCohortScenarios(records, clients, join(root, "artifacts", "deployment-workspace-results.json"));
+if (!deploymentTargetConfigured(process.env.HONUA_MCP_TARGET_ID)) {
+  for (const [key] of selections) {
+    const results = join(root, "artifacts", `${key}-results.json`);
+    const lane = recordUntargetedDeploymentWorkspace(JSON.parse(await readFile(results, "utf8")));
+    await writeFile(results, JSON.stringify(lane, null, 2) + "\n");
+  }
+} else {
+  await deploymentWorkspaceCohortScenarios(records, clients, join(root, "artifacts", "deployment-workspace-results.json"));
+}
 if (failed) process.exitCode = 1;

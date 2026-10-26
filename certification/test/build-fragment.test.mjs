@@ -1,6 +1,6 @@
 import { verifyEntityResolution } from "../entity-resolution.mjs";
 import { verifyCancellationProof } from "../cancellation-proof.mjs";
-import { verifyInspectorPaginationProof } from "../pagination-proof.mjs";
+import { verifyInspectorPaginationProof, paginationCheck, INSPECTOR_PAGINATION_CHECK } from "../pagination-proof.mjs";
 import { verifyInspectorCancellationProof } from "../inspector-cancellation-proof.mjs";
 import { planScenarios, verifyPlanProof } from "../plan-validation.mjs";
 import { renderScenarios, verifyRenderProof } from "../render-validation.mjs";
@@ -58,10 +58,17 @@ const passingBase = Object.fromEntries(["initialize", "ping", "tools/list", "res
 for (const operation of ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]) {
   passingBase[operation] = { result: "pass", startedAt: identity.startedAt, completedAt: "2026-08-26T21:01:00Z" };
 }
-const passing = (key) => ({ ...passingBase, "behavior/cancellation": { ...passingBase["behavior/cancellation"],
-  value: key === "inspector" ? syntheticInspectorCancellationProof() : syntheticCancellationProof(CLIENTS[key].canonicalClient) },
-  ...(key === "inspector" ? { "behavior/resources-pagination": { ...passingBase["behavior/resources-pagination"],
-    value: syntheticInspectorPaginationProof() } } : {}) });
+// Inspector pagination is proved on authenticated full-view tools/list; its
+// candidate resources/list is one default page and is not an Inspector floor.
+const passing = (key) => {
+  const checks = { ...passingBase, "behavior/cancellation": { ...passingBase["behavior/cancellation"],
+    value: key === "inspector" ? syntheticInspectorCancellationProof() : syntheticCancellationProof(CLIENTS[key].canonicalClient) } };
+  if (key === "inspector") {
+    delete checks["behavior/resources-pagination"];
+    checks[INSPECTOR_PAGINATION_CHECK] = { ...passingBase["behavior/resources-pagination"], value: syntheticInspectorPaginationProof() };
+  }
+  return checks;
+};
 
 test("offline grounding and declared status join all six original rows without candidate credit", () => {
   const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-grounding-status-oracle-vector.json", import.meta.url)));
@@ -76,7 +83,7 @@ test("offline grounding and declared status join all six original rows without c
     checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation =>
       [operation, { result: "pass", value: structuredClone(proof) }])) };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -150,7 +157,7 @@ test("offline findings and event reads join all eight original rows through prot
     checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation =>
       [operation, { result: "pass", value: structuredClone(proof) }])) };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -233,7 +240,7 @@ test("offline fixture planning joins both original rows without live-model credi
     assert.equal(proof.executionProven, false);
     checks[key] = { ...passing(key), [operation]: { result: "pass", value: structuredClone(proof) } };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -287,7 +294,7 @@ test("offline fixture planning joins both original rows without live-model credi
         if (mutation === "missing-auth") delete broken[key]["behavior/auth"];
         else if (mutation === "missing-cancellation") delete broken[key]["behavior/cancellation"];
         else if (mutation === "failed-cancellation") broken[key]["behavior/cancellation"].result = "fail";
-        else if (mutation === "missing-pagination") delete broken[key]["behavior/resources-pagination"];
+        else if (mutation === "missing-pagination") delete broken[key][paginationCheck(key)];
       }
       for (const row of selected(joined(broken, mutation === "under-tier" ? "pr" : "release"))) {
         assert.notEqual(row.result, "pass", mutation);
@@ -312,7 +319,7 @@ test("offline Ops health joins all four original rows through protected semantic
     checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation =>
       [operation, { result: "pass", value: structuredClone(proof) }])) };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -678,19 +685,42 @@ test("workflow supplies resolved event tier to the fragment builder", async () =
 
 test("Inspector apparent passes cannot survive missing or mismatched independent pagination proof", () => {
   for (const change of [undefined, { pageCount: 1 }, { sourceSha: "f".repeat(40) }, { inspectorVersion: "2.3.0" },
-    { cursorHandoffCount: 0 }, { clientResultMatchesWire: false }]) {
+    { cursorHandoffCount: 0 }, { clientResultMatchesWire: false }, { method: "resources/list" },
+    { workflowView: undefined }, { authenticated: false }, { schema: "honua.inspector-pagination-observer/v1" }]) {
     const checks = passing("inspector");
-    checks["behavior/resources-pagination"].value = change === undefined ? undefined : { ...syntheticInspectorPaginationProof(), ...change };
+    checks[INSPECTOR_PAGINATION_CHECK].value = change === undefined ? undefined : { ...syntheticInspectorPaginationProof(), ...change };
     const result = buildFragment({ identity, results: {
       sdk: { protocolVersion: "2025-06-18", checks: passing("sdk") },
       inspector: { protocolVersion: "2025-06-18", checks },
     }});
     assert.equal(result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length, 0);
     assert.equal(result.observations.some((row) => row.evidence_receipt), false);
-    assert.equal(verifyInspectorPaginationProof(checks["behavior/resources-pagination"].value, identity.sourceSha, CLIENTS.inspector.version), false);
+    assert.equal(verifyInspectorPaginationProof(checks[INSPECTOR_PAGINATION_CHECK].value, identity.sourceSha, CLIENTS.inspector.version), false);
     assert.equal(verifyCancellationProof(passing("sdk")["behavior/cancellation"].value, identity.sourceSha, CLIENTS.sdk.canonicalClient), true);
     assert.equal(result.observations.length, 82);
   }
+});
+
+test("Inspector pagination must be the tools/list proof, not a resources/list check or v1 resources proof", () => {
+  const fragment = (checks) => buildFragment({ identity, results: {
+    sdk: { protocolVersion: "2025-06-18", checks: passing("sdk") },
+    inspector: { protocolVersion: "2025-06-18", checks },
+  }});
+  const inspectorPasses = (result) => result.observations.filter((row) => row.canonical_client === "MCP Inspector" && row.result === "pass").length;
+  assert.equal(paginationCheck("inspector"), "behavior/tools-pagination");
+  assert.equal(paginationCheck("sdk"), "behavior/resources-pagination");
+  // A valid proof under the retired Inspector check name is not admitted.
+  const misfiled = passing("inspector");
+  misfiled["behavior/resources-pagination"] = misfiled[INSPECTOR_PAGINATION_CHECK];
+  delete misfiled[INSPECTOR_PAGINATION_CHECK];
+  assert.equal(inspectorPasses(fragment(misfiled)), 0);
+  // The v1 resources/list proof shape cannot satisfy the v2 tools/list consumer.
+  const legacy = passing("inspector");
+  legacy[INSPECTOR_PAGINATION_CHECK].value = { schema: "honua.inspector-pagination-observer/v1", canonicalClient: "MCP Inspector",
+    inspectorVersion: "2.10.1", sourceSha: identity.sourceSha, pageCount: 3, cursorHandoffCount: 2, resourceCount: 3,
+    resourceUrisSha256: "sha256:" + "d".repeat(64), sessionSha256: "sha256:" + "e".repeat(64), complete: true, clientResultMatchesWire: true };
+  assert.equal(inspectorPasses(fragment(legacy)), 0);
+  assert.equal(fragment(legacy).observations.some((row) => row.evidence_receipt), false);
 });
 
 test("Inspector browser and SDK cancellation proofs cannot substitute for one another or a local abort", () => {
@@ -1041,7 +1071,7 @@ test("complete offline deployment cohort joins all eight original semantic and a
     assert.equal(proof.semanticOnly, false); assert.equal(proof.deploymentActuationProven, false); assert.equal(proof.runtimeHealthProven, false);
     checks[key] = { ...passing(key), ...Object.fromEntries(operations.map(operation => [operation, { result: "pass", value: structuredClone(proof) }])) };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -1108,7 +1138,7 @@ test("offline direct cancellation joins both original rows with durable and auth
     const proof = key === "sdk" ? vector.proof : vector.inspectorProof;
     checks[key] = { ...passing(key), [operation]: { result: "pass", value: structuredClone(proof) } };
     checks[key]["behavior/cancellation"].value.fixtureSourceSha = selectedIdentity.sourceSha;
-    if (key === "inspector") checks[key]["behavior/resources-pagination"].value.sourceSha = selectedIdentity.sourceSha;
+    if (key === "inspector") checks[key][INSPECTOR_PAGINATION_CHECK].value.sourceSha = selectedIdentity.sourceSha;
   }
   const joined = (selectedChecks, executedTier = "release") => buildFragment({ identity: selectedIdentity, executedTier,
     results: Object.fromEntries(["sdk", "inspector"].map(key => [key, { protocolVersion: "2025-06-18", checks: selectedChecks[key] }])) });
@@ -1249,7 +1279,7 @@ function withExecutedFixture(callback) {
     const checks = { ...passing(key), ...Object.fromEntries(operations.map((operation) =>
       [operation, { result: "pass", value: structuredClone(key === "sdk" ? vector.proof : vector.inspectorProof) }])) };
     checks["behavior/cancellation"].value.fixtureSourceSha = executedIdentity.sourceSha;
-    if (key === "inspector") checks["behavior/resources-pagination"].value.sourceSha = executedIdentity.sourceSha;
+    if (key === "inspector") checks[INSPECTOR_PAGINATION_CHECK].value.sourceSha = executedIdentity.sourceSha;
     return [key, { protocolVersion: "2025-06-18", requestUrl: identity.requestUrl, checks }];
   }));
   const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;

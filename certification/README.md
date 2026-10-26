@@ -208,10 +208,18 @@ authoritative capability catalog declares no separate cancellation capability.
 
 The Inspector pagination adapter consumes the independently observed public CLI
 page chain from the same verified server source (`inspector-pagination.mjs`,
-server6338). It requires a multi-page cursor traversal and a final returned
-resource list matching the wire, then the pure fragment consumer rechecks the
-candidate source, actual installed Inspector version, completion and bounded
-counts/hashes. Missing/tampered helpers stay nonpassing; there is no local copy.
+contract `honua.inspector-pagination-observer/v2`, honua-server#6641). The proof
+is on authenticated full-view `tools/list`, recorded as
+`behavior/tools-pagination`, not on `resources/list`: the candidate's 8 static
+resources never exceed one default 12-item page, while the `full` catalog export
+(`--metadata 'honua.io/workflow-view="full"'` plus the API key) spans about 11
+real default pages. Server page sizes are not changed. It requires a multi-page
+cursor traversal with the full view and a credential on every page, and a final
+returned tool list matching the wire. The pure fragment consumer then rechecks the
+candidate source, actual installed Inspector version, method, view,
+authentication, completion and bounded counts/hashes. A v1 `resources/list` proof
+is refused, so this passes only for a pinned candidate containing the v2 observer,
+and certify must supply `HONUA_MCP_API_KEY`. Missing/tampered helpers stay nonpassing; there is no local copy.
 The owning server controls run the actual installed 2.10.1 CLI and web UI. They
 do not qualify governed 2.3.0 or clear the
 remaining Inspector initial-ping and unknown-tool addressability gaps. Browser

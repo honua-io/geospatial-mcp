@@ -98,7 +98,7 @@ test("wrong helper interface cannot be treated as a complete scenario", async ()
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-const paginationModule = { INSPECTOR_PAGINATION_CONTRACT: "honua.inspector-pagination-observer/v1", observeInspectorPagination() {} };
+const paginationModule = { INSPECTOR_PAGINATION_CONTRACT: "honua.inspector-pagination-observer/v2", observeInspectorPagination() {} };
 test("pagination loads the verified server-owned observer only at exact candidate source", async () => {
   const { directory } = await fixture();
   try {

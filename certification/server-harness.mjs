@@ -36,7 +36,7 @@ export async function loadServerHarness(directory, candidateSha, importModule = 
 export async function loadInspectorPaginationHarness(directory, candidateSha, importModule = (url) => import(url)) {
   await verifyRuntimeFiles(directory, candidateSha, ["inspector-pagination.mjs"]);
   const module = await importModule(pathToFileURL(join(directory, "inspector-pagination.mjs")).href);
-  require(module.INSPECTOR_PAGINATION_CONTRACT === "honua.inspector-pagination-observer/v1"
+  require(module.INSPECTOR_PAGINATION_CONTRACT === "honua.inspector-pagination-observer/v2"
     && typeof module.observeInspectorPagination === "function");
   return module;
 }

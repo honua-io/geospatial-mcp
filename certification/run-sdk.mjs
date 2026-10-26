@@ -1,4 +1,5 @@
 import { mapPackageScenarios } from "./map-package-validation.mjs";
+import { locationScenarios } from "./location-validation.mjs";
 import { CLIENTS } from "./requirements.mjs";
 import { planScenarios } from "./plan-validation.mjs";
 import { renderScenarios } from "./render-validation.mjs";
@@ -55,6 +56,10 @@ if (checks.initialize.result === "pass") {
   await planScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await renderScenarios((name, arguments_) => client.callTool({ name, arguments: arguments_ }), record);
   await mapPackageScenarios(record, CLIENTS.sdk.canonicalClient, CLIENTS.sdk.version);
+  // Location binds the exact bootstrap runtime (including its start time), so it runs
+  // here, before any journey restarts the disposable candidate.
+  await locationScenarios(record, CLIENTS.sdk.canonicalClient, CLIENTS.sdk.version,
+    process.env.CERT_RESULTS ?? "sdk-results.json");
   await record("behavior/error", () => missingTool(client));
   if (process.env.HONUA_MCP_CANCELLATION_OBSERVER === "postgres-lock-v1") {
     await record("behavior/cancellation", async () => {

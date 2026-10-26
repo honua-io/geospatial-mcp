@@ -1,12 +1,12 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "a1ba193beb878a1739a71e2ae16eae69db722cdc",
+  "sourceSha": "7b43a546189135a2e92158b14ef14752ee5698fc",
   "sha256": {
-    "certification/installed-clients/mcp_grounding_status_validation.mjs": "a62da6f6aa89295de755e6466cc2ce70941d06893461b3ec5415bc39b98c256f",
-    "certification/installed-clients/mcp_grounding_status_validation.py": "cb7dde635357054b2374f8d7013e038b074204dce5069ad0999ec15a21b5379a",
+    "certification/installed-clients/mcp_grounding_status_validation.mjs": "4bc68a0c2f88bf5592cc20c0b2958e5ef6b46e9e5c95c85a0e2bbe2c42a7a6f4",
+    "certification/installed-clients/mcp_grounding_status_validation.py": "ec3fbefcffa31f501ad4614a145f74a36c2b344d168f482bbb5005e5c4f5671f",
     "certification/installed-clients/mcp_grounding_status_state.py": "5529623e39e0a6dffb561684ec53dd9888c189f653e574328f98f55a648950b6",
     "certification/installed-clients/mcp_ops_events_config.py": "eab190f24402925b34f0835c086d64288613dd3ec9c8b71d38df0d0899d6dbae",
-    "certification/installed-clients/mcp_managed_identity_fixture.py": "993025d67bb7e61392cd1e23c38894f6f319fced3dbc3a4bfa55fb055f54c9da",
+    "certification/installed-clients/mcp_managed_identity_fixture.py": "9638995dca8ebbcf28f9b26d09d853e0cd31597d07d084c82ef05d0139eafd7d",
     "certification/installed-clients/mcp_execute_plan_state.py": "2da71ab0d5934fee993823e3af14bb280396021b67d8defb6a4584b5462ac930",
     "certification/installed-clients/mcp_execute_plan_validation.py": "1f5f38d7b8e67dad060b1029dc9fae9fa2fece41a0e4ddc2db5dc9ae2e992dd4",
     "certification/installed-clients/mcp_plan_validation.py": "facc6fbda42cad2997aeedb4e6d30dd6ef2a99ea6fd3cdbf2b2ef6a149d0c36c",
@@ -19,7 +19,7 @@
     "certification/installed-clients/render_png.py": "d22bcca5698280cd11c5cdf29be57b8a21cd24e6ebbb706e71d4326d63d7b269",
     "certification/installed-clients/fixture.v1.json": "82f7ffb305f25bd5c08a409236f72f52cc7fbfef7eeae57724fafa84a37e76e7",
     "certification/installed-clients/mcp_candidate_wire.mjs": "4acd896135a4084521373b3ba815b984253d67bb390c987f4d9b0ef72fb4ed51",
-    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "30e75adac2423de514bb1cc6ab392943d4d60f014cbdb0706148fb357636778a",
+    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "e8396f730b8ceac0ad1d64da86eb053615881844df6983d8a00f169788056b5b",
     "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "646922d16e98aa0c4fa4f8787632ed0deffa71c01b1d6d24ffb8ddeed512a901",
     "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e"
   }

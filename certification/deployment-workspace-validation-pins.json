@@ -1,6 +1,6 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "190fc9ed98ef5a314613df38d2c6fa5d048dc54f",
+  "sourceSha": "7b43a546189135a2e92158b14ef14752ee5698fc",
   "sha256": {
     "certification/installed-clients/mcp_deployment_workspace_cohort.mjs": "b3fe4a37c4abe7c89681420502508bf6b12916e68d959783072a9dbbce4dffa8",
     "certification/installed-clients/mcp_deployment_workspace_validation.py": "22ba0dfd546011cc4156ed37f5d80e9c07cbf6a99ee7a6ef84d57265985a7c42",
@@ -19,7 +19,7 @@
     "certification/installed-clients/mcp_ingest_publish_state.py": "667116c7c22c56bb1749814b0f467caaa5aead7cb2d3c27b21b193057ae1005e",
     "certification/installed-clients/fixture.v1.json": "82f7ffb305f25bd5c08a409236f72f52cc7fbfef7eeae57724fafa84a37e76e7",
     "certification/installed-clients/mcp_candidate_wire.mjs": "4acd896135a4084521373b3ba815b984253d67bb390c987f4d9b0ef72fb4ed51",
-    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "30e75adac2423de514bb1cc6ab392943d4d60f014cbdb0706148fb357636778a",
+    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "e8396f730b8ceac0ad1d64da86eb053615881844df6983d8a00f169788056b5b",
     "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "646922d16e98aa0c4fa4f8787632ed0deffa71c01b1d6d24ffb8ddeed512a901",
     "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
     "certification/installed-clients/mcp_deployment_workspace_validation.mjs": "4d086adcdb921b4d04055fc002f386e202667f9dc511817778a1dc4380ae62e9",
@@ -29,7 +29,7 @@
     "certification/installed-clients/mcp_deployment_identity_validation.py": "bec37146dfd5cf5d766b6863cbbe1a8eb4c2179b8c5d7a631ac3baeb8644f40d",
     "certification/installed-clients/mcp_deployment_identity_role.py": "a74571f80e2b7f56a759b61d3e1eaf552e776f24bcc56ecc3da66e752be8758b",
     "certification/installed-clients/mcp_deployment_identity_configuration.py": "5f089920f11ad278962010f8b83f9a06d48b2eaf48fdb87e984a4b63e1cd54fe",
-    "certification/installed-clients/mcp_managed_identity_fixture.py": "993025d67bb7e61392cd1e23c38894f6f319fced3dbc3a4bfa55fb055f54c9da",
+    "certification/installed-clients/mcp_managed_identity_fixture.py": "9638995dca8ebbcf28f9b26d09d853e0cd31597d07d084c82ef05d0139eafd7d",
     "certification/installed-clients/mcp_ops_events_data_read.py": "c0b2d114bd4572a52e8d93cc66ccf21fac8df894c0fc7c23c372af804072682f",
     "certification/installed-clients/mcp_ops_events_state.py": "56d1363d017c63b85b74e20d6965241e00c98b7f8a97bc278035c4cae40ada78"
   }

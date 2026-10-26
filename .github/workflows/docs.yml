@@ -56,3 +56,5 @@ jobs:
         run: python3 tools/validate_skills.py
       - name: Run skills validator regression tests
         run: python3 -m unittest tools.test_validate_skills
+      - name: Run spec SBOM and attestation workflow tests
+        run: python3 -m unittest tools.test_spec_sbom

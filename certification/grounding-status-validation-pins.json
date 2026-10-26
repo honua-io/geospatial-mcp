@@ -1,10 +1,10 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "7b43a546189135a2e92158b14ef14752ee5698fc",
+  "sourceSha": "ca5b98e04b99c0f5abea4b0c7d150d23de085db6",
   "sha256": {
     "certification/installed-clients/mcp_grounding_status_validation.mjs": "4bc68a0c2f88bf5592cc20c0b2958e5ef6b46e9e5c95c85a0e2bbe2c42a7a6f4",
-    "certification/installed-clients/mcp_grounding_status_validation.py": "ec3fbefcffa31f501ad4614a145f74a36c2b344d168f482bbb5005e5c4f5671f",
-    "certification/installed-clients/mcp_grounding_status_state.py": "5529623e39e0a6dffb561684ec53dd9888c189f653e574328f98f55a648950b6",
+    "certification/installed-clients/mcp_grounding_status_validation.py": "9a3516517bc68a5dce6b55430394f7e81d503161c95ba402e51e10b8b8b24051",
+    "certification/installed-clients/mcp_grounding_status_state.py": "4d62c2c721bbed9bf223ec336bcbc99256bbec41834dd51a1e866e1811bfdf7f",
     "certification/installed-clients/mcp_ops_events_config.py": "eab190f24402925b34f0835c086d64288613dd3ec9c8b71d38df0d0899d6dbae",
     "certification/installed-clients/mcp_managed_identity_fixture.py": "9638995dca8ebbcf28f9b26d09d853e0cd31597d07d084c82ef05d0139eafd7d",
     "certification/installed-clients/mcp_execute_plan_state.py": "2da71ab0d5934fee993823e3af14bb280396021b67d8defb6a4584b5462ac930",

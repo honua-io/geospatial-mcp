@@ -1,9 +1,9 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "7b43a546189135a2e92158b14ef14752ee5698fc",
+  "sourceSha": "ca5b98e04b99c0f5abea4b0c7d150d23de085db6",
   "sha256": {
     "certification/installed-clients/mcp_direct_cancel_validation.mjs": "e56d885b8c85564397ec83fd12d183a6d134ab2bba2fbc5b136fea0d347623e1",
-    "certification/installed-clients/mcp_direct_cancel_validation.py": "02f6a33d95215c078786eb3743b721696aa682b28fb312539fda5c78d66750eb",
+    "certification/installed-clients/mcp_direct_cancel_validation.py": "33c01547c1e5b8afc31a2c7f085dc8e246f177a87a1cd836eccd81e9deb1f847",
     "certification/installed-clients/mcp_direct_cancel_state.py": "a4840ab2b70ffa847d77256b3481dceea9b23a983782337d84baf0974772591f",
     "certification/installed-clients/mcp_direct_cancel_config.py": "e3d335bf1f70d3ef2a2f04800f6afbe755f75f37de40003b73239e04cd8fb98b",
     "certification/installed-clients/mcp_deployment_identity_configuration.py": "5f089920f11ad278962010f8b83f9a06d48b2eaf48fdb87e984a4b63e1cd54fe",

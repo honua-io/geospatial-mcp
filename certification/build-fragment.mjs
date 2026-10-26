@@ -21,7 +21,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS, RELEASE_123 } from "./requirements.mjs";
 import { verifyCancellationProof } from "./cancellation-proof.mjs";
-import { verifyInspectorPaginationProof } from "./pagination-proof.mjs";
+import { verifyInspectorPaginationProof, paginationCheck } from "./pagination-proof.mjs";
 import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -174,12 +174,12 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
         operation, client.canonicalClient, client.version);
       const executable = semantic || planSemantic || renderSemantic || mapPackageSemantic || ingestPublishSemantic || styleSemantic || executeSemantic || publishResultSemantic || appPackageSemantic || locationSemantic || opsHealthSemantic || opsEventsSemantic || groundingStatusSemantic || planningSemantic || deploymentWorkspaceSemantic || directCancelSemantic || ["initialize", "ping", "tools/list", "resources/templates/list"].includes(operation);
       const cancellation = results[clientKey]?.checks?.["behavior/cancellation"]?.value;
-      const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]
+      const behaviorPassed = ["behavior/auth", "behavior/error", "behavior/cancellation", paginationCheck(clientKey)]
         .every((name) => results[clientKey]?.checks?.[name]?.result === "pass")
         && (clientKey === "inspector" ? verifyInspectorCancellationProof(cancellation, identity.sourceSha, client.version, protocolVersions[clientKey])
           : verifyCancellationProof(cancellation, identity.sourceSha, client.canonicalClient))
         && (clientKey !== "inspector" || verifyInspectorPaginationProof(
-          results[clientKey]?.checks?.["behavior/resources-pagination"]?.value, identity.sourceSha, client.version))
+          results[clientKey]?.checks?.[paginationCheck(clientKey)]?.value, identity.sourceSha, client.version))
         && (!semantic || (cancellation.seedSqlSha256 === proof?.seedSqlSha256
           && cancellation.allocatedIdsSha256 === proof?.allocatedIdsSha256));
       const authorityPassed = context.auth_policy_revision === "mcp-protected-operation-v1"

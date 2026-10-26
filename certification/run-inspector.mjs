@@ -8,7 +8,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { loadFixture, readScenarios, verifyQuery } from "./semantic-reads.mjs";
 import { authenticationDenial, assertToolRoster, toolOutput } from "./probes.mjs";
 import { loadInspectorPaginationHarness, loadInspectorCancellationHarness } from "./server-harness.mjs";
-import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult } from "./pagination-proof.mjs";
+import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult, INSPECTOR_PAGINATION_CHECK } from "./pagination-proof.mjs";
 import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
 import { inspectorCancellationRequested } from "./inspector-cancellation-selection.mjs";
 import { CLIENTS } from "./requirements.mjs";
@@ -112,22 +112,27 @@ try {
   paginationHarness = await loadInspectorPaginationHarness(new URL("./.candidate-server/", import.meta.url).pathname,
     process.env.HONUA_MCP_SERVER_SOURCE_SHA);
 } catch {
-  checks["behavior/resources-pagination"] = { result: "skip", reason: "verified candidate-source Inspector observer is unavailable" };
+  checks[INSPECTOR_PAGINATION_CHECK] = { result: "skip", reason: "verified candidate-source Inspector observer is unavailable" };
 }
 if (paginationHarness) {
   try {
     const proof = await paginationHarness.observeInspectorPagination({ endpoint: requestUrl,
       inspectorVersion: CLIENTS.inspector.version, sourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA,
+      // The candidate's resources/list (8 static resources) never exceeds one
+      // default 12-item page. The authenticated full catalog export spans many
+      // real default pages; the CLI's managed refresh follows every nextCursor
+      // and forwards the full-view _meta and API key on each page.
       invoke: async (endpoint) => {
-        const output = await invoke("diagnostic/resources-list", "resources/list", [], 0, true, endpoint);
-        return requireSuccessfulInspectorPaginationResult(output, checks["diagnostic/resources-list"]);
+        const output = await invoke("diagnostic/tools-list-pagination", "tools/list",
+          ["--metadata", 'honua.io/workflow-view="full"'], 0, true, endpoint);
+        return requireSuccessfulInspectorPaginationResult(output, checks["diagnostic/tools-list-pagination"]);
       } });
     if (!verifyInspectorPaginationProof(proof, process.env.HONUA_MCP_SERVER_SOURCE_SHA, CLIENTS.inspector.version)) {
       throw new Error("Inspector pagination proof did not bind the installed client and candidate");
     }
-    checks["behavior/resources-pagination"] = { result: "pass", value: proof, startedAt: paginationStarted, completedAt: new Date().toISOString() };
+    checks[INSPECTOR_PAGINATION_CHECK] = { result: "pass", value: proof, startedAt: paginationStarted, completedAt: new Date().toISOString() };
   } catch {
-    checks["behavior/resources-pagination"] = { result: "fail", error: "Independent Inspector cursor traversal was not proved",
+    checks[INSPECTOR_PAGINATION_CHECK] = { result: "fail", error: "Independent Inspector cursor traversal was not proved",
       startedAt: paginationStarted, completedAt: new Date().toISOString() };
   }
 }

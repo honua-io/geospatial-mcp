@@ -1,20 +1,20 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "7b43a546189135a2e92158b14ef14752ee5698fc",
+  "sourceSha": "4194df4368c0b78274fdac12315eaadbdd620c04",
   "sha256": {
     "certification/installed-clients/fixture.v1.json": "82f7ffb305f25bd5c08a409236f72f52cc7fbfef7eeae57724fafa84a37e76e7",
-    "certification/installed-clients/mcp_candidate_wire.mjs": "4acd896135a4084521373b3ba815b984253d67bb390c987f4d9b0ef72fb4ed51",
+    "certification/installed-clients/mcp_candidate_wire.mjs": "7ea5804758ef114360c4c4b6dd95b22e290c7238dd75343f064a33c4d4668a23",
     "certification/installed-clients/mcp_execute_plan_state.py": "2da71ab0d5934fee993823e3af14bb280396021b67d8defb6a4584b5462ac930",
     "certification/installed-clients/mcp_execute_plan_validation.mjs": "e344990aa77db3b065a851e6d4a81deb5cadef90e8a8ea2c03c94ad0f50192e6",
     "certification/installed-clients/mcp_execute_plan_validation.py": "1f5f38d7b8e67dad060b1029dc9fae9fa2fece41a0e4ddc2db5dc9ae2e992dd4",
-    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "e8396f730b8ceac0ad1d64da86eb053615881844df6983d8a00f169788056b5b",
+    "certification/installed-clients/mcp_fixed_client_launcher.mjs": "5ed4cffd25c83606e341f979fc0438b43b8375f68d5aec3cde6602a94e8660c6",
     "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e",
-    "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "646922d16e98aa0c4fa4f8787632ed0deffa71c01b1d6d24ffb8ddeed512a901",
+    "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "f31de4b704854f31416a959d3be4364e0e43d303986fa7c6751d584070657270",
     "certification/installed-clients/mcp_ingest_publish_state.py": "667116c7c22c56bb1749814b0f467caaa5aead7cb2d3c27b21b193057ae1005e",
     "certification/installed-clients/mcp_ingest_publish_validation.mjs": "f3df69d77fc4e7e1bf4b028b803d5f72f3160f7225a18bc83a756d81ded0a678",
     "certification/installed-clients/mcp_ingest_publish_validation.py": "f7aae216e139b9ffeefc5beaea7cf828a3cd3778fc2b1cc038090f8fa12bae33",
     "certification/installed-clients/mcp_map_package_validation.mjs": "db16bc6186f5927d62c599dd57265e66a592e2ef7574a6c8685471831ae920d5",
-    "certification/installed-clients/mcp_map_package_validation.py": "2310a455d25d71f0fa572c28cf1fee0e9263c30fc319b269391f8a8302a69189",
+    "certification/installed-clients/mcp_map_package_validation.py": "00487a99661d12ef1cb24197f2e5df6510f883c5db3edca03367d44aaeedd947",
     "certification/installed-clients/mcp_plan_validation.py": "facc6fbda42cad2997aeedb4e6d30dd6ef2a99ea6fd3cdbf2b2ef6a149d0c36c",
     "certification/installed-clients/mcp_publish_result_setup.py": "73a8daa40d300a7f5f88c0955c643468a0b0b3da4424cf05d1a49cfd0c38607a",
     "certification/installed-clients/mcp_publish_result_state.py": "d4fc99b8e11320ef66bd1e890cf2ae8d8b693dcb66610f685c12f752f5da935a",
@@ -27,7 +27,7 @@
     "certification/installed-clients/mcp_style_validation.mjs": "4631c08335253bb7d3015c0903d8b8160ce2e52bf894dee148ed7d1a12bbe3fd",
     "certification/installed-clients/mcp_style_validation.py": "6490df6e39b2eb39db6ed8f7a002c87ffba4a49537c597f4406a0a5b6c128211",
     "certification/installed-clients/oracles.py": "2f09ad7f00913dd1ee85fd2abfb151b0c56569e62f7fa50a538766c249e293a1",
-    "certification/installed-clients/regression.py": "7b4911bc196d55882765e63112ee2ad8c3f63afcf2579c135c6be321f2ddf1ef",
+    "certification/installed-clients/regression.py": "397d5e1c927636f524469ea32de984b98d82c0c2a47c90ec8b1a80ecd481b442",
     "certification/installed-clients/render_png.py": "d22bcca5698280cd11c5cdf29be57b8a21cd24e6ebbb706e71d4326d63d7b269"
   }
 }

@@ -1,4 +1,5 @@
 name: MCP Protocol Certification
+run-name: ${{ inputs.nightly_dispatch_id && format('MCP Protocol Certification [{0}]', inputs.nightly_dispatch_id) || 'MCP Protocol Certification' }}
 
 on:
   pull_request:
@@ -47,6 +48,10 @@ on:
       release_cut:
         description: Independently frozen RFC 3339 release cut
         required: false
+      nightly_dispatch_id:
+        description: Nightly orchestrator correlation ID (nightly-certification-<run>-<attempt>), recorded in each executed evidence receipt
+        required: false
+        type: string
 
 env:
   NODE_VERSION: "22.19.0"
@@ -598,6 +603,7 @@ jobs:
           CUT_AT: ${{ steps.identity.outputs.cut-at }}
           STARTED_AT: ${{ steps.identity.outputs.started-at }}
           RUNTIME_ENVIRONMENT: Production
+          HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}
         shell: bash
         run: |
           mkdir -p artifacts/mcp

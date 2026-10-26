@@ -1229,3 +1229,161 @@ test("offline direct cancellation joins both original rows with durable and auth
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+// honua-release nightly dispatch contract (certification/RECEIPT-V2.md "Nightly producer run identity").
+const dispatchEnv = {
+  HONUA_NIGHTLY_DISPATCH_ID: "nightly-certification-40367649673-1",
+  GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_REPOSITORY: "honua-io/geospatial-mcp",
+  GITHUB_WORKFLOW_REF: "honua-io/geospatial-mcp/.github/workflows/protocol-certification.yml@refs/tags/nightly-candidate/" + "c".repeat(40),
+  GITHUB_RUN_ID: "40367650001", GITHUB_RUN_ATTEMPT: "2",
+};
+const dispatchedRun = { repository: "honua-io/geospatial-mcp", workflow: "protocol-certification.yml",
+  run_id: 40367650001, run_attempt: 2, dispatch_id: "nightly-certification-40367649673-1" };
+// Executed (pass) receipts need a full protected proof; reuse the offline Ops health oracle join.
+function withExecutedFixture(callback) {
+  const vector = JSON.parse(readFileSync(new URL("./fixtures/offline-ops-health-oracle-vector.json", import.meta.url)));
+  const operations = ["tools/call:ops_health", "resources/read:Ops health"];
+  const executedIdentity = { ...identity, sourceSha: vector.proof.candidateSourceSha,
+    imageDigest: vector.proof.candidateImage.split("@").at(-1) };
+  const results = Object.fromEntries(["sdk", "inspector"].map((key) => {
+    const checks = { ...passing(key), ...Object.fromEntries(operations.map((operation) =>
+      [operation, { result: "pass", value: structuredClone(key === "sdk" ? vector.proof : vector.inspectorProof) }])) };
+    checks["behavior/cancellation"].value.fixtureSourceSha = executedIdentity.sourceSha;
+    if (key === "inspector") checks["behavior/resources-pagination"].value.sourceSha = executedIdentity.sourceSha;
+    return [key, { protocolVersion: "2025-06-18", requestUrl: identity.requestUrl, checks }];
+  }));
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const directory = mkdtempSync(join(tmpdir(), "mcp-dispatch-"));
+  process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json");
+  writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, Buffer.from(vector.bootstrapBase64, "base64"));
+  try {
+    return callback({ identity: executedIdentity, results, directory, operations });
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP; else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+const receiptDigest = (receipt) => {
+  const canonical = (value) => Array.isArray(value) ? `[${value.map(canonical).join(",")}]`
+    : value && typeof value === "object" ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`
+      : JSON.stringify(value);
+  return `sha256:${createHash("sha256").update(canonical(receipt)).digest("hex")}`;
+};
+
+test("nightly dispatch binds the exact dispatched run into every executed receipt identity and digest", async () => {
+  const { producerRunIdentity } = await import("../build-fragment.mjs");
+  const producerRun = producerRunIdentity(dispatchEnv);
+  assert.deepEqual(producerRun, dispatchedRun);
+  assert.deepEqual(Object.keys(producerRun).sort(), ["dispatch_id", "repository", "run_attempt", "run_id", "workflow"]);
+  const fragment = withExecutedFixture(({ identity, results }) =>
+    buildFragment({ identity, producerRun, results, executedTier: "release", now: "2026-08-26T21:02:00Z" }));
+  const executed = fragment.observations.filter((row) => row.result !== "skip");
+  assert.equal(executed.length, 4, "release-tier fixture executes the four Ops health cells");
+  for (const row of executed) {
+    assert.deepEqual(row.evidence_receipt.identity.producer_run, dispatchedRun);
+    assert.equal(row.evidence_digest, receiptDigest(row.evidence_receipt));
+    const unbound = structuredClone(row.evidence_receipt);
+    delete unbound.identity.producer_run;
+    assert.notEqual(receiptDigest(unbound), row.evidence_digest, "producer_run must be inside the hashed identity");
+  }
+  for (const row of fragment.observations.filter((row) => row.result === "skip")) assert.equal(row.evidence_receipt, null);
+});
+
+test("undispatched runs emit no producer_run and keep receipts unchanged", async () => {
+  const { producerRunIdentity } = await import("../build-fragment.mjs");
+  assert.equal(producerRunIdentity({ ...dispatchEnv, HONUA_NIGHTLY_DISPATCH_ID: "" }), undefined);
+  assert.equal(producerRunIdentity({ GITHUB_EVENT_NAME: "schedule" }), undefined);
+  const [plain, undefinedRun] = withExecutedFixture(({ identity, results }) => [undefined, null].map((mode) =>
+    buildFragment({ identity, ...(mode === null ? { producerRun: undefined } : {}), results, executedTier: "release",
+      now: "2026-08-26T21:02:00Z" })));
+  assert.deepEqual(undefinedRun, plain);
+  assert.equal(plain.observations.filter((row) => row.evidence_receipt).length, 4);
+  for (const row of plain.observations.filter((row) => row.evidence_receipt)) {
+    assert.equal("producer_run" in row.evidence_receipt.identity, false);
+  }
+});
+
+test("nightly dispatch identity fails closed on a bad id, event, repository, workflow ref or run identity", async () => {
+  const { producerRunIdentity } = await import("../build-fragment.mjs");
+  for (const change of [
+    { HONUA_NIGHTLY_DISPATCH_ID: "nightly-certification-0-1" },
+    { HONUA_NIGHTLY_DISPATCH_ID: "nightly-certification-1" },
+    { HONUA_NIGHTLY_DISPATCH_ID: "nightly-certification-1-1 " },
+    { HONUA_NIGHTLY_DISPATCH_ID: "adhoc" },
+    { GITHUB_EVENT_NAME: "schedule" },
+    { GITHUB_EVENT_NAME: "push" },
+    { GITHUB_REPOSITORY: "honua-io/geospatial-mcp-fork" },
+    { GITHUB_REPOSITORY: "someone/geospatial-mcp" },
+    { GITHUB_WORKFLOW_REF: "honua-io/geospatial-mcp/.github/workflows/docs.yml@refs/heads/trunk" },
+    { GITHUB_WORKFLOW_REF: "honua-io/geospatial-mcp/.github/workflows/protocol-certification.yml@refs/pull/1/merge" },
+    { GITHUB_WORKFLOW_REF: "evil/geospatial-mcp/.github/workflows/protocol-certification.yml@refs/heads/trunk" },
+    { GITHUB_WORKFLOW_REF: undefined },
+    { GITHUB_RUN_ID: "0" }, { GITHUB_RUN_ID: "12a" }, { GITHUB_RUN_ID: undefined }, { GITHUB_RUN_ID: "9".repeat(20) },
+    { GITHUB_RUN_ATTEMPT: "0" }, { GITHUB_RUN_ATTEMPT: undefined },
+  ]) {
+    assert.throws(() => producerRunIdentity({ ...dispatchEnv, ...change }), undefined, JSON.stringify(change));
+  }
+  assert.deepEqual(producerRunIdentity({ ...dispatchEnv,
+    GITHUB_WORKFLOW_REF: "honua-io/geospatial-mcp/.github/workflows/protocol-certification.yml@refs/heads/trunk" }).dispatch_id,
+  dispatchedRun.dispatch_id);
+});
+
+test("fragment builder refuses a malformed or foreign producer_run", () => {
+  for (const producerRun of [
+    { ...dispatchedRun, sha: "c".repeat(40) },
+    { ...dispatchedRun, run_id: "40367650001" },
+    { ...dispatchedRun, run_attempt: 0 },
+    { ...dispatchedRun, repository: "honua-io/honua-sdk-js" },
+    { ...dispatchedRun, workflow: "integration.yml" },
+    { ...dispatchedRun, dispatch_id: "adhoc" },
+    Object.fromEntries(Object.entries(dispatchedRun).filter(([key]) => key !== "dispatch_id")),
+    null,
+  ]) {
+    assert.throws(() => buildFragment({ identity, producerRun, results: {} }), /producer_run/, JSON.stringify(producerRun));
+  }
+});
+
+test("fragment CLI derives producer_run from the dispatched GitHub environment and binds the executing source", () => {
+  withExecutedFixture(({ identity: executedIdentity, results, directory }) => {
+    const catalogDir = join(directory, "catalog");
+    spawnSync("mkdir", ["-p", catalogDir]);
+    writeFileSync(join(catalogDir, "requirements.json"), JSON.stringify(requirements));
+    writeFileSync(join(catalogDir, "mcp-operation-auth-policy.v1.json"), JSON.stringify(authPolicy));
+    writeFileSync(join(directory, "input.json"), JSON.stringify({ executedTier: "release", identity: executedIdentity, results }));
+    const cli = new URL("../build-fragment.mjs", import.meta.url).pathname;
+    const out = join(directory, "out.json");
+    const run = (env) => {
+      rmSync(out, { force: true });
+      return spawnSync(process.execPath, [cli, join(directory, "input.json"), out, join(catalogDir, "requirements.json")],
+        { encoding: "utf8", env: { PATH: process.env.PATH, HONUA_MCP_RENDER_BOOTSTRAP: process.env.HONUA_MCP_RENDER_BOOTSTRAP, ...env } });
+    };
+    const receipts = () => JSON.parse(readFileSync(out, "utf8")).observations.filter((row) => row.evidence_receipt);
+    const ok = run({ ...dispatchEnv, GITHUB_SHA: identity.producerSourceSha });
+    assert.equal(ok.status, 0, ok.stderr);
+    assert.equal(receipts().length, 4);
+    for (const row of receipts()) assert.deepEqual(row.evidence_receipt.identity.producer_run, dispatchedRun);
+    assert.notEqual(run({ ...dispatchEnv, GITHUB_SHA: "d".repeat(40) }).status, 0, "receipt producer source must be the executing source");
+    assert.notEqual(run({ ...dispatchEnv, GITHUB_SHA: identity.producerSourceSha, GITHUB_EVENT_NAME: "schedule" }).status, 0);
+    const plain = run({ GITHUB_EVENT_NAME: "schedule", GITHUB_REPOSITORY: "honua-io/geospatial-mcp" });
+    assert.equal(plain.status, 0, plain.stderr);
+    assert.equal(receipts().length, 4);
+    for (const row of receipts()) assert.equal("producer_run" in row.evidence_receipt.identity, false);
+  });
+});
+
+test("workflow accepts nightly_dispatch_id, titles the run with it and plumbs it to the fragment builder", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const workflow = await readFile(new URL("../../.github/workflows/protocol-certification.yml", import.meta.url), "utf8");
+  assert.match(workflow, /^name: MCP Protocol Certification\n/);
+  assert.ok(workflow.includes("\nrun-name: ${{ inputs.nightly_dispatch_id && format('MCP Protocol Certification [{0}]', inputs.nightly_dispatch_id) || 'MCP Protocol Certification' }}\n"));
+  const dispatchInputs = workflow.split("  workflow_dispatch:\n    inputs:\n")[1].split("\nenv:\n")[0];
+  const input = dispatchInputs.split("      nightly_dispatch_id:\n")[1];
+  assert.ok(input, "workflow_dispatch must accept nightly_dispatch_id (unknown inputs are refused with HTTP 422)");
+  const block = input.split(/\n {6}\S/)[0];
+  assert.match(block, /^ {8}required: false$/m);
+  assert.match(block, /^ {8}type: string$/m);
+  const emit = workflow.split("- name: Emit normalized digest-bound fragment")[1].split("- name: Upload governed producer artifact")[0];
+  assert.ok(emit.includes("HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}"));
+  assert.ok(emit.includes("node certification/build-fragment.mjs"));
+  assert.ok(workflow.includes("name: mcp-protocol-certification-${{ github.run_id }}-${{ github.run_attempt }}"));
+});

@@ -1,6 +1,6 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "8701139a58422937c7dc9370d51184ef8e64754f",
+  "sourceSha": "5eb08829d77f36247ca0f310632a3a5339099f53",
   "sha256": {
     "certification/installed-clients/mcp_planning_disclosure.mjs": "96c84470b75bc552d0e4dd6760c66fb9d9ad205d0a6e257fc60f22c56047b6d8",
     "certification/installed-clients/mcp_planning_disclosure.py": "0fa93a8dfaa9289fcfe22d559d11d6845871921b9b8b209e9a52f21b3427b30c",

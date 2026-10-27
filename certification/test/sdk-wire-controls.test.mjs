@@ -149,7 +149,9 @@ test("real Inspector anonymous tool invocation distinguishes denial from leaked 
     const { result, calls } = await execute(mode, "inspector");
     assert.equal(result.checks.initialize.result, "pass");
     assert.equal(result.checks["behavior/auth"].result, mode === "typed-refusal" ? "pass" : "fail");
-    for (const name of ["ping", "behavior/error", "behavior/cancellation", "behavior/resources-pagination"]) assert.equal(result.checks[name].result, "skip");
+    // Inspector pagination is the tools/list observer check; it skips without a verified candidate observer.
+    for (const name of ["ping", "behavior/error", "behavior/cancellation", "behavior/tools-pagination"]) assert.equal(result.checks[name].result, "skip");
+    assert.equal(result.checks["behavior/resources-pagination"], undefined);
     assert.ok(calls.some((call) => call.name === "honua_list_layers" && !call.authenticated));
     assert.equal(calls.some((call) => call.name === "__certification_missing_tool__"), false);
     for (const name of ["list_capabilities", "list_layers", "query_features", "resolve_entity"]) assert.equal(result.checks[`tools/call:${name}`].result, "pass", JSON.stringify(result.checks[`tools/call:${name}`]));

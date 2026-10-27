@@ -31,7 +31,45 @@ const canonical = (value) => Array.isArray(value)
     ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`
     : JSON.stringify(value);
 
-export function buildFragment({ identity, results, requirements, authPolicy, executedTier, now = new Date().toISOString() }) {
+// honua-release certification/RECEIPT-V2.md "Nightly producer run identity": the nightly dispatches
+// this workflow with nightly_dispatch_id and binds only receipts naming the exact run it dispatched.
+export const PRODUCER_REPOSITORY = "honua-io/geospatial-mcp";
+export const PRODUCER_WORKFLOW = "protocol-certification.yml";
+const DISPATCH_ID = /^nightly-certification-[1-9][0-9]*-[1-9][0-9]*$/;
+const PRODUCER_RUN_FIELDS = ["dispatch_id", "repository", "run_attempt", "run_id", "workflow"];
+
+/** The dispatched run identity from GitHub's own environment; undefined when not nightly-dispatched. */
+export function producerRunIdentity(env = process.env) {
+  const dispatchId = env.HONUA_NIGHTLY_DISPATCH_ID;
+  if (!dispatchId) return undefined;
+  if (!DISPATCH_ID.test(dispatchId)) throw new Error("invalid nightly dispatch identity");
+  if (env.GITHUB_EVENT_NAME !== "workflow_dispatch") throw new Error("nightly evidence requires workflow_dispatch");
+  if (env.GITHUB_REPOSITORY !== PRODUCER_REPOSITORY) throw new Error("wrong producer repository");
+  const ref = (env.GITHUB_WORKFLOW_REF ?? "").split("@");
+  if (ref.length !== 2 || ref[0] !== `${PRODUCER_REPOSITORY}/.github/workflows/${PRODUCER_WORKFLOW}`
+      || !/^refs\/(?:heads|tags)\/[A-Za-z0-9._/-]+$/.test(ref[1])) throw new Error("wrong producer workflow");
+  const integer = (value) => {
+    if (!/^[1-9][0-9]*$/.test(value ?? "") || !Number.isSafeInteger(Number(value))) throw new Error("missing positive run identity");
+    return Number(value);
+  };
+  return { repository: PRODUCER_REPOSITORY, workflow: PRODUCER_WORKFLOW, run_id: integer(env.GITHUB_RUN_ID),
+    run_attempt: integer(env.GITHUB_RUN_ATTEMPT), dispatch_id: dispatchId };
+}
+
+function verifiedProducerRun(run) {
+  if (run === undefined) return undefined;
+  if (!run || typeof run !== "object" || Array.isArray(run)
+      || canonical(Object.keys(run).sort()) !== canonical(PRODUCER_RUN_FIELDS)
+      || run.repository !== PRODUCER_REPOSITORY || run.workflow !== PRODUCER_WORKFLOW
+      || typeof run.dispatch_id !== "string" || !DISPATCH_ID.test(run.dispatch_id)
+      || [run.run_id, run.run_attempt].some((value) => !Number.isSafeInteger(value) || value < 1)) {
+    throw new Error("invalid producer_run: must be exactly this producer's dispatched run");
+  }
+  return { ...run };
+}
+
+export function buildFragment({ identity, results, requirements, authPolicy, executedTier, producerRun: suppliedRun, now = new Date().toISOString() }) {
+  const producerRun = verifiedProducerRun(suppliedRun);
   if (requirements?.schema !== "honua.protocol-certification-requirements/v1"
       || requirements.receipt_schema_min !== "v2" || requirements.complete !== true
       || typeof requirements.revision !== "string" || !requirements.revision
@@ -171,6 +209,7 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
           auth_policy_revision: context.auth_policy_revision,
           started_at: execution.startedAt ?? identity.startedAt,
           completed_at: execution.completedAt ?? now,
+          ...(producerRun ? { producer_run: producerRun } : {}),
         },
         result: "pass",
         facets: Object.fromEntries(scenarioFacets.map((facet) => [facet, "pass"])),
@@ -233,5 +272,9 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const input = JSON.parse(await readFile(process.argv[2], "utf8"));
   input.requirements = JSON.parse(await readFile(process.argv[4], "utf8"));
   input.authPolicy = JSON.parse(await readFile(join(dirname(resolve(process.argv[4])), "mcp-operation-auth-policy.v1.json"), "utf8"));
+  input.producerRun = producerRunIdentity(process.env);
+  if (input.producerRun && input.identity?.producerSourceSha !== process.env.GITHUB_SHA) {
+    throw new Error("receipt producer source differs from the executing source");
+  }
   await writeFile(process.argv[3], `${JSON.stringify(buildFragment(input), null, 2)}\n`);
 }

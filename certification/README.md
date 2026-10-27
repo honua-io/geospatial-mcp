@@ -200,11 +200,12 @@ checks, including an unrelated public-table decoy beside the authored `honua`
 fixture. Harness controls never emit candidate certification rows and do not
 substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
-image is the honua-release 2026.1 candidate (manifest `candidate.ref`) at source
-`8cb074f77d01c0a00617ebe426460aa24c7d890b`, index
-`sha256:2d7877c4d1cb3b30647fb225893d41b13728f0448997997cdf4bf40fe99be07d`, which
-contains that runtime change and this server-owned harness. The earlier default,
-`3ecd214c1ce20e96ad4911b6f8447055dee9089d`, predated both. Pinning an image changes
+image is the 2026.1 RC re-pin #4 candidate at source
+`53bb94a3fe1d7a66640e213de289b8f8bc4ffd2e`, the attested multi-arch AOT index
+`sha256:4349e08b7f6f7ade228606bcff1091e54b356d41372835ead8e38da88ad5dec3`, which
+contains that runtime change and this server-owned harness. Earlier defaults were
+`8cb074f77d01c0a00617ebe426460aa24c7d890b` and
+`3ecd214c1ce20e96ad4911b6f8447055dee9089d`, which predated both. Pinning an image changes
 no capability baseline or governed qualification state. Request cancellation is a
 behavior of the already-required `ai.mcp-discovery` query surface; the server's
 authoritative capability catalog declares no separate cancellation capability.

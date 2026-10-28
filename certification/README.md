@@ -89,7 +89,7 @@ SDK receipt producer's reviewed governance-fetch contract. `build-fragment.mjs I
 requires one matching governed row for every declared operation/client/version,
 including its maturity, tier, facets, and fixture/contract/auth policy revisions.
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
-or incompatible context fails closed. The default catalog at protected commit `577b4ef3`, revision
+or incompatible context fails closed. The default catalog at protected commit `4c346a4b`, revision
 `2026-10-19-complete.25`, pins SDK `1.32.1` and Inspector `2.10.1`, matching
 the installed package lock.
 Candidate source/image, the original governed manifest, tier and runtime still
@@ -200,9 +200,13 @@ checks, including an unrelated public-table decoy beside the authored `honua`
 fixture. Harness controls never emit candidate certification rows and do not
 substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
-image at source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` predates that runtime
-change and this server-owned harness. This implementation changes no image pin,
-capability baseline or governed qualification state. Request cancellation is a
+image is the 2026.1 RC re-pin #4 candidate at source
+`a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`, the attested multi-arch AOT index
+`sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37`, which
+contains that runtime change and this server-owned harness. Earlier defaults were
+`8cb074f77d01c0a00617ebe426460aa24c7d890b` and
+`3ecd214c1ce20e96ad4911b6f8447055dee9089d`, which predated both. Pinning an image changes
+no capability baseline or governed qualification state. Request cancellation is a
 behavior of the already-required `ai.mcp-discovery` query surface; the server's
 authoritative capability catalog declares no separate cancellation capability.
 

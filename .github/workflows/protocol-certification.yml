@@ -62,8 +62,8 @@ env:
   # (certification/test/corpus-trees.test.mjs recomputes them).
   CONFORMANCE_CORPUS_TREE: "80d6f93e4bf85519aa014ccf2a9357faf0378d68"
   SPEC_TREE: "909c19a94d735eacc840eb7f40d1ce266e2ac551"
-  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458"
-  PINNED_SERVER_SOURCE_SHA: "3ecd214c1ce20e96ad4911b6f8447055dee9089d"
+  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37"
+  PINNED_SERVER_SOURCE_SHA: "a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e"
 
 permissions:
   attestations: read
@@ -76,7 +76,9 @@ jobs:
     timeout-minutes: 45
     services:
       postgres:
-        image: postgis/postgis:16-3.4@sha256:44126d872ac91993766c341e369c539e8196614321765d36a6f1bab0419a5fa5
+        # honua-server's location fixture (tests/seed/sdk-protocol-v1) routes over pgRouting; the
+        # same digest the release pins for customer installs (customer-install-manifest.json).
+        image: pgrouting/pgrouting:17-3.5-3.7.3@sha256:5e6767abbd1fd9ead84c9988aa31bac71ca292ef8a1fc2e4a5ee2b613ac6a7bb
         env:
           POSTGRES_USER: honua
           POSTGRES_PASSWORD: honua
@@ -296,6 +298,64 @@ jobs:
           psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -c "ALTER ROLE honua PASSWORD '${db_password}'"
           echo "HONUA_CERT_DB_PASSWORD=${db_password}" >> "${GITHUB_ENV}"
 
+      - name: Fetch the candidate's location fixture sources
+        id: location-fixture
+        # A missing or drifted fixture fails certify (enforce step) but must not hide the
+        # other journeys; geocoding stays fail-closed through the egress block regardless.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEED_REF: ${{ steps.identity.outputs.seed-ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The candidate's own seed/verify scripts check every manifest input by digest, so fetch
+          # them byte-exact at the candidate source rather than vendoring a copy here.
+          root=".certification/location-source"
+          printf '%s\n' 'Geocoding__Providers__Nominatim__Enabled=false' > "${RUNNER_TEMP}/location.env"
+          echo "HONUA_MCP_LOCATION_ENV_FILE=${RUNNER_TEMP}/location.env" >> "${GITHUB_ENV}"
+          for path in \
+            scripts/certification/seed-sdk-protocol-fixture.py \
+            scripts/certification/verify-sdk-protocol-fixture.py \
+            tests/seed/sdk-protocol-v1/manifest.json \
+            tests/seed/sdk-protocol-v1/geocoder.csv \
+            docker/routing/init-routing.sql \
+            docs/gis/data/client-certification-fixture.v1.json \
+            src/Honua.Server/appsettings.json \
+            eng/Honua.ProtocolProfiles.props \
+            src/Honua.Server/fixtures/scenes/downtown-honolulu/tileset.json \
+            src/Honua.Server/fixtures/scenes/downtown-honolulu/tiles/0.b3dm \
+            src/Honua.Server/fixtures/scenes/downtown-honolulu/metadata/scene.json; do
+            mkdir -p "${root}/$(dirname "${path}")"
+            gh api "repos/honua-io/honua-server/contents/${path}?ref=${SEED_REF}" -H "Accept: application/vnd.github.raw" > "${root}/${path}"
+          done
+          python3 "${root}/scripts/certification/verify-sdk-protocol-fixture.py" --server-env > .certification/location-server-config.json
+          # Only the routing/geocoding keys; the candidate's other defaults are not changed.
+          jq -er 'to_entries | map(select(.key | test("^(Routing|Geocoding)__"))) | if length < 5 then error("location fixture config missing") else . end
+            | .[] | "\(.key)=\(.value)"' .certification/location-server-config.json >> "${RUNNER_TEMP}/location.env"
+          # The candidate always registers Nominatim and its outbound-URL validator rejects a
+          # non-public base URL, so egress is blocked at the network instead (next step).
+          grep -qx 'Geocoding__DefaultProvider=local' "${RUNNER_TEMP}/location.env"
+          grep -qx 'Geocoding__Providers__Local__Enabled=true' "${RUNNER_TEMP}/location.env"
+          grep -qx 'Routing__Provider=pgrouting' "${RUNNER_TEMP}/location.env"
+
+      - name: Block public geocoder egress before candidate boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Certification must never send addresses to a public service. The candidate runs with
+          # host networking, so rejecting these destinations in the runner's OUTPUT chain covers it.
+          for host in nominatim.openstreetmap.org; do
+            v4="$(getent ahostsv4 "${host}" | awk '{print $1}' | sort -u)"
+            v6="$(getent ahostsv6 "${host}" | awk '$1 ~ /:/ {print $1}' | sort -u)"
+            [[ -n "${v4}${v6}" ]] || { echo "::error::cannot resolve ${host} to block it"; exit 1; }
+            for ip in ${v4}; do sudo iptables -I OUTPUT -d "${ip}" -j REJECT; done
+            for ip in ${v6}; do sudo ip6tables -I OUTPUT -d "${ip}" -j REJECT; done
+            if curl -sS --max-time 10 -o /dev/null "https://${host}/status.php" 2>/dev/null; then
+              echo "::error::${host} is still reachable after the egress block"; exit 1
+            fi
+          done
+
       - name: Provision and verify durable Redis prerequisite
         shell: bash
         run: |
@@ -368,7 +428,7 @@ jobs:
           chmod 755 "${keyring_dir}"
           # Boot against the extension-only database so the server's own migrations own the
           # schema; the seed is applied afterwards (as honua-server's setup-honua-server does).
-          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e Licensing__Mode=Disabled             -e Operations__SecretChannel__KeyRingCertificatePath=/keyring/operation-keyring.pfx             -e Operations__SecretChannel__KeyRingCertificatePassword="${HONUA_CERT_KEYRING_PASSWORD}"             --mount "type=bind,source=${keyring_dir},target=/keyring,readonly"             -e ConnectionStrings__Redis="localhost:6379"             -e Jobs__RequireDurableStore=true             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             --env-file "${HONUA_MCP_OPS_ENV_FILE}" "${SERVER_IMAGE}"
+          docker run -d --name honua-server --network host             -e ASPNETCORE_ENVIRONMENT=Production             -e Licensing__Mode=Disabled             -e Operations__SecretChannel__KeyRingCertificatePath=/keyring/operation-keyring.pfx             -e Operations__SecretChannel__KeyRingCertificatePassword="${HONUA_CERT_KEYRING_PASSWORD}"             --mount "type=bind,source=${keyring_dir},target=/keyring,readonly"             -e ConnectionStrings__Redis="localhost:6379"             -e Jobs__RequireDurableStore=true             -e ConnectionStrings__DefaultConnection="Host=localhost;Database=honua_test;Username=honua;Password=${HONUA_CERT_DB_PASSWORD};Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"             -e Security__ConnectionEncryption__MasterKey="${key}"             -e Security__ConnectionEncryption__Salt="${salt}"             -e HONUA_ADMIN_PASSWORD="Ci-Protocol-Api-Key-2026!"             -e Kestrel__Endpoints__Http__Url="http://+:8080"             -e Kestrel__Endpoints__Http__Protocols="Http1"             --env-file "${HONUA_MCP_OPS_ENV_FILE}" --env-file "${HONUA_MCP_LOCATION_ENV_FILE}" "${SERVER_IMAGE}"
           for i in $(seq 1 60); do
             [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:8080/healthz/ready || true)" == 200 ]] && exit 0
             if [[ "$(docker inspect -f '{{.State.Running}}' honua-server 2>/dev/null || true)" != true ]]; then
@@ -402,6 +462,24 @@ jobs:
       - name: Apply exact seed after migrations
         shell: bash
         run: PGPASSWORD="${HONUA_CERT_DB_PASSWORD}" psql -h localhost -U honua -d honua_test -v ON_ERROR_STOP=1 -f .certification/base-schema.sql
+
+      - name: Seed and probe the candidate's local geocoder and pgRouting fixture
+        id: location-seed
+        if: steps.location-fixture.outcome == 'success'
+        continue-on-error: true
+        env:
+          HONUA_PROTOCOL_FIXTURE_TARGET: ephemeral
+          PGHOST: 127.0.0.1
+          PGUSER: honua
+          PGDATABASE: honua_test
+          PGPASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_ADMIN_PASSWORD: Ci-Protocol-Api-Key-2026!
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p certification/artifacts
+          python3 .certification/location-source/scripts/certification/seed-sdk-protocol-fixture.py --apply \
+            --base-url http://localhost:8080 --receipt certification/artifacts/location-setup-receipt.json
 
       - name: Retain independently allocated authored point fixture IDs
         env:
@@ -594,6 +672,18 @@ jobs:
           HONUA_MCP_TARGET_ID: ${{ inputs.deployment_target_id }}
         run: node run-deployment-workspace.mjs
 
+      - name: Refuse any public geocoder egress
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Certification must never send addresses to a public service. The candidate logs every
+          # outbound HttpClient request URI; any Nominatim/OpenStreetMap request fails the job.
+          if docker logs honua-server 2>&1 | grep -Eiq 'openstreetmap\.org|nominatim\.'; then
+            echo '::error::The candidate contacted a public geocoder during certification.'
+            exit 1
+          fi
+
       - name: Emit normalized digest-bound fragment
         if: always()
         env:
@@ -640,6 +730,8 @@ jobs:
             certification/artifacts/*.canonical-style.raw.json
             certification/artifacts/*.canonical-execute-plan.raw.json
             certification/artifacts/*.location-*.raw.json
+            certification/artifacts/location-setup-receipt.json
+            .certification/location-server-config.json
             certification/artifacts/*.planning.raw.json
             certification/artifacts/*.direct-cancel.raw.json
             certification/artifacts/deployment-workspace-results.json*
@@ -701,7 +793,7 @@ jobs:
       - name: Enforce MCP certification failure semantics
         if: always()
         run: |
-          if [[ "${{ steps.deployment-workspace.outcome }}" == "failure" || "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.planning.outcome }}" == "failure" || "${{ steps.direct-cancel.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.grounding-status.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.deployment-workspace.outcome }}" == "failure" || "${{ steps.cancellation-harness.outcome }}" == "failure" || "${{ steps.render-bootstrap.outcome }}" == "failure" || "${{ steps.sdk.outcome }}" == "failure" || "${{ steps.inspector.outcome }}" == "failure" || "${{ steps.planning.outcome }}" == "failure" || "${{ steps.direct-cancel.outcome }}" == "failure" || "${{ steps.ingest-publish.outcome }}" == "failure" || "${{ steps.canonical-style.outcome }}" == "failure" || "${{ steps.execute-plan.outcome }}" == "failure" || "${{ steps.ops-events-setup.outcome }}" == "failure" || "${{ steps.ops-events.outcome }}" == "failure" || "${{ steps.grounding-status.outcome }}" == "failure" || "${{ steps.publish-result.outcome }}" == "failure" || "${{ steps.location-fixture.outcome }}" != "success" || "${{ steps.location-seed.outcome }}" != "success" ]]; then
             echo "MCP certification runner step(s) failed; downstream workflows must not pass this lane as green."
             exit 1
           fi

@@ -1,4 +1,5 @@
 import { mapPackageScenarios } from "./map-package-validation.mjs";
+import { locationScenarios } from "./location-validation.mjs";
 import { planScenarios } from "./plan-validation.mjs";
 import { renderScenarios } from "./render-validation.mjs";
 import { requireInspectorSemanticResult } from "./inspector-semantic-exit.mjs";
@@ -99,6 +100,12 @@ await mapPackageScenarios(async (name, run) => {
   try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
   catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
 }, CLIENTS.inspector.canonicalClient, CLIENTS.inspector.version);
+// Location binds the exact bootstrap runtime, so it runs before any restart journey.
+await locationScenarios(async (name, run) => {
+  const startedAt = new Date().toISOString();
+  try { checks[name] = { result: "pass", startedAt, value: await run(), completedAt: new Date().toISOString() }; }
+  catch (error) { checks[name] = { result: "fail", startedAt, error: String(error), completedAt: new Date().toISOString() }; }
+}, CLIENTS.inspector.canonicalClient, CLIENTS.inspector.version, process.env.CERT_RESULTS ?? "inspector-results.json");
 const paginationStarted = new Date().toISOString();
 let paginationHarness;
 try {

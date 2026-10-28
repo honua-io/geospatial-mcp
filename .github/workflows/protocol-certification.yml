@@ -62,8 +62,8 @@ env:
   # (certification/test/corpus-trees.test.mjs recomputes them).
   CONFORMANCE_CORPUS_TREE: "80d6f93e4bf85519aa014ccf2a9357faf0378d68"
   SPEC_TREE: "909c19a94d735eacc840eb7f40d1ce266e2ac551"
-  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:4349e08b7f6f7ade228606bcff1091e54b356d41372835ead8e38da88ad5dec3"
-  PINNED_SERVER_SOURCE_SHA: "53bb94a3fe1d7a66640e213de289b8f8bc4ffd2e"
+  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37"
+  PINNED_SERVER_SOURCE_SHA: "a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e"
 
 permissions:
   attestations: read

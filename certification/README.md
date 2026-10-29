@@ -10,6 +10,7 @@ python3 -m pip install --require-hashes --only-binary=:all: -r ../.github/requir
 npm ci --ignore-scripts
 npm run prepare:plan
 npm run prepare:render
+npm run prepare:historical-render
 npm run prepare:app
 npm run prepare:location
 npm run prepare:planning
@@ -30,8 +31,8 @@ npm test
 ```
 
 `prepare:location` independently authenticates the complete ten-file location
-bundle from protected release source. It preserves the historical render and
-execute-plan bundle identities. The release-owned geocode, batch-geocode and
+bundle from protected release source. Shared fixture bytes match the live render
+pin. Retained execute proof 39284007212 stays on the frozen historical helper. The release-owned geocode, batch-geocode and
 pgRouting scenarios run through both installed clients after each client's
 execute-plan journey; every operation is attempted and retained separately.
 The receipt builder rejudges coordinates, CRS, country restrictions, ordered
@@ -53,7 +54,10 @@ protected-source provisioning before the complete installed-client controls.
 
 `prepare:render` applies that same protected-history and byte verification to the
 complete 27-file shared scenario, PNG oracle and fixture setup dependency set
-declared in `render-validation-pins.json`. Every dependency is checked again
+declared in `render-validation-pins.json`. That pin stays on the same
+honua-release commit as `requirements-pins.json`, so the shared fixture hash
+matches every journey oracle. `historical-render-validation-pins.json` is only
+the helper that produced retained execute proof 39284007212. Every dependency is checked again
 before setup or client execution. The release-owned setup independently reads
 the actual running container's image digest and OCI source revision, seeds and
 publishes the authored polygon on the owned disposable candidate, reads its
@@ -404,8 +408,9 @@ cancellation failure prevents a receipt. This is regression evidence only.
 ### App package source consumer
 
 The app consumer fetches a separate complete 14-file protected release bundle
-with `npm run prepare:app`. Its source and byte bindings preserve the existing
-historical helper bundle unchanged. The release-owned journey composes an actual
+with `npm run prepare:app`. Its source commit matches the live render pin.
+Retained execute proof 39284007212 rejudges only on the frozen historical helper.
+The release-owned journey composes an actual
 map package and execution artifact into an app draft, then checks draft resource
 reads and generic declared-requirements validation and preview. Authority checks
 include the actual review calls and anonymous refusals.

@@ -1000,6 +1000,7 @@ test("historical real execute oracle joins full authority, global behavior and t
 test("source controls run independently of frozen catalog and candidate qualification", () => {
   const workflow=readFileSync(new URL("../../.github/workflows/mcp-producer-source-controls.yml",import.meta.url),"utf8");
   for (const expected of ["pull_request:","npm ci --ignore-scripts","npm run prepare:plan","npm run prepare:render",
+    "npm run prepare:historical-render",
     "module.immutable_files",'digest != pins["sha256"][path]',"HONUA_RELEASE_CHECKER=", "python3 -m unittest discover", "npm test"])
     assert.ok(workflow.includes(expected),expected);
   for (const absent of ["requirements_ref:","--requirements-revision","continue-on-error:","docker run","train_apply"])

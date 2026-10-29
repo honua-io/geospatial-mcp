@@ -39,6 +39,29 @@ export function verifiedFixtureSource() {
     bootstrapPath: process.env.HONUA_MCP_RENDER_BOOTSTRAP ?? fileURLToPath(new URL("./artifacts/render-bootstrap.json", import.meta.url)) };
 }
 
+// Frozen helper for retained execute proof 39284007212. Live render pins moved
+// with the shared fixture; this tree is not a second way to qualify a candidate.
+export function historicalFixtureSource() {
+  const pins = JSON.parse(readFileSync(new URL("./historical-render-validation-pins.json", import.meta.url), "utf8"));
+  const directory = fileURLToPath(new URL("./.historical-render-validation/", import.meta.url));
+  let binding;
+  try { binding = JSON.parse(readFileSync(join(directory, "source-binding.json"), "utf8")); }
+  catch (cause) { throw new Error("historical render source missing; run npm run prepare:historical-render before npm test (authenticated gh required)", { cause }); }
+  if (pins.repository !== "honua-io/honua-release" || typeof pins.sourceSha !== "string" || !/^[a-f0-9]{40}$/.test(pins.sourceSha)
+      || binding.schema !== "honua.mcp-render-source/v1" || binding.repository !== pins.repository || binding.sourceSha !== pins.sourceSha
+      || Object.keys(pins.sha256 ?? {}).toSorted().join() !== paths.toSorted().join()
+      || Object.keys(binding.files ?? {}).toSorted().join() !== paths.toSorted().join()
+      || readdirSync(directory).toSorted().join() !== [...names, "source-binding.json"].toSorted().join()) throw new Error("historical render source lacks exact reviewed binding");
+  for (const path of paths) {
+    const expected = pins.sha256[path];
+    if (typeof expected !== "string" || !/^[a-f0-9]{64}$/.test(expected)
+        || digest(readFileSync(join(directory, path.split("/").at(-1)))) !== expected
+        || binding.files[path]?.sha256 !== expected) throw new Error("historical render dependency bytes differ from reviewed pins");
+  }
+  return { directory, sourceSha: pins.sourceSha, pins,
+    bootstrapPath: process.env.HONUA_MCP_RENDER_BOOTSTRAP ?? fileURLToPath(new URL("./artifacts/render-bootstrap.json", import.meta.url)) };
+}
+
 const verified = verifiedFixtureSource();
 const owned = await import(pathToFileURL(join(verified.directory, "mcp_render_validation.mjs")).href);
 const select = (context, selected) => ({ ...context, sha256: Object.fromEntries(selected.map((name) => [name, context.pins.sha256[prefix + name]])) });

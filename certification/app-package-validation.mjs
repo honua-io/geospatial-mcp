@@ -1,5 +1,5 @@
-// Thin protected-source bridge. App scenario/oracle code remains release-owned;
-// its independent bundle preserves the legacy historical helper identities.
+// Thin protected-source bridge. App scenario/oracle code remains release-owned.
+// Live pins share the requirements commit. The retained execute proof uses the frozen render helper.
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";

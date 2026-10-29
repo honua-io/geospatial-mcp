@@ -89,9 +89,12 @@ SDK receipt producer's reviewed governance-fetch contract. `build-fragment.mjs I
 requires one matching governed row for every declared operation/client/version,
 including its maturity, tier, facets, and fixture/contract/auth policy revisions.
 Receipt v2 records that producer-owned context. Missing, duplicate, stale-version,
-or incompatible context fails closed. The default catalog at protected commit `4c346a4b`, revision
-`2026-10-19-complete.25`, pins SDK `1.32.1` and Inspector `2.10.1`, matching
-the installed package lock.
+or incompatible context fails closed. The default catalog at protected commit `7d6a1a0a`, revision
+`2026-10-26-complete.26`, pins SDK `1.32.1` and Inspector `2.10.1`, matching
+the installed package lock. Its platform manifest names the same server
+candidate the workflow pins (`a4bde4b8`), so the ops-events declaration can
+bind that image and its managed worker.
+
 Candidate source/image, the original governed manifest, tier and runtime still
 require independent agreement; matching client versions does not qualify the
 release. Historical receipts for older clients cannot transfer that qualification.

@@ -42,13 +42,25 @@ class AttestationWorkflowTests(unittest.TestCase):
 
     def test_attests_only_verified_published_bytes_from_trunk(self) -> None:
         self.assertIn("branches: [trunk]", self.workflow)
-        self.assertIn("if: github.ref == 'refs/heads/trunk'", self.workflow)
+        self.assertIn("github.ref == 'refs/heads/trunk'", self.workflow)
         self.assertIn("id-token: write", self.workflow)
         self.assertIn("attestations: write", self.workflow)
         verify = self.workflow.index('cmp -s "${published}" spec/schemas/index.json')
         self.assertLess(verify, self.workflow.index("actions/attest-build-provenance@"))
         self.assertLess(verify, self.workflow.index("actions/attest-sbom@"))
         self.assertEqual(2, self.workflow.count("subject-path: ${{ env.PUBLISHED_INDEX }}"))
+        # The collector binds --source-digest to the pinned commit. A path filter
+        # would leave a later trunk pin of unchanged index bytes unverified.
+        push = self.workflow.split("on:\n", 1)[1].split("workflow_dispatch:", 1)[0]
+        self.assertIn("push:", push)
+        self.assertNotIn("paths:", push)
+        self.assertIn("github.event_name != 'pull_request'", self.workflow)
+        verified = self.workflow.split("uses: actions/attest-sbom@", 1)[1]
+        self.assertLess(verified.index("GH_TOKEN: ${{ github.token }}"), verified.index("gh attestation verify"))
+        self.assertLess(verified.index("gh attestation verify"), verified.index("https://slsa.dev/provenance/v1"))
+        self.assertIn("--source-digest", verified)
+        self.assertIn("--signer-workflow", verified)
+        self.assertIn("https://cyclonedx.org/bom", verified)
         for action in re.findall(r"uses:\s+(\S+)", self.workflow):
             self.assertRegex(action, r"@[0-9a-f]{40}$")
 

@@ -56,6 +56,7 @@ class AttestationWorkflowTests(unittest.TestCase):
         self.assertNotIn("paths:", push)
         self.assertIn("github.event_name != 'pull_request'", self.workflow)
         verified = self.workflow.split("uses: actions/attest-sbom@", 1)[1]
+        self.assertLess(verified.index("GH_TOKEN: ${{ github.token }}"), verified.index("gh attestation verify"))
         self.assertLess(verified.index("gh attestation verify"), verified.index("https://slsa.dev/provenance/v1"))
         self.assertIn("--source-digest", verified)
         self.assertIn("--signer-workflow", verified)

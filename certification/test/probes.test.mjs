@@ -35,6 +35,9 @@ test("Inspector server tool error rejects a local name refusal and requires the 
   assert.throws(() => inspectorServerToolError(stuffed), /locally/);
   const passed = serverQueryError();
   assert.deepEqual(inspectorServerToolError(passed), { rejected: true, code: "invalid_argument", tool: INSPECTOR_SERVER_ERROR_TOOL, serverOrigin: true });
+  const wrapped = serverQueryError();
+  wrapped.stdout = JSON.stringify({ result: JSON.parse(wrapped.stdout) });
+  assert.deepEqual(inspectorServerToolError(wrapped), { rejected: true, code: "invalid_argument", tool: INSPECTOR_SERVER_ERROR_TOOL, serverOrigin: true });
   for (const mutate of [
     (value) => { value.exitCode = 0; },
     (value) => { value.stderr = JSON.stringify({ error: { code: "tool_is_error", message: "Tool 'honua_list_layers' returned isError:true." } }); },

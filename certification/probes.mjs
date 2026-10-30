@@ -48,9 +48,13 @@ export function inspectorServerToolError({ exitCode, stdout, stderr }) {
       || message !== `Tool '${INSPECTOR_SERVER_ERROR_TOOL}' returned isError:true.`) {
     throw new Error("Inspector did not report the server tool error");
   }
-  let result;
-  try { result = JSON.parse(body); }
+  let parsed;
+  try { parsed = JSON.parse(body); }
   catch { throw new Error("Inspector tool error body is not JSON"); }
+  // Inspector 2.10.1 --format json writes {"result": CallToolResult}. A bare
+  // CallToolResult is accepted so the probe tests can supply the server body.
+  const result = parsed?.isError === undefined && parsed?.result && typeof parsed.result === "object" && !Array.isArray(parsed.result)
+    ? parsed.result : parsed;
   if (result?.isError !== true) throw new Error("server tool result was not an error");
   const output = toolOutput(result);
   if (output.status !== "error" || output.code !== "invalid_argument"

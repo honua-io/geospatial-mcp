@@ -65,6 +65,14 @@ async function execute(mode, runner = "sdk") {
       }
       if (value.params.name === "honua_query_features") {
         if (value.params.arguments?.serviceId === "__certification_missing_service__") return error("not_found");
+        // The Inspector error probe calls this listed tool with where="1=1" and
+        // no serviceId. Refuse that shape the way the candidate does so the real
+        // CLI records a server-origin invalid_argument instead of a local name miss.
+        if (!value.params.arguments?.serviceId) {
+          const output = { status: "error", code: "invalid_argument", message: "'serviceId' is required.",
+            error: { kind: "ValidationFailed", message: "'serviceId' is required.", stepId: null, violations: null } };
+          return { isError: true, structuredContent: output, content: [{ type: "text", text: JSON.stringify(output) }] };
+        }
         return okay({ layerId: 0, returnedCount: 2, exceededTransferLimit: false, geojson: { type: "FeatureCollection", features: [
           { id: 21, type: "Feature", properties: { name: "alpha", count: 1 }, geometry: { type: "Point", coordinates: [mode === "query-corrupt" ? 0 : -122.49, 37.71] } },
           { id: 22, type: "Feature", properties: { name: "beta", count: 2 }, geometry: { type: "Point", coordinates: [-122.475, 37.72] } },
@@ -149,8 +157,9 @@ test("real Inspector anonymous tool invocation distinguishes denial from leaked 
     const { result, calls } = await execute(mode, "inspector");
     assert.equal(result.checks.initialize.result, "pass");
     assert.equal(result.checks["behavior/auth"].result, mode === "typed-refusal" ? "pass" : "fail");
-    // Inspector pagination is the tools/list observer check; it skips without a verified candidate observer.
-    for (const name of ["ping", "behavior/error", "behavior/cancellation", "behavior/tools-pagination"]) assert.equal(result.checks[name].result, "skip");
+    // Incomplete query is a listed-tool server refusal. Pagination still needs the candidate observer.
+    assert.equal(result.checks["behavior/error"].result, "pass");
+    for (const name of ["ping", "behavior/cancellation", "behavior/tools-pagination"]) assert.equal(result.checks[name].result, "skip");
     assert.equal(result.checks["behavior/resources-pagination"], undefined);
     assert.ok(calls.some((call) => call.name === "honua_list_layers" && !call.authenticated));
     assert.equal(calls.some((call) => call.name === "__certification_missing_tool__"), false);

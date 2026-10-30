@@ -7,16 +7,13 @@ name: Attest Spec Index
 # repos/honua-io/geospatial-mcp/attestations/sha256:<those bytes> and verifies
 # each bundle with --source-digest <pinned commit> --signer-workflow this file,
 # so the attestation must come from a run whose github.sha is that commit.
-# Every trunk commit that changes the spec, and any trunk commit on dispatch,
-# is attested from its own run.
+# Every trunk commit is attested from its own run. A path filter would leave a
+# later pin of unchanged index bytes unverified, because identical bytes
+# attested from an earlier commit carry that earlier source digest.
 
 on:
   push:
     branches: [trunk]
-    paths:
-      - "spec/schemas/**"
-      - "tools/spec_sbom.py"
-      - ".github/workflows/attest-spec-index.yml"
   workflow_dispatch:
 
 permissions:
@@ -29,7 +26,7 @@ concurrency:
 jobs:
   attest:
     name: Attest spec/schemas/index.json
-    if: github.ref == 'refs/heads/trunk'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/trunk'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -80,3 +77,33 @@ jobs:
         with:
           subject-path: ${{ env.PUBLISHED_INDEX }}
           sbom-path: ${{ runner.temp }}/index.cdx.json
+
+      # Same check the honua-release collector runs: both predicates, this
+      # commit as --source-digest, and this workflow as the signer. The
+      # attestations API can lag the action that wrote them.
+      - name: Verify provenance and SBOM attestations
+        run: |
+          set -euo pipefail
+          verify() {
+            local predicate="$1"
+            local delay=5
+            local attempt
+            for attempt in 1 2 3 4 5 6; do
+              if gh attestation verify "${PUBLISHED_INDEX}" \
+                --repo "${GITHUB_REPOSITORY}" \
+                --source-digest "${GITHUB_SHA}" \
+                --signer-workflow "${GITHUB_REPOSITORY}/.github/workflows/attest-spec-index.yml" \
+                --predicate-type "${predicate}"; then
+                return 0
+              fi
+              if [[ "${attempt}" == "6" ]]; then
+                echo "::error::gh attestation verify failed for ${predicate}"
+                return 1
+              fi
+              echo "attestation for ${predicate} not verifiable yet; retrying in ${delay}s"
+              sleep "${delay}"
+              delay=$((delay < 30 ? delay * 2 : 30))
+            done
+          }
+          verify "https://slsa.dev/provenance/v1"
+          verify "https://cyclonedx.org/bom"

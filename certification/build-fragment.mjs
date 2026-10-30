@@ -68,6 +68,13 @@ function verifiedProducerRun(run) {
   return { ...run };
 }
 
+// A governed row is certified only when its own check passed and minted a receipt.
+// An empty set, a skip, or a fail is not a complete scope.
+export function operationScopeComplete(observations) {
+  return observations.length > 0 && observations.every((row) =>
+    row.result === "pass" && row.evidence_receipt?.result === "pass");
+}
+
 export function buildFragment({ identity, results, requirements, authPolicy, executedTier, producerRun: suppliedRun, now = new Date().toISOString() }) {
   const producerRun = verifiedProducerRun(suppliedRun);
   if (requirements?.schema !== "honua.protocol-certification-requirements/v1"
@@ -263,7 +270,10 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
     producer: "geospatial-mcp",
     generated_at: now,
     candidate: { source_sha: identity.sourceSha, image_digest: identity.imageDigest, cut_at: identity.cutAt },
-    operation_scope: { complete: true, owner_issue: "https://github.com/honua-io/geospatial-mcp/issues/78" },
+    operation_scope: {
+      complete: operationScopeComplete(observations),
+      owner_issue: "https://github.com/honua-io/geospatial-mcp/issues/95",
+    },
     observations,
   };
 }

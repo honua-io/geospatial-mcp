@@ -2,6 +2,9 @@
 import { isDeepStrictEqual } from "node:util";
 
 export const MISSING_TOOL = "__certification_missing_tool__";
+// Inspector 2.10.1 resolves --tool-name against tools/list and never sends
+// tools/call for an unlisted name. The server error proof uses a listed tool.
+export const INSPECTOR_SERVER_ERROR_TOOL = "honua_query_features";
 
 export function toolOutput(result) {
   if (!result || typeof result !== "object" || (result.isError !== undefined && typeof result.isError !== "boolean")) {
@@ -28,6 +31,39 @@ export async function missingTool(client) {
     throw new Error("missing tool unexpectedly succeeded or returned an unrelated error");
   }
   return { rejected: true, code: output.code };
+}
+
+export function inspectorServerToolError({ exitCode, stdout, stderr }) {
+  const diagnostic = String(stderr ?? "").trim();
+  const body = String(stdout ?? "").trim();
+  let envelope;
+  try { envelope = JSON.parse(diagnostic); }
+  catch { throw new Error("Inspector error diagnostic is not a JSON envelope"); }
+  const code = envelope?.error?.code;
+  const message = envelope?.error?.message;
+  // Exit 5 is shared with the CLI's local name check. Empty stdout or
+  // tool_not_found means the candidate never saw tools/call.
+  if (code === "tool_not_found" || !body) throw new Error("Inspector rejected the tool locally; no server error proof");
+  if (exitCode !== 5 || code !== "tool_is_error"
+      || message !== `Tool '${INSPECTOR_SERVER_ERROR_TOOL}' returned isError:true.`) {
+    throw new Error("Inspector did not report the server tool error");
+  }
+  let result;
+  try { result = JSON.parse(body); }
+  catch { throw new Error("Inspector tool error body is not JSON"); }
+  if (result?.isError !== true) throw new Error("server tool result was not an error");
+  const output = toolOutput(result);
+  if (output.status !== "error" || output.code !== "invalid_argument"
+      || output.message !== "'serviceId' is required."
+      || output.error?.kind !== "ValidationFailed" || output.error?.message !== output.message
+      || output.features || output.layers || output.resourceUri) {
+    throw new Error("server did not reject the incomplete feature query");
+  }
+  const text = result.content?.filter((item) => item.type === "text");
+  if (text?.length !== 1 || !isDeepStrictEqual(JSON.parse(text[0].text), output)) {
+    throw new Error("server tool error text did not match structured content");
+  }
+  return { rejected: true, code: "invalid_argument", tool: INSPECTOR_SERVER_ERROR_TOOL, serverOrigin: true };
 }
 
 export async function authenticationDenial(client) {

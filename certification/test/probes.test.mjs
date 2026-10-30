@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { authenticationDenial, assertToolRoster, collectPages, missingTool, MISSING_TOOL } from "../probes.mjs";
+import { authenticationDenial, assertToolRoster, collectPages, inspectorServerToolError, missingTool, MISSING_TOOL, INSPECTOR_SERVER_ERROR_TOOL } from "../probes.mjs";
 
 const call = (result) => ({ callTool: async () => result });
 const errorResult = (code, extra = {}) => ({ isError: true, structuredContent: { status: "error", code, ...extra } });
@@ -14,6 +14,51 @@ test("unknown tool requires the typed protocol failure and never catches its own
   }
   const client = { callTool: async () => { throw { code: -32602, data: { code: "invalid_argument" }, message: `Unknown MCP tool '${MISSING_TOOL}'` }; } };
   assert.deepEqual(await missingTool(client), { rejected: true, protocolCode: -32602, code: "invalid_argument" });
+});
+
+const serverQueryError = () => {
+  const output = {
+    status: "error", code: "invalid_argument", message: "'serviceId' is required.",
+    error: { kind: "ValidationFailed", message: "'serviceId' is required.", stepId: null, violations: null },
+  };
+  return {
+    exitCode: 5,
+    stdout: JSON.stringify({ isError: true, structuredContent: output, content: [{ type: "text", text: JSON.stringify(output) }] }),
+    stderr: JSON.stringify({ error: { code: "tool_is_error", message: `Tool '${INSPECTOR_SERVER_ERROR_TOOL}' returned isError:true.` } }),
+  };
+};
+
+test("Inspector server tool error rejects a local name refusal and requires the incomplete query", () => {
+  const local = { exitCode: 5, stdout: "", stderr: JSON.stringify({ error: { code: "tool_not_found", message: `Tool '${MISSING_TOOL}' not found on server.` } }) };
+  assert.throws(() => inspectorServerToolError(local), /locally/);
+  const stuffed = { ...local, stdout: serverQueryError().stdout };
+  assert.throws(() => inspectorServerToolError(stuffed), /locally/);
+  const passed = serverQueryError();
+  assert.deepEqual(inspectorServerToolError(passed), { rejected: true, code: "invalid_argument", tool: INSPECTOR_SERVER_ERROR_TOOL, serverOrigin: true });
+  for (const mutate of [
+    (value) => { value.exitCode = 0; },
+    (value) => { value.stderr = JSON.stringify({ error: { code: "tool_is_error", message: "Tool 'honua_list_layers' returned isError:true." } }); },
+    (value) => { value.stdout = JSON.stringify({ isError: false, structuredContent: { features: [] } }); },
+    (value) => {
+      const output = { status: "error", code: "not_found", message: "missing", error: { kind: "NotFound", message: "missing" } };
+      value.stdout = JSON.stringify({ isError: true, structuredContent: output, content: [{ type: "text", text: JSON.stringify(output) }] });
+    },
+    (value) => {
+      const parsed = JSON.parse(value.stdout);
+      parsed.content[0].text = JSON.stringify({ status: "error", code: "invalid_argument", message: "other" });
+      value.stdout = JSON.stringify(parsed);
+    },
+    (value) => {
+      const parsed = JSON.parse(value.stdout);
+      parsed.structuredContent.features = [{ id: 1 }];
+      parsed.content[0].text = JSON.stringify(parsed.structuredContent);
+      value.stdout = JSON.stringify(parsed);
+    },
+  ]) {
+    const broken = serverQueryError();
+    mutate(broken);
+    assert.throws(() => inspectorServerToolError(broken));
+  }
 });
 
 test("auth probe invokes a protected tool and requires typed denial with no data", async () => {

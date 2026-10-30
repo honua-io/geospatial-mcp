@@ -51,8 +51,11 @@ for (const path of Object.keys(pins.sha256)) test(`ops-events bridge rejects alt
 test("ops-events bridge requires exact source/Git blob/directory binding and preserves legacy identities", async () => {
   assert.equal(Object.keys(pins.sha256).length, 22);
   const legacy = JSON.parse(readFileSync(new URL("../render-validation-pins.json", import.meta.url)));
+  const historicalPins = JSON.parse(readFileSync(new URL("../historical-render-validation-pins.json", import.meta.url)));
+  const requirements = JSON.parse(readFileSync(new URL("../requirements-pins.json", import.meta.url)));
   const historical = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url)));
-  assert.equal(legacy.sourceSha, historical.proof.helperSourceSha);
+  assert.equal(historical.proof.helperSourceSha, historicalPins.sourceSha);
+  assert.equal(legacy.sourceSha, requirements.sourceSha);
   const control = await isolated();
   try {
     assert.equal(control.verify(), true);

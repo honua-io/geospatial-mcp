@@ -17,7 +17,13 @@ AUTH_POLICY = "certification/sources/mcp-operation-auth-policy.v1.json"
 
 
 def api(path):
-    result = subprocess.run(["gh", "api", path], capture_output=True, text=True, check=True)
+    # Helper preparers and offline generators run in separate processes but
+    # share gh's response cache. Cache only content-addressed Git objects;
+    # repository identity, protected branch and ancestry checks remain fresh.
+    cache = ["--cache", "24h"] if re.fullmatch(
+        r"repos/[^/]+/[^/]+/git/(?:blobs/[a-f0-9]{40}|trees/[a-f0-9]{40}\?recursive=1)", path) else []
+    result = subprocess.run(["gh", "api", path, *cache], stdin=subprocess.DEVNULL,
+                            capture_output=True, text=True, check=True)
     return json.loads(result.stdout)
 
 

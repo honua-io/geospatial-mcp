@@ -3,6 +3,7 @@ import base64
 from copy import deepcopy
 import hashlib
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -75,6 +76,16 @@ class LocationSourceTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.fetch(changed, Path(directory), get=responses.__getitem__)
                 self.assertEqual([], list(Path(directory).iterdir()))
+
+    def test_committed_location_pins_bind_batch_rejection_and_analyze_discovery(self):
+        pins = json.loads((Path(__file__).resolve().parents[1] / "location-validation-pins.json").read_text())
+        # honua-release 951805d6 contains the unmatched-batch rejection and #1101's
+        # anonymous analyze view for honua_geocode_address. Pin 5f539290 predates both.
+        self.assertEqual(pins["sourceSha"], "951805d6f377306c1cf486fb5999ab089a74dfc3")
+        self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_location_validation.py"],
+                         "2f38089c5b877d50b73ae278310e62637b10903f06dd141ec9004075741d43dd")
+        self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_fixed_client_launcher.mjs"],
+                         "26a363ae3b533e17a2071a47a7695569ee63ddb572818140f7116c1dfc3e05b3")
 
 
 if __name__ == "__main__":

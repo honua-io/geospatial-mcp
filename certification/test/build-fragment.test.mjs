@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { join, delimiter } from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
-import { buildFragment as build } from "../build-fragment.mjs";
+import { buildFragment as build, operationScopeComplete } from "../build-fragment.mjs";
 import { CLIENTS, CONTRACT_REVISION, FIXTURE_REVISION, OPERATIONS } from "../requirements.mjs";
 import { syntheticCancellationProof } from "./cancellation-fixture.mjs";
 import { syntheticInspectorPaginationProof } from "./pagination-fixture.mjs";
@@ -474,6 +474,41 @@ test("emits the complete governed denominator and truthful execution identity", 
       assert.equal(row.evidence_uri, `https://evidence.honua.io/data/sha256/${digest.slice(7)}`);
     }
   }
+});
+
+test("scope is complete only when every row passed an executing check", () => {
+  assert.equal(operationScopeComplete([]), false);
+  assert.equal(operationScopeComplete([{ result: "pass", evidence_receipt: { result: "pass" } }]), true);
+  assert.equal(operationScopeComplete([{ result: "pass", evidence_receipt: null }]), false);
+  assert.equal(operationScopeComplete([{ result: "pass", evidence_receipt: { result: "fail" } }]), false);
+  assert.equal(operationScopeComplete([{ result: "skip", evidence_receipt: null }]), false);
+  assert.equal(operationScopeComplete([{ result: "fail", evidence_receipt: { result: "fail" } }]), false);
+  const fragment = buildFragment({ identity, results: {
+    sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("sdk") },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
+  }});
+  const uncovered = fragment.observations.filter((row) => row.operation.startsWith("tools/call:") || row.operation.startsWith("resources/read:"));
+  assert.ok(uncovered.length > 0);
+  for (const row of uncovered) {
+    assert.notEqual(row.result, "pass");
+    assert.equal(row.evidence_receipt, null);
+  }
+  assert.equal(fragment.operation_scope.complete, false);
+  assert.equal(fragment.operation_scope.owner_issue, "https://github.com/honua-io/geospatial-mcp/issues/95");
+});
+
+test("a failed executing check stays fail and cannot complete the scope", () => {
+  const checks = passing("sdk");
+  checks.initialize = { ...checks.initialize, result: "fail", error: "initialize transport down" };
+  const fragment = buildFragment({ identity, results: {
+    sdk: { performedBy: "Official MCP TypeScript SDK", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks },
+    inspector: { performedBy: "MCP Inspector", requestUrl: identity.requestUrl, protocolVersion: "2025-06-18", checks: passing("inspector") },
+  }});
+  const row = fragment.observations.find((item) =>
+    item.canonical_client === "Official MCP TypeScript SDK" && item.operation === "initialize");
+  assert.equal(row.result, "fail");
+  assert.equal(row.evidence_receipt, null);
+  assert.equal(fragment.operation_scope.complete, false);
 });
 
 test("fails closed on ambiguous candidate identity", () => {

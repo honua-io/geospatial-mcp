@@ -6,7 +6,7 @@ import { requireInspectorSemanticResult } from "./inspector-semantic-exit.mjs";
 import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { loadFixture, readScenarios, verifyQuery } from "./semantic-reads.mjs";
-import { authenticationDenial, assertToolRoster, toolOutput } from "./probes.mjs";
+import { authenticationDenial, assertToolRoster, inspectorServerToolError, INSPECTOR_SERVER_ERROR_TOOL, toolOutput } from "./probes.mjs";
 import { loadInspectorPaginationHarness, loadInspectorCancellationHarness } from "./server-harness.mjs";
 import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationResult, INSPECTOR_PAGINATION_CHECK } from "./pagination-proof.mjs";
 import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
@@ -137,8 +137,17 @@ if (paginationHarness) {
   }
 }
 // The pinned CLI rejects names absent from its local tools/list before sending
-// tools/call. Its exit code cannot establish the candidate's unknown-tool error.
-checks["behavior/error"] = { result: "skip", reason: "Pinned Inspector rejects unknown tool locally; no server error proof" };
+// tools/call, so an unlisted name cannot prove the candidate's unknown-tool
+// error. Call a listed tool without serviceId and require the server's typed
+// invalid_argument. A local tool_not_found refusal stays nonpass.
+await invoke("behavior/error", "tools/call", ["--tool-name", INSPECTOR_SERVER_ERROR_TOOL, "--tool-arg", 'where="1=1"'], 5);
+try {
+  const check = checks["behavior/error"];
+  check.value = inspectorServerToolError({ exitCode: check.inspectorExitCode, stdout: check.output, stderr: check.error });
+} catch (error) {
+  checks["behavior/error"].result = "fail";
+  checks["behavior/error"].error = String(error);
+}
 // The authentication control calls a protected tool through an anonymous Inspector
 // session and inspects its typed refusal; a successful handshake is insufficient.
 const denied = await invoke("behavior/auth", "tools/call", ["--tool-name", "honua_list_layers", "--stored-auth-only"], 5, false);

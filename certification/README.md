@@ -164,10 +164,14 @@ configuration skips; configured helper, wire or database failures fail the
 scenario and cannot emit a passing receipt. Positive execution against the
 selected Honua candidate remains unqualified.
 
-The pinned Inspector CLI has no one-shot ping and rejects missing tool names
-locally before sending a call, so those operations remain incomplete rather than
-counted as successful wire assertions. Its protected-tool authentication probe
-uses an anonymous session and validates the actual typed tool refusal.
+The pinned Inspector CLI has no one-shot ping, so that operation remains
+incomplete rather than a successful wire assertion. It also rejects missing tool
+names locally before sending a call, so the unknown-tool proof stays on the
+official SDK. Inspector `behavior/error` calls the listed `honua_query_features`
+tool without `serviceId` and requires the candidate's typed `invalid_argument`.
+A local `tool_not_found` refusal is not that proof. Its protected-tool
+authentication probe uses an anonymous session and validates the actual typed
+tool refusal.
 
 The producer matches the existing governed catalog: 41 operations per client,
 82 rows in total. The retired `propose_operation` is a known gap in the published
@@ -191,9 +195,11 @@ cross-adapter agreement, or empty/partial feature responses do not establish pro
 The builder requires this candidate/source/hash binding before admitting a semantic
 read. The builder also requires each client's cessation proof to use the same
 authored seed and allocated-ID hashes. Missing candidate cancellation or
-pagination evidence cannot pass those floors; Inspector's initial ping and
-unknown-tool wire-error scenarios also remain incomplete and prevent a full lane
-pass. General tool/resource workflows remain incomplete.
+pagination evidence cannot pass those floors. Inspector's initial ping remains
+incomplete and keeps that row nonpass. The unknown-tool wire error remains an
+SDK proof because the pinned CLI never sends an unlisted name. Inspector
+`behavior/error` is the server's incomplete-query refusal, and a local name
+refusal cannot satisfy it. General tool/resource workflows remain incomplete.
 
 `npm test` runs canonical SDK adapter, immutable-helper binding and pure
 proof-consumer controls here. When the exact candidate contains the server-owned

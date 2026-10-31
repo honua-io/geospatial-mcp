@@ -8,6 +8,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import yaml
+
 from test_fetch_certification_requirements import fixtures as governance_fixtures
 
 SPEC = importlib.util.spec_from_file_location("fetch_ops_manifest", Path(__file__).resolve().parents[1] / "fetch-ops-events-manifest.py")
@@ -28,6 +30,37 @@ def fixtures():
 
 
 class OpsManifestSourceTests(unittest.TestCase):
+    def test_selected_candidate_is_checked_before_retaining_manifest(self):
+        original, responses, _, _ = fixtures()
+        source = "c" * 40
+        digest = "sha256:" + "d" * 64
+        image = "ghcr.io/honua-io/honua-server@" + digest
+        manifest = {"candidate": {"ref": source, "refSource": "trunk"},
+                    "components": {"honua-server": {"sha": source,
+                        "image": "ghcr.io/honua-io/honua-server:nightly-candidate", "digest": digest}}}
+        for mutation in (None, "source", "image", "mutable", "component", "origin"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as work:
+                value = deepcopy(manifest)
+                if mutation == "source": value["candidate"]["ref"] = "e" * 40
+                if mutation == "image": value["components"]["honua-server"]["digest"] = "sha256:" + "e" * 64
+                if mutation == "mutable": value["components"]["honua-server"]["image"] = "other/server:latest"
+                if mutation == "component": value["components"]["honua-server"]["sha"] = "e" * 40
+                if mutation == "origin": value["candidate"]["refSource"] = "branch"
+                raw = yaml.safe_dump(value).encode()
+                blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+                changed = deepcopy(responses)
+                tree = changed[f'repos/{original["repository"]}/git/trees/{original["sourceSha"]}?recursive=1']
+                next(entry for entry in tree["tree"] if entry["path"] == MODULE.PATH)["sha"] = blob
+                changed[f'repos/{original["repository"]}/git/blobs/{blob}'] = {
+                    "sha": blob, "encoding": "base64", "size": len(raw), "content": base64.b64encode(raw).decode()}
+                if mutation is None:
+                    MODULE.fetch(original, Path(work), get=changed.__getitem__, candidate_source_sha=source, candidate_image=image)
+                    self.assertEqual((Path(work) / "ops-events-platform-manifest.yaml").read_bytes(), raw)
+                else:
+                    with self.assertRaisesRegex(ValueError, "selected candidate"):
+                        MODULE.fetch(original, Path(work), get=changed.__getitem__, candidate_source_sha=source, candidate_image=image)
+                    self.assertEqual(list(Path(work).iterdir()), [])
+
     def test_retains_original_bytes_and_complete_git_binding_without_qualification(self):
         original, responses, raw, blob = fixtures()
         with tempfile.TemporaryDirectory() as work:

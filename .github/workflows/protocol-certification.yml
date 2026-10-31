@@ -173,6 +173,8 @@ jobs:
       - name: Fetch immutable protected complete render package ingest and style source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
+          HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
         working-directory: certification
         run: |
           npm run prepare:render
@@ -184,7 +186,7 @@ jobs:
           npm run prepare:ops-health
           npm run prepare:ops-events
           npm run prepare:grounding-status
-          python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts
+          python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts --candidate-source-sha "${HONUA_MCP_SERVER_SOURCE_SHA}" --candidate-image "${HONUA_MCP_SERVER_IMAGE}"
 
       - name: Fetch immutable protected separate app workflow and oracle bundle
         env:

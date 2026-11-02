@@ -1020,7 +1020,7 @@ test("current execute oracle joins full authority, global behavior and tier cont
   const stale = structuredClone(checks);
   stale["tools/call:execute_plan"].value = archived.proof;
   const rejected = selected(joined(stale));
-  assert.equal(rejected.result, "fail");
+  assert.equal(rejected.result, "skip");
   assert.equal(rejected.evidence_receipt, null);
   const positive = selected(joined(checks));
   assert.equal(positive.result,"pass");

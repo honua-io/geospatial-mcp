@@ -1,3 +1,4 @@
+import { verifyExecutePlanProof } from "../execute-plan-validation.mjs";
 import { verifyEntityResolution } from "../entity-resolution.mjs";
 import { verifyCancellationProof } from "../cancellation-proof.mjs";
 import { verifyInspectorPaginationProof, paginationCheck, INSPECTOR_PAGINATION_CHECK } from "../pagination-proof.mjs";
@@ -974,38 +975,61 @@ test("protected worker-result publication claims cannot bypass policy or immutab
   }
 });
 
-test("historical real execute oracle joins full authority, global behavior and tier controls", () => {
-  const retained = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url), "utf8"));
-  assert.match(retained.meaning, /regression only/);
+test("archived actual execute proof cannot qualify through the current helper", () => {
+  const retained = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url)));
+  assert.equal(retained.proof.helperSourceSha, "4194df4368c0b78274fdac12315eaadbdd620c04");
   assert.equal(retained.originalGlobalResults["behavior/cancellation"], "fail");
-  const historical = retained.identity;
-  // Composite offline regression only: the execute proof is untouched actual
-  // hosted wire evidence; this global vector is explicitly synthetic metadata,
-  // never a claim that the historical run's failed cancellation passed.
+  const before = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+  const directory = mkdtempSync(join(tmpdir(), "archived-execute-rejection-"));
+  try {
+    process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(directory, "original-bootstrap.json");
+    writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, Buffer.from(retained.bootstrapBase64, "base64"));
+    assert.equal(verifyExecutePlanProof(retained.proof, retained.identity.sourceSha,
+      retained.identity.imageDigest, "tools/call:execute_plan", CLIENTS.sdk.canonicalClient, CLIENTS.sdk.version), false);
+  } finally {
+    if (before === undefined) delete process.env.HONUA_MCP_RENDER_BOOTSTRAP;
+    else process.env.HONUA_MCP_RENDER_BOOTSTRAP = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("current execute oracle joins full authority, global behavior and tier controls", () => {
+  const retained = JSON.parse(readFileSync(new URL("./fixtures/offline-execute-plan-oracle-vector.json", import.meta.url)));
+  assert.match(retained.meaning, /offline.*no.*candidate/i);
+  const selectedIdentity = { ...identity, sourceSha: retained.proof.candidateSourceSha,
+    imageDigest: retained.proof.candidateImage.split("@").at(-1) };
+  // Complete current-source synthetic proof plus synthetic global controls.
+  // Neither supplies actual candidate or installed-client credit.
   const checks = { ...passing("sdk"), "behavior/cancellation": { result:"pass", value:{
-    ...syntheticCancellationProof(), fixtureSourceSha:historical.sourceSha}},
+    ...syntheticCancellationProof(), fixtureSourceSha:selectedIdentity.sourceSha}},
     "tools/call:execute_plan":{result:"pass", value:retained.proof}};
   const joined = (sdkChecks, executedTier="release", catalog=requirements) => buildFragment({
-    identity:historical, executedTier, requirements:catalog, now:"2026-10-19T16:40:00Z", results:{
+    identity:selectedIdentity, executedTier, requirements:catalog, now:"2026-10-19T16:40:00Z", results:{
       sdk:{protocolVersion:"2025-06-18", checks:sdkChecks},
       inspector:{protocolVersion:"2025-06-18", checks:passing("inspector")}}});
   const selected = (fragment) => fragment.observations.find((row) => row.operation === "tools/call:execute_plan"
     && row.canonical_client === CLIENTS.sdk.canonicalClient);
   const bootstrapBefore = process.env.HONUA_MCP_RENDER_BOOTSTRAP;
-  const fixtureDirectory = mkdtempSync(join(tmpdir(), "historical-execute-regression-"));
+  const fixtureDirectory = mkdtempSync(join(tmpdir(), "current-execute-regression-"));
   const bootstrapBytes = Buffer.from(retained.bootstrapBase64, "base64");
   assert.equal(createHash("sha256").update(bootstrapBytes).digest("hex"), retained.bootstrapBytesSha256);
   process.env.HONUA_MCP_RENDER_BOOTSTRAP = join(fixtureDirectory, "original-bootstrap.json");
   writeFileSync(process.env.HONUA_MCP_RENDER_BOOTSTRAP, bootstrapBytes);
   try {
+  const archived = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url)));
+  const stale = structuredClone(checks);
+  stale["tools/call:execute_plan"].value = archived.proof;
+  const rejected = selected(joined(stale));
+  assert.equal(rejected.result, "fail");
+  assert.equal(rejected.evidence_receipt, null);
   const positive = selected(joined(checks));
   assert.equal(positive.result,"pass");
   assert.equal(positive.evidence_receipt.schema,"honua.certification-evidence-receipt/v2");
   assert.equal(positive.auth_policy_revision,"mcp-protected-operation-v1");
   assert.deepEqual(positive.scenario_facets,["positive","negative","media-schema","auth"]);
   assert.equal(positive.evidence_receipt.facets.auth,"pass");
-  assert.equal(positive.evidence_receipt.identity.source_sha,historical.sourceSha);
-  assert.equal(positive.evidence_receipt.identity.image_digest,historical.imageDigest);
+  assert.equal(positive.evidence_receipt.identity.source_sha,selectedIdentity.sourceSha);
+  assert.equal(positive.evidence_receipt.identity.image_digest,selectedIdentity.imageDigest);
   for (const mutation of ["no-raw","no-anonymous","credential-forwarding","session-reuse","raw-tamper",
     "no-cancellation","failed-cancellation","no-global-auth","wrong-client","wrong-image","under-tier"]) {
     const broken=structuredClone(checks), proof=broken["tools/call:execute_plan"].value;
@@ -1016,9 +1040,9 @@ test("historical real execute oracle joins full authority, global behavior and t
       proof.observations.calls.find((row)=>row.id==="execute").wire.initialize.response.sessionSha256;
     else if (mutation==="raw-tamper") proof.observations.calls[0].wire.invocation.response.bodyBase64=Buffer.from('{}').toString('base64');
     else if (mutation==="wrong-client") proof.canonicalClient="MCP Inspector";
-    else if (mutation==="wrong-image") proof.candidateImage=proof.candidateImage.replace(historical.imageDigest,`sha256:${"0".repeat(64)}`);
+    else if (mutation==="wrong-image") proof.candidateImage=proof.candidateImage.replace(selectedIdentity.imageDigest,`sha256:${"0".repeat(64)}`);
     else if (mutation==="no-cancellation") delete broken["behavior/cancellation"];
-    else if (mutation==="failed-cancellation") broken["behavior/cancellation"].result=retained.originalGlobalResults["behavior/cancellation"];
+    else if (mutation==="failed-cancellation") broken["behavior/cancellation"].result="fail";
     else if (mutation==="no-global-auth") delete broken["behavior/auth"];
     const row=selected(joined(broken,mutation==="under-tier"?"pr":"release"));
     assert.notEqual(row.result,"pass",mutation);
@@ -1035,7 +1059,6 @@ test("historical real execute oracle joins full authority, global behavior and t
 test("source controls run independently of frozen catalog and candidate qualification", () => {
   const workflow=readFileSync(new URL("../../.github/workflows/mcp-producer-source-controls.yml",import.meta.url),"utf8");
   for (const expected of ["pull_request:","npm ci --ignore-scripts","npm run prepare:plan","npm run prepare:render",
-    "npm run prepare:historical-render",
     "module.immutable_files",'digest != pins["sha256"][path]',"HONUA_RELEASE_CHECKER=", "python3 -m unittest discover", "npm test"])
     assert.ok(workflow.includes(expected),expected);
   for (const absent of ["requirements_ref:","--requirements-revision","continue-on-error:","docker run","train_apply"])

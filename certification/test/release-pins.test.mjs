@@ -14,5 +14,5 @@ test("every honua-release producer uses the governed requirements source revisio
     count++;
     assert.equal(pins.sourceSha, requirements.sourceSha, `${name} splits the governed producer revision`);
   }
-  assert.ok(count >= 12, "the complete protected producer pin set must be checked");
+  assert.ok(count >= 11, "the complete protected producer pin set must be checked");
 });

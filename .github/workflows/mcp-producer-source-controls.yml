@@ -46,7 +46,6 @@ jobs:
         run: |
           npm run prepare:plan
           npm run prepare:render
-          npm run prepare:historical-render
           npm run prepare:app
           python3 generate-offline-app-vector.py
           npm run prepare:location

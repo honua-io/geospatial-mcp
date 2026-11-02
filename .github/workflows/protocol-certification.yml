@@ -178,7 +178,6 @@ jobs:
         working-directory: certification
         run: |
           npm run prepare:render
-          npm run prepare:historical-render
           npm run prepare:location
           npm run prepare:planning
           npm run prepare:direct-cancel

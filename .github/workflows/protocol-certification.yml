@@ -62,8 +62,8 @@ env:
   # (certification/test/corpus-trees.test.mjs recomputes them).
   CONFORMANCE_CORPUS_TREE: "80d6f93e4bf85519aa014ccf2a9357faf0378d68"
   SPEC_TREE: "909c19a94d735eacc840eb7f40d1ce266e2ac551"
-  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37"
-  PINNED_SERVER_SOURCE_SHA: "a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e"
+  PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:24d20a8647f6dafcfc1bef683a31f4dddf6ef4476ebb33456afa8a96b11288da"
+  PINNED_SERVER_SOURCE_SHA: "8628668794df9f0c22a490e59cedaee409cc1bdd"
 
 permissions:
   attestations: read
@@ -178,7 +178,6 @@ jobs:
         working-directory: certification
         run: |
           npm run prepare:render
-          npm run prepare:historical-render
           npm run prepare:location
           npm run prepare:planning
           npm run prepare:direct-cancel
@@ -777,6 +776,7 @@ jobs:
             certification/.grounding-status-validation/source-binding.json
             certification/grounding-status-validation-pins.json
             certification/test/fixtures/offline-app-oracle-vector.json
+            certification/test/fixtures/offline-execute-plan-oracle-vector.json
             certification/test/fixtures/offline-location-oracle-vector.json
             certification/test/fixtures/offline-ops-health-oracle-vector.json
             certification/test/fixtures/offline-ops-events-oracle-vector.json

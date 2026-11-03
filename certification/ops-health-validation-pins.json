@@ -1,9 +1,9 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "cd9d5af49d97590ebda357dbd65836969504b2e6",
+  "sourceSha": "925e2b5ed9d85e3bd4222f4e84d337f0389fc658",
   "sha256": {
-    "certification/installed-clients/mcp_ops_health_validation.mjs": "dd7d0e7c4073792fcc4f9286b8d9c0b2fff2952099538658e56c184bc5af4a6f",
-    "certification/installed-clients/mcp_ops_health_validation.py": "e3e426a49248849d163521f11bf48ef06edfa949a86358c11c8bfde39d3f6e7c",
+    "certification/installed-clients/mcp_ops_health_validation.mjs": "c73f9bc540d70101e6bb7b1162c980d336b008a71c47b86374c18a697df923e1",
+    "certification/installed-clients/mcp_ops_health_validation.py": "471542c2310cfbdd728b00780b7587096eca1b6c3b694cc017daff35b5177b18",
     "certification/installed-clients/mcp_ops_health_state.py": "47157a5f5fa943df3faae0c3f83c9e34d53e0adbdbfb79360b10a138812e57d7",
     "certification/installed-clients/mcp_execute_plan_state.py": "2da71ab0d5934fee993823e3af14bb280396021b67d8defb6a4584b5462ac930",
     "certification/installed-clients/mcp_execute_plan_validation.py": "1f5f38d7b8e67dad060b1029dc9fae9fa2fece41a0e4ddc2db5dc9ae2e992dd4",
@@ -16,7 +16,7 @@
     "certification/installed-clients/mcp_style_state.py": "8f4a8fa121542f1f3e06c4527b2dd8c005064bb0440eeccb8759aa0fed766ad4",
     "certification/installed-clients/mcp_ingest_publish_state.py": "667116c7c22c56bb1749814b0f467caaa5aead7cb2d3c27b21b193057ae1005e",
     "certification/installed-clients/fixture.v1.json": "7b7ca6f23c3129f523870502e188ad1399f7d872bf75a53b1a92685c95c3b498",
-    "certification/installed-clients/mcp_candidate_wire.mjs": "de48de4e1866f3e54f2955d8941948a5b18dc812dc35cc870f45bcd9b136adc4",
+    "certification/installed-clients/mcp_candidate_wire.mjs": "5023ca42aae2eed7b16fb87df108f2ff1496f8225a3920d07d1b01879d1bae70",
     "certification/installed-clients/mcp_fixed_client_launcher.mjs": "26a363ae3b533e17a2071a47a7695569ee63ddb572818140f7116c1dfc3e05b3",
     "certification/installed-clients/mcp_fixed_sdk_runner.mjs": "646922d16e98aa0c4fa4f8787632ed0deffa71c01b1d6d24ffb8ddeed512a901",
     "certification/installed-clients/mcp_fixed_client_manifest.v1.json": "0dd50d4ab24c92efb9a127b40623092915c25985bd5afea5e821e8e46808195e"

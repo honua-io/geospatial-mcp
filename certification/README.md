@@ -209,10 +209,11 @@ checks, including an unrelated public-table decoy beside the authored `honua`
 fixture. Harness controls never emit candidate certification rows and do not
 substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
-image is the 2026.1 RC re-pin #4 candidate at source
-`a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`, the attested multi-arch AOT index
-`sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37`, which
+image is the final 2026.1 rc.2 candidate at source
+`8628668794df9f0c22a490e59cedaee409cc1bdd`, the attested multi-arch AOT index
+`sha256:24d20a8647f6dafcfc1bef683a31f4dddf6ef4476ebb33456afa8a96b11288da`, which
 contains that runtime change and this server-owned harness. Earlier defaults were
+`a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`,
 `8cb074f77d01c0a00617ebe426460aa24c7d890b` and
 `3ecd214c1ce20e96ad4911b6f8447055dee9089d`, which predated both. Pinning an image changes
 no capability baseline or governed qualification state. Request cancellation is a

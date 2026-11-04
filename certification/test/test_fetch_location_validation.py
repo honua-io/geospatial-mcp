@@ -79,9 +79,8 @@ class LocationSourceTests(unittest.TestCase):
 
     def test_committed_location_pins_bind_batch_rejection_and_analyze_discovery(self):
         pins = json.loads((Path(__file__).resolve().parents[1] / "location-validation-pins.json").read_text())
-        # honua-release 951805d6 contains the unmatched-batch rejection and #1101's
-        # anonymous analyze view for honua_geocode_address. Pin 5f539290 predates both.
-        self.assertEqual(pins["sourceSha"], "951805d6f377306c1cf486fb5999ab089a74dfc3")
+        requirements = json.loads((Path(__file__).resolve().parents[1] / "requirements-pins.json").read_text())
+        self.assertEqual(pins["sourceSha"], requirements["sourceSha"])
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_location_validation.py"],
                          "2f38089c5b877d50b73ae278310e62637b10903f06dd141ec9004075741d43dd")
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_fixed_client_launcher.mjs"],

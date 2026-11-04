@@ -39,13 +39,13 @@ for (const path of Object.keys(pins.sha256)) test(`location bridge rejects alter
   } finally { control.close(); }
 });
 
-test("location bridge requires exact source/Git blob/directory binding and preserves legacy identities", async () => {
+test("location bridge requires exact source/Git blob/directory binding and rejects stale helper identities", async () => {
   assert.equal(Object.keys(pins.sha256).length, 10);
   const legacy = JSON.parse(readFileSync(new URL("../render-validation-pins.json", import.meta.url)));
-  const historicalPins = JSON.parse(readFileSync(new URL("../historical-render-validation-pins.json", import.meta.url)));
   const requirements = JSON.parse(readFileSync(new URL("../requirements-pins.json", import.meta.url)));
   const historical = JSON.parse(readFileSync(new URL("./fixtures/historical-execute-plan-39284007212.json", import.meta.url)));
-  assert.equal(historical.proof.helperSourceSha, historicalPins.sourceSha);
+  assert.equal(historical.proof.helperSourceSha, "4194df4368c0b78274fdac12315eaadbdd620c04");
+  assert.notEqual(historical.proof.helperSourceSha, pins.sourceSha);
   assert.equal(legacy.sourceSha, requirements.sourceSha);
   const control = await isolated();
   try {

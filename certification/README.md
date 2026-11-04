@@ -10,7 +10,6 @@ python3 -m pip install --require-hashes --only-binary=:all: -r ../.github/requir
 npm ci --ignore-scripts
 npm run prepare:plan
 npm run prepare:render
-npm run prepare:historical-render
 npm run prepare:app
 npm run prepare:location
 npm run prepare:planning
@@ -32,7 +31,8 @@ npm test
 
 `prepare:location` independently authenticates the complete ten-file location
 bundle from protected release source. Shared fixture bytes match the live render
-pin. Retained execute proof 39284007212 stays on the frozen historical helper. The release-owned geocode, batch-geocode and
+pin. Retained execute proof 39284007212 remains unchanged and cannot qualify on
+the current helper. The release-owned geocode, batch-geocode and
 pgRouting scenarios run through both installed clients after each client's
 execute-plan journey; every operation is attempted and retained separately.
 The receipt builder rejudges coordinates, CRS, country restrictions, ordered
@@ -56,8 +56,7 @@ protected-source provisioning before the complete installed-client controls.
 complete 27-file shared scenario, PNG oracle and fixture setup dependency set
 declared in `render-validation-pins.json`. That pin stays on the same
 honua-release commit as `requirements-pins.json`, so the shared fixture hash
-matches every journey oracle. `historical-render-validation-pins.json` is only
-the helper that produced retained execute proof 39284007212. Every dependency is checked again
+matches every journey oracle. Every dependency is checked again
 before setup or client execution. The release-owned setup independently reads
 the actual running container's image digest and OCI source revision, seeds and
 publishes the authored polygon on the owned disposable candidate, reads its
@@ -210,10 +209,11 @@ checks, including an unrelated public-table decoy beside the authored `honua`
 fixture. Harness controls never emit candidate certification rows and do not
 substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
-image is the 2026.1 RC re-pin #4 candidate at source
-`a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`, the attested multi-arch AOT index
-`sha256:c8d7aef98761618145725530b6a4e4b25ea4a9ae121da168362f9be4cf5f7d37`, which
+image is the final 2026.1 rc.2 candidate at source
+`8628668794df9f0c22a490e59cedaee409cc1bdd`, the attested multi-arch AOT index
+`sha256:24d20a8647f6dafcfc1bef683a31f4dddf6ef4476ebb33456afa8a96b11288da`, which
 contains that runtime change and this server-owned harness. Earlier defaults were
+`a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`,
 `8cb074f77d01c0a00617ebe426460aa24c7d890b` and
 `3ecd214c1ce20e96ad4911b6f8447055dee9089d`, which predated both. Pinning an image changes
 no capability baseline or governed qualification state. Request cancellation is a
@@ -403,19 +403,19 @@ selected image/cohort rejection remain retained.
 `MCP Producer Source Controls` runs the complete offline source suite independently
 of selected-catalog or candidate startup. It authenticates the unchanged pinned
 oracle dependencies and existing reviewed receipt checker; it cannot satisfy or
-replace the required actual `certify` verdict. The full admission regression uses
-the untouched execute-plan proof and bootstrap from run 39284007212, preserving
-historical source `3ecd214c1ce20e96ad4911b6f8447055dee9089d` and image digest
-`sha256:62e312a8210ddf632ec5b903a2759327321966f72cbb9f75c0b2a3d2c1243458`.
-That run's actual global cancellation failed. A separately labeled synthetic
-global control vector exercises the offline positive join; restoring the actual
-cancellation failure prevents a receipt. This is regression evidence only.
+replace the required actual `certify` verdict. The admission regression uses
+a complete current-source synthetic execute-plan
+proof and bootstrap produced by `generate-offline-app-vector.py`, with global
+behavior, authority, tier and raw-wire mutation checks. It supplies no actual
+candidate credit. The untouched execute-plan proof from run 39284007212 remains
+an archived rejection control: its original helper and fixture cannot qualify
+through the current oracle. No historical helper fallback is loaded.
 
 ### App package source consumer
 
 The app consumer fetches a separate complete 14-file protected release bundle
 with `npm run prepare:app`. Its source commit matches the live render pin.
-Retained execute proof 39284007212 rejudges only on the frozen historical helper.
+Retained execute proof 39284007212 is archived and rejected by the current helper.
 The release-owned journey composes an actual
 map package and execution artifact into an app draft, then checks draft resource
 reads and generic declared-requirements validation and preview. Authority checks

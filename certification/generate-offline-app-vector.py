@@ -51,6 +51,21 @@ print(json.dumps({"judged":judge(FIXTURE,bootstrap(),observed),"observations":ob
                   **value, "proof": proof}
         target = ROOT / "test/fixtures/offline-app-oracle-vector.json"
         target.write_text(json.dumps(vector, indent=2) + "\n")
+        # Current-source execute controls replace the historical helper fallback.
+        execute_program = program.replace(
+            "from mcp_app_package_validation_controls import controls,bootstrap,FIXTURE",
+            "from mcp_execute_plan_validation_controls import controls,bootstrap,FIXTURE").replace(
+            "from mcp_app_package_validation import judge", "from mcp_execute_plan_validation import judge")
+        execute_result = subprocess.run([sys.executable, "-B", "-c", execute_program], cwd=directory,
+                                        check=True, capture_output=True, text=True, timeout=60)
+        execute_value = json.loads(execute_result.stdout)
+        execute_proof = {**execute_value.pop("judged"), "schema": "honua.mcp-canonical-execute-plan-proof/v1",
+                         "helperSourceSha": pins["sourceSha"],
+                         "helperSha256": "sha256:" + pins["sha256"]["certification/installed-clients/mcp_execute_plan_validation.py"],
+                         "observations": execute_value.pop("observations")}
+        execute_vector = {**vector, **execute_value, "proof": execute_proof}
+        (ROOT / "test/fixtures/offline-execute-plan-oracle-vector.json").write_text(
+            json.dumps(execute_vector, indent=2) + "\n")
         print("Generated explicitly offline vector from complete protected release source", pins["sourceSha"])
 
 

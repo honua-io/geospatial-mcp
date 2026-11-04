@@ -103,6 +103,7 @@ def check_manifest(path, index, strict=False):
     index_tools = {t["standardName"]: t for t in index.get("tools", [])}
     index_resources = {r["family"]: r for r in index.get("resources", [])}
 
+    # Every advertised tool must map onto a standard name in the index.
     advertised_std_tools = set()
     for tool in manifest.get("tools", []):
         std = tool.get("standardName")
@@ -113,6 +114,7 @@ def check_manifest(path, index, strict=False):
             continue
         advertised_std_tools.add(std)
 
+    # Every advertised resource family must map onto a standard family.
     advertised_families = set()
     for res in manifest.get("resources", []):
         fam = res.get("family")

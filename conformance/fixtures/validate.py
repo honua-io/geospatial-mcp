@@ -45,6 +45,7 @@ def main(argv=None):
     errors = []
     checked = 0
 
+    # 1. Every schema file must be valid JSON and declare draft 2020-12.
     for dirpath, _dirs, files in os.walk(SCHEMA_ROOT):
         for name in sorted(files):
             if not name.endswith(".json"):
@@ -59,6 +60,7 @@ def main(argv=None):
                 if doc.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
                     errors.append(f"schema {path}: missing/wrong $schema dialect")
 
+    # Optional full validation.
     validator_cls = None
     import_error = None
     try:
@@ -84,6 +86,7 @@ def main(argv=None):
               f"full schema validation did not run ({import_error}).", file=sys.stderr)
         return 2
 
+    # 2. Every fixture: resolve schema, optionally validate inputs.
     for path in iter_fixtures():
         try:
             fx = load_json(path)

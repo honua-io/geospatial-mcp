@@ -79,8 +79,6 @@ class RenderSourceTests(unittest.TestCase):
 
     def test_committed_render_pins_bind_the_observed_endpoint_oracle(self):
         pins = json.loads((Path(__file__).resolve().parents[1] / "render-validation-pins.json").read_text())
-        # honua-release 951805d6 contains #1100 (endpoint fingerprints on publish_result)
-        # and the launcher from #1101/#1102. The previous pin 5f539290 predates both.
         requirements = json.loads((Path(__file__).resolve().parents[1] / "requirements-pins.json").read_text())
         self.assertEqual(pins["sourceSha"], requirements["sourceSha"])
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_publish_result_validation.py"],

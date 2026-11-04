@@ -79,8 +79,6 @@ class AppSourceTests(unittest.TestCase):
 
     def test_committed_app_pins_bind_the_anonymous_review_view_launcher(self):
         pins = json.loads((Path(__file__).resolve().parents[1] / "app-validation-pins.json").read_text())
-        # honua-release 951805d6 contains #1102, which discovers validate/preview
-        # package tools on the anonymous review view. Pin 5f539290 predates it.
         requirements = json.loads((Path(__file__).resolve().parents[1] / "requirements-pins.json").read_text())
         self.assertEqual(pins["sourceSha"], requirements["sourceSha"])
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_fixed_client_launcher.mjs"],

@@ -2,10 +2,6 @@
 // referenceToolName the reference server actually composes, per the server's
 // committed MCP tool roster (honua-server docs/gis/data/mcp-tool-roster.v1.json)
 // at the pinned/candidate source SHA. The advertised set is static ∪ projectedAdmin.
-//
-// Usage: node check-roster-parity.mjs <index.json> <roster.json | -> [--absent]
-//   --absent  the roster is not published at the server SHA; report `blocked`.
-// Exit codes: 0 pass, 1 parity failure, 3 blocked (roster not published).
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 

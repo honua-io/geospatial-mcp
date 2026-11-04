@@ -111,12 +111,10 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
             r for r in manifest["resources"] if r.get("family") != family
         ]
 
-        # Non-strict: downgrade to MAPPED, no error.
         level, errors, _warnings = _check(manifest, self.index, strict=False)
         self.assertEqual(errors, [])
         self.assertEqual(level, "MAPPED")
 
-        # Strict on the reference: same drop is a hard failure.
         level, errors, _warnings = _check(manifest, self.index, strict=True)
         self.assertEqual(level, "FAIL")
         self.assertTrue(
@@ -196,12 +194,10 @@ class AnalysisProfileGatingTest(unittest.TestCase):
                 t["implementationStatus"] = "implemented"
         manifest = copy.deepcopy(self.reference)
         manifest["implementation"]["profiles"] = ["base", "analysis"]
-        # Not advertising buffer_features -> loses FULL (non-strict: MAPPED).
         level, errors, warnings = _check(manifest, index, strict=False)
         self.assertEqual(errors, [])
         self.assertEqual(level, "MAPPED")
         self.assertTrue(any("buffer_features" in w for w in warnings))
-        # Advertising it -> FULL again.
         manifest["tools"].append({
             "standardName": "buffer_features",
             "advertisedName": "honua_buffer_features",

@@ -1,0 +1,22 @@
+{
+  "roots": [
+    ".github/",
+    ".gitignore",
+    ".markdownlint-cli2.yaml",
+    "ADOPTERS.md",
+    "AGENTS.md",
+    "CONFORMANCE.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "LICENSE",
+    "README.md",
+    "certification/",
+    "conformance/",
+    "docs/",
+    "release/",
+    "skills/",
+    "spec/",
+    "tools/"
+  ],
+  "gate_inputs": {}
+}

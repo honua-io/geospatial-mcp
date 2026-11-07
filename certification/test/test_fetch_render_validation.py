@@ -82,7 +82,7 @@ class RenderSourceTests(unittest.TestCase):
         requirements = json.loads((Path(__file__).resolve().parents[1] / "requirements-pins.json").read_text())
         self.assertEqual(pins["sourceSha"], requirements["sourceSha"])
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_publish_result_validation.py"],
-                         "07b8d9f9ae2740f4a0f91714c1410307ca0569c234a9ed61bbda27b706630b95")
+                         "087735e4926c40ebff3618bbc4790fa0949124b52b8a4fbaef5d54fc0c10a3a7")
         self.assertEqual(pins["sha256"]["certification/installed-clients/mcp_fixed_client_launcher.mjs"],
                          "26a363ae3b533e17a2071a47a7695569ee63ddb572818140f7116c1dfc3e05b3")
 

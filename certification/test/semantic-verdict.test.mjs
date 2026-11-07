@@ -13,6 +13,8 @@ test("the pinned Inspector's exact structural ping skip preserves a nonpass rece
   assert.deepEqual(checks, retained);
   assert.equal(certificationFailed(checks, sdk), true);
   assert.equal(certificationFailed({ ping: { result: "skip", reason: "ping unavailable" } }, inspector), true);
+  assert.equal(certificationFailed({ other: { result: "skip", reason: INSPECTOR_PING_SKIP_REASON } }, inspector), true);
+  assert.equal(certificationFailed({ ping: { result: "fail", reason: INSPECTOR_PING_SKIP_REASON } }, inspector), true);
 });
 
 test("only the exact deployment operations and reason are allowed when no target is configured", () => {
@@ -20,10 +22,12 @@ test("only the exact deployment operations and reason are allowed when no target
     const checks = { [operation]: { result: "skip", reason: NO_TARGET_REASON } };
     for (const client of [inspector, sdk]) {
       assert.equal(certificationFailed(checks, client), false);
+      assert.equal(certificationFailed({ [operation]: { result: "fail", reason: NO_TARGET_REASON } }, client), true);
       for (const targetId of ["owned-target", " ", "invalid!"])
         assert.equal(certificationFailed(checks, { ...client, targetId }), true);
       assert.equal(certificationFailed({ [operation]: { result: "skip", reason: "no target" } }, client), true);
     }
+    assert.equal(certificationFailed(checks, { canonicalClient: "unknown" }), true);
   }
 });
 

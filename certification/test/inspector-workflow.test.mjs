@@ -23,6 +23,7 @@ const sameObserverAndFixture = (value) => {
 
 test("actual canonical Inspector step selects cessation with the complete SDK-equivalent target and observer binding", async () => {
   sameObserverAndFixture(inspector);
+  assert.equal(sdk.HONUA_MCP_TARGET_ID, "${{ inputs.deployment_target_id }}");
   assert.equal(inspector.HONUA_MCP_OBSERVER_PGSERVER_APP_NAME,
     "honua-mcp-cert-${{ github.run_id }}-${{ github.run_attempt }}");
   assert.ok(workflow.includes("Application Name=honua-mcp-cert-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"),

@@ -78,8 +78,8 @@ explicit coverage gap. These controls add no governed rows or candidate credit
 when catalog, requirements or global behavior gates fail.
 
 Set `HONUA_RELEASE_CHECKER` to the unchanged `tools/check_protocol_certification.py`
-from the selected immutable honua-release revision to also run the real
-producer-to-consumer receipt controls.
+and its sibling `tools/digests.py` from the selected immutable honua-release
+revision to also run the real producer-to-consumer receipt controls.
 
 The workflow fetches and retains that revision's governed requirements catalog.
 Release dispatches require its exact `requirements_revision`; `requirements_ref`
@@ -164,8 +164,10 @@ scenario and cannot emit a passing receipt. Positive execution against the
 selected Honua candidate remains unqualified.
 
 The pinned Inspector CLI has no one-shot ping, so that operation remains
-incomplete rather than a successful wire assertion. It also rejects missing tool
-names locally before sending a call, so the unknown-tool proof stays on the
+incomplete rather than a successful wire assertion. Its exact structural skip does
+not fail the runner; every other unconfigured observer still does. The fragment
+retains the ping skip and grants no passing receipt. The pinned Inspector CLI also
+rejects missing tool names locally before sending a call, so the unknown-tool proof stays on the
 official SDK. Inspector `behavior/error` calls the listed `honua_query_features`
 tool without `serviceId` and requires the candidate's typed `invalid_argument`.
 A local `tool_not_found` refusal is not that proof. Its protected-tool

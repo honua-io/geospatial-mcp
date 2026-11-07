@@ -164,7 +164,9 @@ scenario and cannot emit a passing receipt. Positive execution against the
 selected Honua candidate remains unqualified.
 
 The pinned Inspector CLI has no one-shot ping, so that operation remains
-incomplete rather than a successful wire assertion. It also rejects missing tool
+incomplete rather than a successful wire assertion. Its exact structural skip does
+not fail the runner; every other unconfigured observer still does. The fragment
+retains the ping skip and grants no passing receipt. It also rejects missing tool
 names locally before sending a call, so the unknown-tool proof stays on the
 official SDK. Inspector `behavior/error` calls the listed `honua_query_features`
 tool without `serviceId` and requires the candidate's typed `invalid_argument`.
@@ -539,6 +541,9 @@ protected canonical publication writer, declared owned tenant configuration,
 normal identity binding or original client evidence remains NONPASS. A rollback
 proposal proves neither approval nor actuation or deployment health. Offline
 source controls preserve the 82-row denominator and grant no candidate credit.
+When no target is configured, the four deployment/workspace operations retain
+their exact explicit skips without failing the runner. A configured target
+cannot use this exemption; semantic failures and other skips still fail.
 
 The owned certification boot explicitly composes the protected tenant and Studio
 end-user authorization options with the existing declared ControlPlane options

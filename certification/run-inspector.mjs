@@ -12,6 +12,7 @@ import { verifyInspectorPaginationProof, requireSuccessfulInspectorPaginationRes
 import { verifyInspectorCancellationProof } from "./inspector-cancellation-proof.mjs";
 import { inspectorCancellationRequested } from "./inspector-cancellation-selection.mjs";
 import { CLIENTS } from "./requirements.mjs";
+import { certificationFailed, INSPECTOR_PING_SKIP_REASON } from "./semantic-verdict.mjs";
 
 const requestUrl = process.env.HONUA_MCP_URL ?? "http://localhost:8080/mcp";
 const binary = new URL("./node_modules/.bin/mcp-inspector", import.meta.url).pathname;
@@ -54,7 +55,7 @@ async function invoke(operation, method, extra = [], expectedCode = 0, authentic
 }
 
 await invoke("initialize", "initialize");
-checks.ping = { result: "skip", reason: "Pinned Inspector one-shot CLI has no ping method; initialize is not ping proof" };
+checks.ping = { result: "skip", reason: INSPECTOR_PING_SKIP_REASON };
 // Public CLI metadata is forwarded by Inspector's managed pagination. Keep it
 // local to this catalog export: anonymous discovery must retain its default view.
 const tools = await invoke("tools/list", "tools/list", ["--metadata", 'honua.io/workflow-view="full"']);
@@ -178,4 +179,4 @@ if (inspectorCancellationRequested(process.env)) {
   }
 } else checks["behavior/cancellation"] = { result: "skip", reason: "Owned PostgreSQL request-cessation observer is not configured; geospatial-mcp#95" };
 await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
-if (Object.values(checks).some(({ result }) => result === "fail" || result === "skip")) process.exitCode = 1;
+if (certificationFailed(checks, { canonicalClient: CLIENTS.inspector.canonicalClient, targetId: process.env.HONUA_MCP_TARGET_ID })) process.exitCode = 1;

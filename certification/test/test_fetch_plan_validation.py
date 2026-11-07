@@ -17,7 +17,7 @@ SPEC.loader.exec_module(MODULE)
 
 def fixtures():
     pins, responses = governance_fixtures()
-    old = list(pins["sha256"])
+    old = ["certification/protocol-certification-requirements.v1.json", "tools/check_protocol_certification.py"]
     pins.pop("requirementsRevision")
     pins["sha256"] = {new: pins["sha256"][prior] for prior, new in zip(old, MODULE.PATHS[:2], strict=True)}
     tree = responses[f'repos/{pins["repository"]}/git/trees/{pins["sourceSha"]}?recursive=1']

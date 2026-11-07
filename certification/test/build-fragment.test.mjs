@@ -647,6 +647,8 @@ test("real release consumer validates synthetic v2 schema integrity without gran
   row.evidence_digest = `sha256:${createHash("sha256").update(canonical(row.evidence_receipt)).digest("hex")}`;
   row.facet_results = Object.fromEntries(row.scenario_facets.map((facet) => [facet, {result:"pass", evidence_digest:row.evidence_digest}]));
   const code = `import copy,importlib.util,json,sys
+from pathlib import Path
+sys.path.insert(0,str(Path(sys.argv[1]).parent))
 spec=importlib.util.spec_from_file_location("release_checker",sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 row=json.load(sys.stdin);revision=row["requirements_revision"]
 assert m._valid_receipt(row, requirements_revision=revision)

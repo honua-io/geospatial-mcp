@@ -96,4 +96,4 @@ if (checks.initialize.result === "pass") {
   await client.close();
 }
 await writeFile(process.env.CERT_RESULTS ?? "sdk-results.json", `${JSON.stringify({ performedBy: "Official MCP TypeScript SDK", requestUrl: url.href, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
-if (certificationFailed(checks, { canonicalClient: CLIENTS.sdk.canonicalClient, targetId: process.env.HONUA_MCP_TARGET_ID })) process.exitCode = 1;
+if (certificationFailed(checks, { canonicalClient: CLIENTS.sdk.canonicalClient })) process.exitCode = 1;

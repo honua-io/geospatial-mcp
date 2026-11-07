@@ -179,4 +179,4 @@ if (inspectorCancellationRequested(process.env)) {
   }
 } else checks["behavior/cancellation"] = { result: "skip", reason: "Owned PostgreSQL request-cessation observer is not configured; geospatial-mcp#95" };
 await writeFile(process.env.CERT_RESULTS ?? "inspector-results.json", `${JSON.stringify({ performedBy: "MCP Inspector", requestUrl, protocolVersion: checks.protocolVersion ?? null, checks }, null, 2)}\n`);
-if (certificationFailed(checks, { canonicalClient: CLIENTS.inspector.canonicalClient, targetId: process.env.HONUA_MCP_TARGET_ID })) process.exitCode = 1;
+if (certificationFailed(checks, { canonicalClient: CLIENTS.inspector.canonicalClient })) process.exitCode = 1;

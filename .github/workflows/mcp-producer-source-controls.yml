@@ -97,15 +97,16 @@ jobs:
           module = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(module)
           pins = json.loads(Path("requirements-pins.json").read_bytes())
-          path = "tools/check_protocol_certification.py"
+          paths = ("tools/check_protocol_certification.py", "tools/digests.py")
           if pins["repository"] != module.REPOSITORY:
               raise ValueError("source checker repository differs")
-          data, digest, _ = module.immutable_files(module.REPOSITORY, pins["sourceSha"], (path,))[path]
-          if digest != pins["sha256"][path]:
-              raise ValueError("source checker bytes differ from existing reviewed pins")
-          target = Path(".source-controls/check_protocol_certification.py")
-          target.parent.mkdir(exist_ok=True)
-          target.write_bytes(data)
+          retained = module.immutable_files(module.REPOSITORY, pins["sourceSha"], paths)
+          target = Path(".source-controls")
+          target.mkdir(exist_ok=True)
+          for path, (data, digest, _) in retained.items():
+              if digest != pins["sha256"][path]:
+                  raise ValueError("source checker bytes differ from existing reviewed pins")
+              (target / Path(path).name).write_bytes(data)
           PY
           echo "HONUA_RELEASE_CHECKER=${GITHUB_WORKSPACE}/certification/.source-controls/check_protocol_certification.py" >> "${GITHUB_ENV}"
       - name: Verify complete source controls without candidate admission
@@ -148,6 +149,7 @@ jobs:
             certification/test/fixtures/offline-app-oracle-vector.json
             certification/test/fixtures/offline-execute-plan-oracle-vector.json
             certification/.source-controls/check_protocol_certification.py
+            certification/.source-controls/digests.py
             certification/requirements-pins.json
             certification/test/fixtures/historical-execute-plan-39284007212.json
           if-no-files-found: warn

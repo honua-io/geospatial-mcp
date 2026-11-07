@@ -521,7 +521,6 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/sdk-results.json
-          HONUA_MCP_TARGET_ID: ${{ inputs.deployment_target_id }}
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
           HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json
@@ -544,7 +543,6 @@ jobs:
         env:
           HONUA_MCP_URL: http://localhost:8080/mcp
           CERT_RESULTS: artifacts/inspector-results.json
-          HONUA_MCP_TARGET_ID: ${{ inputs.deployment_target_id }}
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
           HONUA_MCP_SEED_SQL: ${{ github.workspace }}/.certification/base-schema.sql
           HONUA_MCP_FIXTURE_IDS: ${{ github.workspace }}/.certification/fixture-row-ids.json

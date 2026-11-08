@@ -22,5 +22,9 @@
       }
     ]
   },
-  "expected": "tool_result"
+  "expected": "tool_result",
+  "canonicalRefs": [
+    "CapabilityCatalog",
+    "LayerRef"
+  ]
 }

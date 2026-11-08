@@ -8,5 +8,8 @@
     "returnedCount": 0,
     "features": []
   },
-  "expected": "tool_result"
+  "expected": "tool_result",
+  "canonicalRefs": [
+    "LayerRef"
+  ]
 }

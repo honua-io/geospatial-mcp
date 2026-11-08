@@ -92,5 +92,7 @@
         }
       }
     }
-  }
+  },
+  "x-honua-extension": true,
+  "description": "Ranked service and layer matches grounded in the catalog. Layer matches carry a service-local selector; service matches omit the index or return null."
 }

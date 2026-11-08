@@ -5,12 +5,9 @@
   "description": "Argument shape for apply_style_preset. x-honua-reference-shape: this shape tracks the reference implementation (advertised name honua_apply_style_preset), which applies a reusable StyleRef preset (a catalog styleId) as the primary/default style of a published layer, persisting through the server OGC API – Styles authoring surface (ADR-0048) so subsequent render_map calls reflect it. The bare taxonomy responsibility (map-package composition) is described in taxonomy.md §Map composition; the reference implementation binds presets to published layers rather than to an in-memory MapPackage. Applying a preset never edits feature records (ADR-0028); it authors presentation metadata on the hosted service. See taxonomy.md §Map composition and resources.md §honua://styles.",
   "x-honua-reference-shape": true,
   "type": "object",
+  "allOf": [{ "$ref": "../common/service-layer-reference.schema.json" }],
   "additionalProperties": true,
-  "required": [
-    "serviceId",
-    "serviceLayerIndex",
-    "styleId"
-  ],
+  "required": ["serviceId", "serviceLayerIndex", "styleId"],
   "properties": {
     "serviceId": {
       "type": "string",
@@ -27,10 +24,5 @@
       "minLength": 1,
       "description": "StyleRef preset identifier (style_…) to apply as the layer's primary/default style. Discover the available presets with get_style (no styleId lists honua://styles)."
     }
-  },
-  "not": {
-    "required": [
-      "layerId"
-    ]
   }
 }

@@ -6,96 +6,99 @@ from pathlib import Path
 import unittest
 
 from jsonschema import Draft202012Validator
-from referencing import Registry, Resource
+
+from conformance.fixtures.validate import schema_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REGISTRY = schema_registry(ROOT / "spec/schemas")
 SELECTOR = {"serviceId": "county_parcels", "serviceLayerIndex": 3}
-SCHEMAS = [json.loads(path.read_text()) for path in (ROOT / "spec/schemas").rglob("*.schema.json")]
-REGISTRY = Registry().with_resources(
-    (schema["$id"], Resource.from_contents(schema)) for schema in SCHEMAS if "$id" in schema
-)
 
 
-def validator(tool, result=False):
-    suffix = ".result.schema.json" if result else ".schema.json"
-    schema = json.loads((ROOT / "spec/schemas/tools" / (tool + suffix)).read_text())
+def contract(filename):
+    schema = json.loads((ROOT / "spec/schemas/tools" / filename).read_text())
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema, registry=REGISTRY)
 
 
+def input_cases():
+    return {
+        "query_features.schema.json": SELECTOR.copy(),
+        "render_map.schema.json": {"layers": [SELECTOR.copy()], "bbox": [0, 0, 1, 1]},
+        "get_style.schema.json": SELECTOR.copy(),
+        "apply_style_preset.schema.json": {**SELECTOR, "styleId": "style_parcels"},
+    }
+
+
+def result_cases():
+    return {
+        "query_features.result.schema.json": SELECTOR.copy(),
+        "render_map.result.schema.json": {"layers": [SELECTOR.copy()]},
+        "apply_style_preset.result.schema.json": {**SELECTOR, "styleId": "style_parcels"},
+        "list_layers.result.schema.json": {"layerCount": 1, "layers": [{**SELECTOR, "name": "Parcels"}]},
+        "resolve_entity.result.schema.json": {
+            "query": "parcels", "entityType": "any", "matchCount": 1,
+            "matches": [{**SELECTOR, "kind": "layer", "name": "Parcels", "score": 1}],
+        },
+    }
+
+
+def layer_reference(payload):
+    if "layers" in payload:
+        return payload["layers"][0]
+    if "matches" in payload:
+        return payload["matches"][0]
+    return payload
+
+
 class ServiceLayerIndexTests(unittest.TestCase):
-    def test_inputs_accept_service_index_and_reject_obsolete_selector(self):
-        inputs = {
-            "query_features": SELECTOR,
-            "render_map": {"layers": [SELECTOR], "bbox": [0, 0, 1, 1]},
-            "get_style": SELECTOR,
-            "apply_style_preset": {**SELECTOR, "styleId": "style_parcels"},
-        }
-        for tool, payload in inputs.items():
-            with self.subTest(tool=tool):
-                contract = validator(tool)
-                self.assertEqual(list(contract.iter_errors(payload)), [])
-                obsolete = copy.deepcopy(payload)
-                reference = obsolete["layers"][0] if tool == "render_map" else obsolete
-                reference["layerId"] = reference.pop("serviceLayerIndex")
-                self.assertFalse(contract.is_valid(obsolete))
-                reference["serviceLayerIndex"] = 3
-                self.assertFalse(contract.is_valid(obsolete))
+    def assert_selector_values(self, filename, payload):
+        schema = contract(filename)
+        self.assertEqual(list(schema.iter_errors(payload)), [])
+        mutated = copy.deepcopy(payload)
+        reference = layer_reference(mutated)
+        reference["layerId"] = reference.pop("serviceLayerIndex")
+        self.assertFalse(schema.is_valid(mutated))
+        reference["serviceLayerIndex"] = 3
+        self.assertFalse(schema.is_valid(mutated))
+        del reference["layerId"]
+        for invalid in (-1, "3", 3.5, None):
+            reference["serviceLayerIndex"] = invalid
+            self.assertFalse(schema.is_valid(mutated), str(invalid))
+
+    def test_inputs_and_results_use_nonnegative_service_indexes_without_aliases(self):
+        for filename, payload in (input_cases() | result_cases()).items():
+            with self.subTest(schema=filename):
+                self.assert_selector_values(filename, payload)
+
+    def test_required_indexes_cannot_be_omitted(self):
+        required = input_cases() | result_cases()
+        del required["get_style.schema.json"]
+        for filename, payload in required.items():
+            with self.subTest(schema=filename):
+                del layer_reference(payload)["serviceLayerIndex"]
+                self.assertFalse(contract(filename).is_valid(payload))
 
     def test_style_discovery_preserves_style_id_and_catalog_modes(self):
-        contract = validator("get_style")
-        self.assertTrue(contract.is_valid({}))
-        self.assertTrue(contract.is_valid({"styleId": "style_parcels"}))
-
-    def test_input_indexes_are_nonnegative_integers(self):
-        for tool in ("query_features", "get_style", "apply_style_preset", "render_map"):
-            for invalid in (-1, "3", 3.5, None):
-                with self.subTest(tool=tool, value=invalid):
-                    reference = {**SELECTOR, "serviceLayerIndex": invalid}
-                    payload = {**reference, "styleId": "style_parcels"}
-                    if tool == "render_map":
-                        payload = {"layers": [reference], "bbox": [0, 0, 1, 1]}
-                    self.assertFalse(validator(tool).is_valid(payload))
-
-    def test_results_require_explicit_service_index(self):
-        results = {
-            "query_features": SELECTOR.copy(),
-            "render_map": {"layers": [SELECTOR.copy()]},
-            "apply_style_preset": {**SELECTOR, "styleId": "style_parcels"},
-            "list_layers": {"layerCount": 1, "layers": [{**SELECTOR, "name": "Parcels"}]},
-            "resolve_entity": {
-                "query": "parcels", "entityType": "any", "matchCount": 1,
-                "matches": [{**SELECTOR, "kind": "layer", "name": "Parcels", "score": 1}],
-            },
-        }
-        for tool, payload in results.items():
-            with self.subTest(tool=tool):
-                contract = validator(tool, result=True)
-                self.assertTrue(contract.is_valid(payload))
-                reference = payload
-                if tool in ("list_layers", "render_map"):
-                    reference = payload["layers"][0]
-                elif tool == "resolve_entity":
-                    reference = payload["matches"][0]
-                reference["layerId"] = reference.pop("serviceLayerIndex")
-                self.assertFalse(contract.is_valid(payload))
-                reference["serviceLayerIndex"] = 3
-                self.assertFalse(contract.is_valid(payload))
-                del reference["layerId"]
-                for invalid in (-1, "3", 3.5, None):
-                    reference["serviceLayerIndex"] = invalid
-                    self.assertFalse(contract.is_valid(payload))
+        schema = contract("get_style.schema.json")
+        self.assertTrue(schema.is_valid({}))
+        self.assertTrue(schema.is_valid({"styleId": "style_parcels"}))
 
     def test_service_entity_has_no_layer_index(self):
         payload = {
             "query": "county", "entityType": "service", "matchCount": 1,
             "matches": [{"kind": "service", "serviceId": "county_parcels", "name": "County", "score": 1}],
         }
-        contract = validator("resolve_entity", result=True)
-        self.assertTrue(contract.is_valid(payload))
-        payload["matches"][0]["serviceLayerIndex"] = None
-        self.assertTrue(contract.is_valid(payload))
+        schema = contract("resolve_entity.result.schema.json")
+        self.assertTrue(schema.is_valid(payload))
+        reference = payload["matches"][0]
+        reference["serviceLayerIndex"] = None
+        self.assertTrue(schema.is_valid(payload))
+        reference["serviceLayerIndex"] = 0
+        self.assertFalse(schema.is_valid(payload))
+        del reference["serviceLayerIndex"]
+        reference["layerId"] = 0
+        self.assertFalse(schema.is_valid(payload))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 # MCP Taxonomy, Capability Matrix, and Non-Goals
 
 **Status:** Draft
-**Date:** 2026-04-11
+**Date:** 2026-11-07
 **Scope:** Vocabulary baseline for the geospatial MCP standard
 
 This document defines the standard vocabulary, capability coverage, and explicit
@@ -68,8 +68,8 @@ versions.
 
 **Breaking draft change:** the service-scoped selector in `query_features`,
 `render_map` layer references, `get_style` and `apply_style_preset` is now
-`serviceLayerIndex` (formerly `layerId`). The corresponding query, rendering,
-style, `list_layers` and `resolve_entity` results use the same name. Clients
+`serviceLayerIndex` (formerly `layerId`). The corresponding `query_features`, `render_map`,
+`apply_style_preset`, `list_layers` and `resolve_entity` results use the same name. Clients
 must use the index returned by discovery together with its `serviceId`;
 an internal storage layer id cannot substitute for that index. The obsolete
 selector is rejected, including when both spellings are supplied.
@@ -300,7 +300,7 @@ difference / erase / clip), `summarize_statistics` (group-by + statistics),
   `plan_analysis` + `execute_plan` for multi-step analysis with dependencies,
   clarification, and a packaged result.
 - **Source.** Each verb operates on EITHER a published layer (`LayerRef`:
-  `serviceId` + `serviceLayerIndex`) OR a prior-result `ArtifactRef` (`artifactId`), so
+  `serviceId` + `layerId`) OR a prior-result `ArtifactRef` (`artifactId`), so
   verbs chain onto earlier job/verb outputs without a plan.
 - **Async posture.** A verb returns an `ExecutionJob` handle
   (`honua://jobs/{job_id}`) for durable, long-running work — pollable, and

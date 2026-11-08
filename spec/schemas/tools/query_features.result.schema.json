@@ -9,14 +9,5 @@
       "$ref": "../common/service-layer-reference.schema.json"
     }
   ],
-  "type": "object",
-  "properties": {
-    "returnedCount": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "features": {
-      "type": "array"
-    }
-  }
+  "type": "object"
 }

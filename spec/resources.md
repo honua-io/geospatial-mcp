@@ -111,7 +111,7 @@ Known-gap families are informational in the conformance manifest and do not
 reduce its FULL level.
 
 The open-core data-access surface already uses
-`honua://published-services/{encodedServiceId}/layers/{serviceLayerIndex}` for catalog-backed
+`honua://published-services/{encodedServiceId}/layers/{layerId}` for catalog-backed
 layer schema inspection (see
 [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md)).
 `honua://published-services/{published_service_id}` coexists with that usage: the
@@ -872,7 +872,7 @@ source, layer, collection, capability, style, theme, template, or process:
 - catalog and capability metadata (`CapabilityCatalog`);
 - dataset and layer descriptors (`DatasetRef`, `LayerRef`, field and schema
   reads, including the open-core
-  `honua://published-services/{encodedServiceId}/layers/{serviceLayerIndex}` route per
+  `honua://published-services/{encodedServiceId}/layers/{layerId}` route per
   [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md));
 - process and pipeline descriptions (`ProcessDefinition`,
   `PipelineDefinition`);

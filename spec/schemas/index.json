@@ -532,6 +532,11 @@
       "name": "CompositionExplorationContexts",
       "schema": "common/exploration.schema.json",
       "role": "Standard-owned explorationContexts collection for composition documents (MapPackage/AppPackage) — named units of shared interaction state that components join by id, making cross-filtering context membership rather than an event→action edge; referenced by both resource schemas, by the controls schema's component binding, and by create_exploration_context / bind_component_context. See docs/adr/0032-shared-exploration-contexts.md."
+    },
+    {
+      "name": "ServiceLayerReference",
+      "schema": "common/service-layer-reference.schema.json",
+      "role": "Service-scoped layer selector shared by query_features, render_map and apply_style_preset inputs and the five layer-identity result projections."
     }
   ],
   "conformance": [

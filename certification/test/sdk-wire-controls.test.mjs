@@ -61,7 +61,7 @@ async function execute(mode, runner = "sdk") {
       if (value.params.name === "honua_list_layers") {
         if (value.params.arguments?.limit === 0) return error("invalid_argument");
         return okay({ layerCount: 1, hasMore: false, layers: [{ serviceName: "test_service", serviceId: "svc-test-service-feature",
-          layerId: 0, geometryType: "Point", srid: 4326 }] });
+          serviceLayerIndex: 0, geometryType: "Point", srid: 4326 }] });
       }
       if (value.params.name === "honua_query_features") {
         if (value.params.arguments?.serviceId === "__certification_missing_service__") return error("not_found");
@@ -73,7 +73,8 @@ async function execute(mode, runner = "sdk") {
             error: { kind: "ValidationFailed", message: "'serviceId' is required.", stepId: null, violations: null } };
           return { isError: true, structuredContent: output, content: [{ type: "text", text: JSON.stringify(output) }] };
         }
-        return okay({ layerId: 0, returnedCount: 2, exceededTransferLimit: false, geojson: { type: "FeatureCollection", features: [
+        if (value.params.arguments.serviceLayerIndex !== 0 || Object.hasOwn(value.params.arguments, "layerId")) return error("invalid_argument");
+        return okay({ serviceId: "svc-test-service-feature", serviceLayerIndex: 0, returnedCount: 2, exceededTransferLimit: false, geojson: { type: "FeatureCollection", features: [
           { id: 21, type: "Feature", properties: { name: "alpha", count: 1 }, geometry: { type: "Point", coordinates: [mode === "query-corrupt" ? 0 : -122.49, 37.71] } },
           { id: 22, type: "Feature", properties: { name: "beta", count: 2 }, geometry: { type: "Point", coordinates: [-122.475, 37.72] } },
         ] } });
@@ -93,7 +94,7 @@ async function execute(mode, runner = "sdk") {
         const absent = args.text.startsWith("__certification_entity_");
         const output = { query: args.text, entityType: "service", matchCount: absent && mode !== "entity-invented" ? 0 : 1,
           matches: absent && mode !== "entity-invented" ? [] : [{ kind: "service", serviceId: mode === "entity-wrong" ? "other" : "svc-test-service-feature",
-            serviceName: "test_service", name: "test_service", layerId: null, score: 1 }] };
+            serviceName: "test_service", name: "test_service", serviceLayerIndex: null, score: 1 }] };
         const text = structuredClone(output);
         if (mode === "entity-conflicting") text.matches = [];
         if (mode === "entity-count") output.matchCount = 99;

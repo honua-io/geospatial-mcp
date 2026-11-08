@@ -24,7 +24,7 @@ export function fixtureBinding(sql, allocated, sourceSha, candidateSha) {
   }
   require(new Set(expected.map((row) => row.id)).size === 2, "fixture IDs are duplicated");
   return { sourceSha, seedSqlSha256: hash(sql), allocatedIdsSha256: hash(allocated), serviceName: "test_service",
-    serviceId: "svc-test-service-feature", layerId: 0, expected };
+    serviceId: "svc-test-service-feature", serviceLayerIndex: 0, expected };
 }
 
 export async function loadFixture() {
@@ -47,7 +47,8 @@ export function verifyQuery(output, fixture) {
   const collection = output.geojson ?? output.geoJson;
   require(collection?.type === "FeatureCollection" && Array.isArray(collection.features) && collection.features.length === 2,
     "query did not return the two authored fixture features");
-  require(output.layerId === 0 && output.returnedCount === 2 && output.exceededTransferLimit === false,
+  require(output.serviceId === fixture.serviceId && output.serviceLayerIndex === fixture.serviceLayerIndex
+    && !Object.hasOwn(output, "layerId") && output.returnedCount === 2 && output.exceededTransferLimit === false,
     "query envelope is partial, unrelated or malformed");
   const actual = new Map();
   for (const feature of collection.features) {
@@ -67,8 +68,9 @@ export function verifyLayers(output, fixture) {
     "layer discovery is malformed or incomplete");
   // The seed publishes the same layer through feature/map/OGC services. Bind the
   // authored feature-service publication rather than assuming its name is unique.
+  require(output.layers.every((layer) => !Object.hasOwn(layer, "layerId")), "layer discovery returned an obsolete selector");
   const layers = output.layers.filter((layer) => layer.serviceName === fixture.serviceName
-    && layer.serviceId === fixture.serviceId && layer.layerId === fixture.layerId);
+    && layer.serviceId === fixture.serviceId && layer.serviceLayerIndex === fixture.serviceLayerIndex);
   require(layers.length === 1 && layers[0].geometryType === "Point" && layers[0].srid === 4326,
     "layer discovery did not identify the authored point feature-service publication");
 }
@@ -102,10 +104,10 @@ export async function readScenarios(call, record) {
   });
   await record("tools/call:query_features", async () => {
     const bound = await fixture;
-    const output = success(await call("honua_query_features", { serviceId: bound.serviceName, layerId: bound.layerId,
+    const output = success(await call("honua_query_features", { serviceId: bound.serviceName, serviceLayerIndex: bound.serviceLayerIndex,
       where: "name IN ('alpha','beta')", outFields: ["name", "count"], outSrid: 4326, returnGeometry: true, limit: 3 }));
     const names = verifyQuery(output, bound);
-    await negative(call, "honua_query_features", { serviceId: "__certification_missing_service__", layerId: 0 }, "not_found");
+    await negative(call, "honua_query_features", { serviceId: "__certification_missing_service__", serviceLayerIndex: 0 }, "not_found");
     return { ...prove(bound), observedNames: names };
   });
 }

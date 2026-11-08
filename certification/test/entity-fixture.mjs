@@ -1,7 +1,7 @@
 // Authored peer observations, independent of the producer request constructor.
 export function entityObservations() {
   const identity = { kind: "service", serviceId: "svc-test-service-feature", serviceName: "test_service",
-    name: "test_service", layerId: null, score: 1 };
+    name: "test_service", serviceLayerIndex: null, score: 1 };
   return [
     ["by-id", "svc-test-service-feature", 50, [identity]],
     ["by-name", "test_service", 50, [identity]],

@@ -5,17 +5,20 @@
   "description": "Argument shape for the discovery/query feature-query tool (advertised name honua_query_features). Reads features from a published layer with an optional attribute and spatial filter. x-honua-reference-shape: this shape tracks the reference implementation.",
   "x-honua-reference-shape": true,
   "type": "object",
-  "required": ["serviceId", "layerId"],
+  "required": [
+    "serviceId",
+    "serviceLayerIndex"
+  ],
   "properties": {
     "serviceId": {
       "type": "string",
       "minLength": 1,
       "description": "Published service identifier or name (from list_layers.serviceId)."
     },
-    "layerId": {
+    "serviceLayerIndex": {
       "type": "integer",
       "minimum": 0,
-      "description": "Service-local layer index (from list_layers.layerId)."
+      "description": "Service-local layer index (from list_layers.serviceLayerIndex)."
     },
     "where": {
       "type": "string",
@@ -25,7 +28,9 @@
       "type": "array",
       "minItems": 4,
       "maxItems": 4,
-      "items": { "type": "number" },
+      "items": {
+        "type": "number"
+      },
       "description": "Optional spatial filter envelope as [minX, minY, maxX, maxY]."
     },
     "bboxSrid": {
@@ -35,7 +40,9 @@
     },
     "outFields": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Optional attribute fields to return; omit for all fields."
     },
     "limit": {
@@ -70,5 +77,10 @@
       "type": "integer",
       "description": "Optional number of decimal places to round returned GeoJSON coordinates to, trading positional precision for a smaller response/context budget. A negative value returns full precision. When omitted, precision is implementation-defined; the reference implementation defaults to 6 (~0.1 m), which cuts coordinate payload roughly 12% at the default and far more for dense geometries. Standardized from the honua-server x-honua extension (geospatial-mcp#52)."
     }
+  },
+  "not": {
+    "required": [
+      "layerId"
+    ]
   }
 }

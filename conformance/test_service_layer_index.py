@@ -6,17 +6,22 @@ from pathlib import Path
 import unittest
 
 from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SELECTOR = {"serviceId": "county_parcels", "serviceLayerIndex": 3}
+SCHEMAS = [json.loads(path.read_text()) for path in (ROOT / "spec/schemas").rglob("*.schema.json")]
+REGISTRY = Registry().with_resources(
+    (schema["$id"], Resource.from_contents(schema)) for schema in SCHEMAS if "$id" in schema
+)
 
 
 def validator(tool, result=False):
     suffix = ".result.schema.json" if result else ".schema.json"
     schema = json.loads((ROOT / "spec/schemas/tools" / (tool + suffix)).read_text())
     Draft202012Validator.check_schema(schema)
-    return Draft202012Validator(schema)
+    return Draft202012Validator(schema, registry=REGISTRY)
 
 
 class ServiceLayerIndexTests(unittest.TestCase):
@@ -53,8 +58,11 @@ class ServiceLayerIndexTests(unittest.TestCase):
                         payload = {"layers": [reference], "bbox": [0, 0, 1, 1]}
                     self.assertFalse(validator(tool).is_valid(payload))
 
-    def test_discovery_results_require_explicit_service_index(self):
+    def test_results_require_explicit_service_index(self):
         results = {
+            "query_features": SELECTOR.copy(),
+            "render_map": {"layers": [SELECTOR.copy()]},
+            "apply_style_preset": {**SELECTOR, "styleId": "style_parcels"},
             "list_layers": {"layerCount": 1, "layers": [{**SELECTOR, "name": "Parcels"}]},
             "resolve_entity": {
                 "query": "parcels", "entityType": "any", "matchCount": 1,
@@ -65,11 +73,19 @@ class ServiceLayerIndexTests(unittest.TestCase):
             with self.subTest(tool=tool):
                 contract = validator(tool, result=True)
                 self.assertTrue(contract.is_valid(payload))
-                reference = payload["layers" if tool == "list_layers" else "matches"][0]
+                reference = payload
+                if tool in ("list_layers", "render_map"):
+                    reference = payload["layers"][0]
+                elif tool == "resolve_entity":
+                    reference = payload["matches"][0]
                 reference["layerId"] = reference.pop("serviceLayerIndex")
                 self.assertFalse(contract.is_valid(payload))
                 reference["serviceLayerIndex"] = 3
                 self.assertFalse(contract.is_valid(payload))
+                del reference["layerId"]
+                for invalid in (-1, "3", 3.5, None):
+                    reference["serviceLayerIndex"] = invalid
+                    self.assertFalse(contract.is_valid(payload))
 
     def test_service_entity_has_no_layer_index(self):
         payload = {

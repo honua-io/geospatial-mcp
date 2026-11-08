@@ -6,14 +6,18 @@
   "x-honua-reference-shape": true,
   "type": "object",
   "additionalProperties": true,
-  "required": ["serviceId", "layerId", "styleId"],
+  "required": [
+    "serviceId",
+    "serviceLayerIndex",
+    "styleId"
+  ],
   "properties": {
     "serviceId": {
       "type": "string",
       "minLength": 1,
       "description": "Published service identifier or name whose layer is being styled."
     },
-    "layerId": {
+    "serviceLayerIndex": {
       "type": "integer",
       "minimum": 0,
       "description": "Service-local layer index to apply the preset to."
@@ -23,5 +27,10 @@
       "minLength": 1,
       "description": "StyleRef preset identifier (style_…) to apply as the layer's primary/default style. Discover the available presets with get_style (no styleId lists honua://styles)."
     }
+  },
+  "not": {
+    "required": [
+      "layerId"
+    ]
   }
 }

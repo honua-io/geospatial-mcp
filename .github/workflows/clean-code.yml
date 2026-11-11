@@ -1,0 +1,16 @@
+name: Clean code
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  clean-code:
+    uses: honua-io/.github/.github/workflows/clean-code.yml@59eaa6c5bd779ab6b66f51319f1792e36c49484e # v1.2.0

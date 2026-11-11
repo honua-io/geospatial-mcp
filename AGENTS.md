@@ -173,3 +173,22 @@ any contract or schema version bump must change this file in the same PR.
 ## SDK capability baseline
 
 `release/sdk-capability-baseline.json` (`honua.sdk-capability-baseline/v1`, defined by honua-release `schemas/sdk-capability-baseline.v1.schema.json` and `docs/SDK-SERVER-BASELINE-RULE.md`) declares the honua-server capabilities this repository requires and the `minimumServerVersion` derived from them. The honua-release nightly resolver reads it at the same selected trunk commit as `release/component-versions.json`, so the baseline takes effect as soon as that commit is selected. Every required capability must be a key in honua-server `docs/gis/data/capability-keys.v1.json`, and `capabilities` must hold exactly one introduction entry per required capability. Add or remove a required capability in the same PR that starts or stops depending on it.
+
+## Review guidelines
+
+Reviews (people, Codex, Claude) judge the lines a PR adds or changes by Robert C. Martin's *Clean Code*
+and cite smell codes ([rubric](https://github.com/honua-io/.github/blob/main/clean-code/RUBRIC.md)). The
+`Clean code` PR check enforces what a tool can decide; `quality-exception: <reason>` in the PR body is logged.
+
+BLOCKING:
+
+- G5 duplication: search first; reuse or consolidate, never copy a handler, parser or validator.
+- C1 history, ticket/PR refs or reviewer notes in code; C2-C4 obsolete, redundant or rambling comments;
+  C5 commented-out code. Comment only what the code cannot say.
+- XML doc comments (`///`) in application code; published SDKs keep at most a one-line `<summary>`
+  on public members.
+- N1 names that hide intent; F1 more than 3 parameters; F2 output arguments; F3 boolean flag arguments.
+- Over budget with no reason in the PR: functions ~40 lines or 2 nesting levels; classes, files ~400 lines.
+
+WARNING: the rubric's other smells (N2-N7, G6-G36, T1-T9), e.g. G25 magic numbers or G12
+single-implementation interfaces.

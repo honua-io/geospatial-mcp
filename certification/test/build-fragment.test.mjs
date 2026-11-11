@@ -113,6 +113,9 @@ test("offline grounding and declared status join all six original rows without c
     for (const row of rows) {
       assert.equal(row.result, "pass", row.operation + row.canonical_client);
       assert.equal(row.evidence_receipt.facets.auth, "pass");
+      const key = Object.keys(CLIENTS).find(name => CLIENTS[name].canonicalClient === row.canonical_client);
+      assert.deepEqual(JSON.parse(Buffer.from(row.evidence_receipt.payload_base64, "base64").toString("utf8")),
+        checks[key][row.operation]);
     }
     for (const key of ["sdk", "inspector"]) for (const operation of operations) {
       for (const mutation of ["no-raw", "helper", "image", "caller", "intent", "status", "cleanup"]) {
@@ -647,6 +650,8 @@ test("real release consumer validates synthetic v2 schema integrity without gran
   row.evidence_digest = `sha256:${createHash("sha256").update(canonical(row.evidence_receipt)).digest("hex")}`;
   row.facet_results = Object.fromEntries(row.scenario_facets.map((facet) => [facet, {result:"pass", evidence_digest:row.evidence_digest}]));
   const code = `import copy,importlib.util,json,sys
+from pathlib import Path
+sys.path.insert(0,str(Path(sys.argv[1]).parent))
 spec=importlib.util.spec_from_file_location("release_checker",sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 row=json.load(sys.stdin);revision=row["requirements_revision"]
 assert m._valid_receipt(row, requirements_revision=revision)

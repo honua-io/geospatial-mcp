@@ -20,6 +20,7 @@ def fixtures():
                             {"surface": "mcp", "operation": "initialize", "auth_policy_revision": "anonymous-public-v1",
                              "scenario_facets": ["positive", "negative", "media-schema", "auth"]}]}).encode(),
             b"# fixture consumer bytes; not executed\n",
+            b"# fixture digest bytes; not executed\n",
             json.dumps({"schema": "honua.mcp-operation-auth-policy/v1", "revision": "mcp-operation-auth-v1",
                         "owner_issue": "https://github.com/honua-io/honua-release/issues/695",
                         "required_observations": {
@@ -55,6 +56,9 @@ class GovernanceFetchTests(unittest.TestCase):
             self.assertTrue((Path(directory) / Path(MODULE.AUTH_POLICY).name).is_file())
             for path, digest in pins["sha256"].items():
                 self.assertEqual(digest, hashlib.sha256((Path(directory) / Path(path).name).read_bytes()).hexdigest())
+
+    def test_retains_digest_dependency_for_standalone_checker(self):
+        self.assertIn("tools/digests.py", MODULE.PATHS)
 
     def test_untrusted_ref_repository_and_readback_controls(self):
         pins, responses = fixtures()

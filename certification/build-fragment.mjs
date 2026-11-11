@@ -220,7 +220,7 @@ export function buildFragment({ identity, results, requirements, authPolicy, exe
         },
         result: "pass",
         facets: Object.fromEntries(scenarioFacets.map((facet) => [facet, "pass"])),
-        payload_base64: Buffer.from(JSON.stringify(results[clientKey]), "utf8").toString("base64"),
+        payload_base64: Buffer.from(JSON.stringify(execution), "utf8").toString("base64"),
       } : null;
       const digest = receipt ? sha256(canonical(receipt)) : null;
       return {

@@ -113,6 +113,9 @@ test("offline grounding and declared status join all six original rows without c
     for (const row of rows) {
       assert.equal(row.result, "pass", row.operation + row.canonical_client);
       assert.equal(row.evidence_receipt.facets.auth, "pass");
+      const key = Object.keys(CLIENTS).find(name => CLIENTS[name].canonicalClient === row.canonical_client);
+      assert.deepEqual(JSON.parse(Buffer.from(row.evidence_receipt.payload_base64, "base64").toString("utf8")),
+        checks[key][row.operation]);
     }
     for (const key of ["sdk", "inspector"]) for (const operation of operations) {
       for (const mutation of ["no-raw", "helper", "image", "caller", "intent", "status", "cleanup"]) {

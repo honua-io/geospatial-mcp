@@ -200,7 +200,7 @@ BLOCKING:
   Map or an App, never a "package" or a "composition", and a served dataset is a Layer. Wire literals
   the reference server serves keep their spelling until the server migrates them. The standard is unreleased, so a
   standard tool, resource family or profile is renamed outright: no deprecated aliases, alias tables or shims; the
-  former name goes only into the `CHANGELOG.md` rename list and the retired-term guard.
+  former name goes only into the `docs/CHANGELOG.md` rename list and the retired-term guard.
   `conformance/check_vocabulary.py` enforces this; every exception in
   `conformance/retired-terms-allowlist.json` names an exact path, rule and line with a reason.
 

@@ -185,7 +185,7 @@ resource families and conformance profiles are renamed outright, with no
 deprecated aliases: `index.json` and the manifest checker accept only the
 current names. A manifest that maps a tool or resource onto a former name
 fails as unknown, and a former profile name claims no profile.
-The [CHANGELOG](../CHANGELOG.md) lists each former name with its replacement.
+The [CHANGELOG](../docs/CHANGELOG.md) lists each former name with its replacement.
 
 Reference-implementation advertised names (`honua_create_map_package`, …),
 resource URIs (`honua://map-packages/{map_package_id}`,

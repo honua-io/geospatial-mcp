@@ -60,8 +60,8 @@ env:
   # Content-addressed corpus pins: git tree hashes of conformance/ and spec/.
   # A change to either directory must update these in the same PR
   # (certification/test/corpus-trees.test.mjs recomputes them).
-  CONFORMANCE_CORPUS_TREE: "332abb36989e8674547db45ee4aaf0fc9038709b"
-  SPEC_TREE: "bb1ae24980d44bf2beb2d54f82fadff00bbe013c"
+  CONFORMANCE_CORPUS_TREE: "38cb2acb1604d0b72b92263134e626b42fad9c26"
+  SPEC_TREE: "f79ace4f70513039b04af2844a87663008c720a9"
   PINNED_SERVER_IMAGE: "ghcr.io/honua-io/honua-server@sha256:24d20a8647f6dafcfc1bef683a31f4dddf6ef4476ebb33456afa8a96b11288da"
   PINNED_SERVER_SOURCE_SHA: "8628668794df9f0c22a490e59cedaee409cc1bdd"
 

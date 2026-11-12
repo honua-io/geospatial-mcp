@@ -83,6 +83,22 @@ def maybe_schema_validate(manifest, errors, label):
     return True
 
 
+def deprecated_alias_map(entries, key):
+    """Map each former name in ``deprecatedAliases`` to the entry's current ``key`` value."""
+    return {alias: entry[key] for entry in entries for alias in entry.get("deprecatedAliases", [])}
+
+
+def resolve_name(name, current, aliases, kind, label, warnings):
+    """Return the current name for ``name``, noting a deprecated alias; None if unknown."""
+    if name in current:
+        return name
+    if name in aliases:
+        warnings.append(f"{label}: {kind} '{name}' is a deprecated alias of '{aliases[name]}' "
+                        f"(accepted for one release; removed in the next minor)")
+        return aliases[name]
+    return None
+
+
 def check_manifest(path, index, strict=False):
     """Return (level, errors, warnings, stats) for one manifest.
 
@@ -102,25 +118,29 @@ def check_manifest(path, index, strict=False):
 
     index_tools = {t["standardName"]: t for t in index.get("tools", [])}
     index_resources = {r["family"]: r for r in index.get("resources", [])}
+    tool_aliases = deprecated_alias_map(index.get("tools", []), "standardName")
+    family_aliases = deprecated_alias_map(index.get("resources", []), "family")
 
     # Every advertised tool must map onto a standard name in the index.
     advertised_std_tools = set()
     for tool in manifest.get("tools", []):
-        std = tool.get("standardName")
         adv = tool.get("advertisedName")
-        if std not in index_tools:
-            errors.append(f"{label}: tool '{adv}' maps to unknown standardName '{std}' "
-                          f"(not in spec/schemas/index.json)")
+        std = resolve_name(tool.get("standardName"), index_tools, tool_aliases,
+                           "standardName", label, warnings)
+        if std is None:
+            errors.append(f"{label}: tool '{adv}' maps to unknown standardName "
+                          f"'{tool.get('standardName')}' (not in spec/schemas/index.json)")
             continue
         advertised_std_tools.add(std)
 
     # Every advertised resource family must map onto a standard family.
     advertised_families = set()
     for res in manifest.get("resources", []):
-        fam = res.get("family")
-        if fam not in index_resources:
-            errors.append(f"{label}: resource family '{fam}' is not a standard family "
-                          f"(not in spec/schemas/index.json)")
+        fam = resolve_name(res.get("family"), index_resources, family_aliases,
+                           "resource family", label, warnings)
+        if fam is None:
+            errors.append(f"{label}: resource family '{res.get('family')}' is not a standard "
+                          f"family (not in spec/schemas/index.json)")
             continue
         advertised_families.add(fam)
         idx_uri = index_resources[fam].get("uriForm")
@@ -138,8 +158,15 @@ def check_manifest(path, index, strict=False):
     def tool_profile(entry):
         return entry.get("profile", "base")
 
-    declared_profiles = set(
-        manifest.get("implementation", {}).get("profiles", ["base"])) | {"base"}
+    profile_aliases = index.get("deprecatedProfileAliases", {})
+    declared_profiles = {"base"}
+    for profile in manifest.get("implementation", {}).get("profiles", ["base"]):
+        if profile in profile_aliases:
+            warnings.append(f"{label}: profile '{profile}' is a deprecated alias of "
+                            f"'{profile_aliases[profile]}' (accepted for one release; "
+                            f"removed in the next minor)")
+            profile = profile_aliases[profile]
+        declared_profiles.add(profile)
 
     implemented_std_tools = {n for n, t in index_tools.items()
                              if t.get("implementationStatus") == "implemented"

@@ -24,11 +24,11 @@
       "requiredFields": ["intent"], "requiredProperties": ["context"]
     },
     {
-      "skill": "choosing-a-visualization", "standardTool": "create_map_package", "profile": "base",
+      "skill": "choosing-a-visualization", "standardTool": "create_map", "profile": "base",
       "requiredFields": [], "requiredProperties": ["templateId", "styleId", "themeId"]
     },
     {
-      "skill": "choosing-a-visualization", "standardTool": "refine_map_package", "profile": "base",
+      "skill": "choosing-a-visualization", "standardTool": "refine_map", "profile": "base",
       "requiredFields": ["mapPackageId"], "requiredProperties": ["styleId", "themeId", "sourceBindings", "initialView"]
     },
     {
@@ -46,7 +46,7 @@
       "forbiddenProperties": ["palette", "classBreaks"]
     },
     {
-      "skill": "choosing-a-visualization", "standardTool": "preview_map_package", "profile": "base",
+      "skill": "choosing-a-visualization", "standardTool": "preview_map", "profile": "base",
       "requiredFields": ["mapPackageId"], "requiredProperties": ["width", "height"]
     },
     {
@@ -58,11 +58,11 @@
       "requiredFields": [], "requiredProperties": ["filter"]
     },
     {
-      "skill": "layer-composition", "standardTool": "create_map_package", "profile": "base",
+      "skill": "layer-composition", "standardTool": "create_map", "profile": "base",
       "requiredFields": [], "requiredProperties": ["templateId", "sourceBindings", "styleId", "themeId", "initialView"]
     },
     {
-      "skill": "layer-composition", "standardTool": "refine_map_package", "profile": "base",
+      "skill": "layer-composition", "standardTool": "refine_map", "profile": "base",
       "requiredFields": ["mapPackageId"], "requiredProperties": ["styleId", "themeId", "sourceBindings", "initialView"]
     },
     {
@@ -76,7 +76,7 @@
       "forbiddenProperties": ["palette", "classBreaks"]
     },
     {
-      "skill": "layer-composition", "standardTool": "preview_map_package", "profile": "base",
+      "skill": "layer-composition", "standardTool": "preview_map", "profile": "base",
       "requiredFields": ["mapPackageId"], "requiredProperties": ["width", "height"]
     },
     {
@@ -109,11 +109,11 @@
       "requiredFields": ["source", "targetSrid"], "requiredProperties": ["sourceSrid", "where"]
     },
     {
-      "skill": "publishing", "standardTool": "create_map_package", "profile": "base",
+      "skill": "publishing", "standardTool": "create_map", "profile": "base",
       "requiredFields": [], "requiredProperties": ["templateId", "sourceBindings", "styleId", "themeId", "initialView"]
     },
     {
-      "skill": "publishing", "standardTool": "preview_map_package", "profile": "base",
+      "skill": "publishing", "standardTool": "preview_map", "profile": "base",
       "requiredFields": ["mapPackageId"], "requiredProperties": ["width", "height"]
     },
     {

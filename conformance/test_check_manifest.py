@@ -6,7 +6,8 @@ reported FULL while ignoring resource-family coverage (issue #25). The core
 assertion: a manifest that omits a resource family the index marks `implemented`
 must NOT reach FULL — it downgrades to MAPPED with a note naming the family.
 
-It also pins the deprecated-alias mapping of former standard names.
+It also pins the deprecated-alias mapping of former standard names and the
+retired-vocabulary guard (conformance/check_vocabulary.py) over the repository.
 
 Pure stdlib (`unittest`); no server and no third-party deps required. Run via:
 
@@ -19,6 +20,7 @@ import tempfile
 import unittest
 
 import check_manifest as cm
+import check_vocabulary as cv
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REFERENCE_MANIFEST = os.path.join(HERE, "manifests", "honua.manifest.json")
@@ -280,6 +282,40 @@ class DeprecatedAliasTest(unittest.TestCase):
                             for w in warnings))
         self.assertTrue(any("profile 'composition' is a deprecated alias of 'interactivity'" in w
                             for w in warnings))
+
+
+class RetiredVocabularyTest(unittest.TestCase):
+    """The published artifacts use the Honua vocabulary (conformance/check_vocabulary.py)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.allowlist = cv.load_allowlist()
+
+    def test_repository_has_no_retired_vocabulary(self):
+        findings = cv.scan_repo(allowlist=self.allowlist)
+        self.assertEqual(findings, [], "\n".join(
+            f"{path}:{number}: [{rule}] use {replacement}"
+            for path, number, rule, replacement, _line in findings))
+
+    def test_retired_names_are_found(self):
+        text = ("Create a MapPackage.\nCall create_app_package.\n"
+                "Edit the composition document.\nDo not touch a hosted layer.\n")
+        rules = [rule for _p, _n, rule, _r, _l in cv.scan_text("spec/x.md", text, self.allowlist)]
+        self.assertEqual(rules, ["map-envelope", "retired-tool-name",
+                                 "composition-document", "hosted-layer"])
+
+    def test_wire_literals_are_not_findings(self):
+        text = ("Read honua://map-packages/{map_package_id} with mapPackageId.\n"
+                "The reference advertises honua_create_map_package.\n")
+        self.assertEqual(cv.scan_text("spec/x.md", text, self.allowlist), [])
+
+    def test_exception_covers_only_its_exact_line(self):
+        allowlist = {"exceptions": [{"path": "spec/x.md", "rule": "retired-tool-name",
+                                     "line": "| `create_map_package` | `create_map` |",
+                                     "reason": "test"}]}
+        text = "| `create_map_package` | `create_map` |\nUse create_map_package.\n"
+        findings = cv.scan_text("spec/x.md", text, allowlist)
+        self.assertEqual([number for _p, number, _r, _rep, _l in findings], [2])
 
 
 if __name__ == "__main__":

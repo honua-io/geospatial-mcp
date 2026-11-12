@@ -233,6 +233,27 @@ class DeprecatedAliasTest(unittest.TestCase):
         cls.index = cm.load_json(cm.INDEX_PATH)
         cls.reference = cm.load_json(REFERENCE_MANIFEST)
 
+    def test_aliases_are_unique_and_never_current_names(self):
+        for entries, key in ((self.index["tools"], "standardName"),
+                             (self.index["resources"], "family")):
+            current = {entry[key] for entry in entries}
+            aliases = [alias for entry in entries for alias in entry.get("deprecatedAliases", [])]
+            self.assertEqual(len(aliases), len(set(aliases)), f"duplicate {key} alias")
+            self.assertFalse(current & set(aliases), f"{key} alias shadows a current name")
+
+    def test_each_tool_alias_keeps_a_schema_stub_for_its_replacement(self):
+        for tool in self.index["tools"]:
+            target = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", tool["schema"]))
+            for alias in tool.get("deprecatedAliases", []):
+                stub = cm.load_json(os.path.join(
+                    cm.REPO, "spec", "schemas", "tools", f"{alias}.schema.json"))
+                self.assertTrue(stub.get("deprecated"), alias)
+                self.assertEqual(stub.get("$ref"), target["$id"], alias)
+
+    def test_vocabulary_guard_blocks_every_former_tool_name(self):
+        aliases = set(cm.deprecated_alias_map(self.index["tools"], "standardName"))
+        self.assertLessEqual(aliases, set(cv.RETIRED_TOOL_NAMES))
+
     def _renamed(self, tool_names, families):
         manifest = copy.deepcopy(self.reference)
         for tool in manifest["tools"]:
@@ -297,12 +318,21 @@ class RetiredVocabularyTest(unittest.TestCase):
             f"{path}:{number}: [{rule}] use {replacement}"
             for path, number, rule, replacement, _line in findings))
 
+    def test_allowlist_has_no_stale_exceptions(self):
+        self.assertEqual(cv.stale_exceptions(allowlist=self.allowlist), [])
+
     def test_retired_names_are_found(self):
         text = ("Create a MapPackage.\nCall create_app_package.\n"
-                "Edit the composition document.\nDo not touch a hosted layer.\n")
+                "Edit the composition document.\nDo not touch a hosted layer.\n"
+                "Return a MapPackageRef.\n" '"profiles": ["base", "composition"]\n')
         rules = [rule for _p, _n, rule, _r, _l in cv.scan_text("spec/x.md", text, self.allowlist)]
-        self.assertEqual(rules, ["map-envelope", "retired-tool-name",
-                                 "composition-document", "hosted-layer"])
+        self.assertEqual(rules, ["map-envelope", "retired-tool-name", "composition-document",
+                                 "hosted-layer", "map-envelope", "composition-profile-value"])
+
+    def test_stale_exception_is_reported(self):
+        allowlist = {"exceptions": [{"path": "AGENTS.md", "rule": "hosted-layer",
+                                     "line": "no such line", "reason": "test"}]}
+        self.assertEqual(len(cv.stale_exceptions(allowlist=allowlist)), 1)
 
     def test_wire_literals_are_not_findings(self):
         text = ("Read honua://map-packages/{map_package_id} with mapPackageId.\n"

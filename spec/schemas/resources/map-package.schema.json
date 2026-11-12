@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/resources/map-package.schema.json",
   "title": "map-package (deprecated alias of map)",
-  "description": "Deprecated alias kept for one release. Use resources/map.schema.json (the Map resource). Removed in the next minor release.",
+  "description": "Deprecated alias kept for one release. Use resources/map.schema.json (the Map resource). Removed in the next release.",
   "deprecated": true,
   "$ref": "https://geospatial-mcp.honua.io/spec/schemas/resources/map.schema.json"
 }

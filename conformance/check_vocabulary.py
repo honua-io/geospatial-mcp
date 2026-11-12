@@ -17,7 +17,7 @@ the line invalidates it.
 Usage:
     python3 conformance/check_vocabulary.py
 
-Exit code 0 = clean, 1 = findings.
+Exit code 0 = clean, 1 = findings or stale exceptions.
 """
 import json
 import os
@@ -30,20 +30,23 @@ REPO = os.path.abspath(os.path.join(HERE, ".."))
 ALLOWLIST_PATH = os.path.join(HERE, "retired-terms-allowlist.json")
 SCANNED_SUFFIXES = (".md", ".json", ".py", ".mjs", ".yaml", ".yml")
 
+# Former standard tool names; spec/schemas/index.json lists each under deprecatedAliases
+# while it remains accepted (test_check_manifest.py keeps the two in step).
 RETIRED_TOOL_NAMES = (
     "create_map_package", "refine_map_package", "preview_map_package",
     "create_app_package", "preview_app_package", "validate_package", "preview_package",
 )
 
 RULES = [
-    ("map-envelope", r"\bMapPackages?\b", "Map"),
-    ("app-envelope", r"\bAppPackages?\b", "App"),
+    ("map-envelope", r"MapPackage(?![a-z])", "Map"),
+    ("app-envelope", r"AppPackage(?![a-z])", "App"),
     ("studio-package-prose", r"(?i)\b(?:map|app)[ /-]packages?\b", "Map or App"),
     ("retired-tool-name",
      r"(?<![A-Za-z0-9_])(?:" + "|".join(RETIRED_TOOL_NAMES) + r")(?![A-Za-z0-9_])",
      "the current standard name (see deprecatedAliases in spec/schemas/index.json)"),
     ("composition-document", r"(?i)\bcomposition documents?\b", "Map or App document"),
     ("composition-profile", r"(?i)\bcomposition profile\b", "interactivity profile"),
+    ("composition-profile-value", r'"profiles?"\s*:\s*(?:\[[^\]]*)?"composition"', "interactivity"),
     ("hosted-layer", r"(?i)\bhosted layers?\b", "Layer"),
     ("serving-target", r"(?i)\bserving targets?\b", "Layer"),
     ("content-item", r"(?i)\bcontent items?\b", "the actual kind (Map, App, ...)"),
@@ -78,7 +81,9 @@ def load_allowlist(path=ALLOWLIST_PATH):
 
 
 def tracked_files(repo=REPO):
-    listing = subprocess.run(["git", "-C", repo, "ls-files", "-z"], check=True,
+    """Committed, staged and untracked-but-not-ignored files."""
+    listing = subprocess.run(["git", "-C", repo, "ls-files", "-z", "--cached", "--others",
+                              "--exclude-standard"], check=True,
                              capture_output=True).stdout.decode("utf-8")
     return [path for path in listing.split("\0") if path.endswith(SCANNED_SUFFIXES)]
 
@@ -115,12 +120,35 @@ def scan_repo(repo=REPO, allowlist=None):
     return findings
 
 
+def stale_exceptions(repo=REPO, allowlist=None):
+    """Exceptions whose exact line no longer exists or no longer triggers their rule."""
+    allowlist = load_allowlist() if allowlist is None else allowlist
+    patterns = {rule_id: pattern for rule_id, pattern, _replacement in COMPILED_RULES}
+    stale = []
+    for entry in allowlist.get("exceptions", []):
+        full = os.path.join(repo, entry["path"])
+        lines = []
+        if os.path.isfile(full):
+            with open(full, "r", encoding="utf-8") as fh:
+                lines = [line.strip() for line in fh.read().splitlines()]
+        pattern = patterns.get(entry["rule"])
+        if (entry["line"] not in lines or pattern is None
+                or not pattern.search(WIRE_LITERALS.sub("", entry["line"]))):
+            stale.append(entry)
+    return stale
+
+
 def main():
     findings = scan_repo()
+    stale = stale_exceptions()
     for path, number, rule_id, replacement, line in findings:
         print(f"{path}:{number}: [{rule_id}] use {replacement}: {line[:160]}", file=sys.stderr)
-    if findings:
-        print(f"FAIL: {len(findings)} retired-vocabulary finding(s)", file=sys.stderr)
+    for entry in stale:
+        print(f"stale exception: {entry['path']} [{entry['rule']}] {entry['line'][:120]}",
+              file=sys.stderr)
+    if findings or stale:
+        print(f"FAIL: {len(findings)} retired-vocabulary finding(s), "
+              f"{len(stale)} stale exception(s)", file=sys.stderr)
         return 1
     print("OK: no retired vocabulary outside declared exceptions")
     return 0

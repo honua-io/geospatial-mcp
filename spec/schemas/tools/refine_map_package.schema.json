@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/refine_map_package.schema.json",
   "title": "refine_map_package (deprecated alias of refine_map)",
-  "description": "Deprecated alias kept for one release. Use tools/refine_map.schema.json (standard tool refine_map). Removed in the next minor release.",
+  "description": "Deprecated alias kept for one release. Use tools/refine_map.schema.json (standard tool refine_map). Removed in the next release.",
   "deprecated": true,
   "$ref": "https://geospatial-mcp.honua.io/spec/schemas/tools/refine_map.schema.json"
 }

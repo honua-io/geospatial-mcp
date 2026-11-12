@@ -23,11 +23,15 @@ import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fi
 // producer's OPERATIONS. Deriving both from OPERATIONS hid the retired tool.
 const publishedIndex = JSON.parse(readFileSync(new URL("../../spec/schemas/index.json", import.meta.url), "utf8"));
 const publishedManifest = JSON.parse(readFileSync(new URL("../../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
+// The reference manifest may still declare a deprecated alias of a standard name for one release.
+const manifestToolNames = new Set(publishedManifest.tools.map(({ standardName }) => standardName));
+const declaredToolName = ({ standardName, deprecatedAliases = [] }) =>
+  deprecatedAliases.find((alias) => manifestToolNames.has(alias)) ?? standardName;
 const expectedOperations = [
   ...["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) => ["mcp.transport", operation]),
   ...publishedManifest.resources.map(({ family }) => ["mcp.resource", `resources/read:${family}`]),
   ...publishedIndex.tools.filter(({ implementationStatus }) => implementationStatus === "implemented")
-    .map(({ standardName }) => ["mcp.tool", `tools/call:${standardName}`]),
+    .map((tool) => ["mcp.tool", `tools/call:${declaredToolName(tool)}`]),
 ];
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: expectedOperations.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({

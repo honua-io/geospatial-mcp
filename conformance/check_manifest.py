@@ -94,7 +94,7 @@ def resolve_name(name, current, aliases, kind, label, warnings):
         return name
     if name in aliases:
         warnings.append(f"{label}: {kind} '{name}' is a deprecated alias of '{aliases[name]}' "
-                        f"(accepted for one release; removed in the next minor)")
+                        f"(accepted for one release; removed in the next release)")
         return aliases[name]
     return None
 
@@ -164,7 +164,7 @@ def check_manifest(path, index, strict=False):
         if profile in profile_aliases:
             warnings.append(f"{label}: profile '{profile}' is a deprecated alias of "
                             f"'{profile_aliases[profile]}' (accepted for one release; "
-                            f"removed in the next minor)")
+                            f"removed in the next release)")
             profile = profile_aliases[profile]
         declared_profiles.add(profile)
 

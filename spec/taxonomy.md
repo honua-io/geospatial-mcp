@@ -185,7 +185,8 @@ below remain accepted for one release: `index.json` lists each one under
 `deprecatedAliases` (or `deprecatedProfileAliases`), a schema file stays at
 the former path as a deprecated `$ref` to its replacement, and the manifest
 checker maps the former name to the current one with a deprecation note. They
-are removed in the next minor release.
+are removed in the next release, which the Draft status permits (see the
+versioning and compatibility policy above).
 
 | Former name | Current name | Kind |
 |---|---|---|

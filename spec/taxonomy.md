@@ -176,30 +176,16 @@ Geospatial tool families:
   records (ADR-0028 unaffected).
 - **Publishing** -- `publish_result`
 
-#### Deprecated Names
+#### Renamed Names
 
 Standard names follow the Honua vocabulary
 ([glossary](https://github.com/honua-io/honua-server/blob/trunk/docs/concepts/domain/README.md)):
-saved Studio content is a Map or an App, never a "package". The former names
-below remain accepted for one release: `index.json` lists each one under
-`deprecatedAliases` (or `deprecatedProfileAliases`), a schema file stays at
-the former path as a deprecated `$ref` to its replacement, and the manifest
-checker maps the former name to the current one with a deprecation note. They
-are removed in the next release, which the Draft status permits (see the
-versioning and compatibility policy above).
-
-| Former name | Current name | Kind |
-|---|---|---|
-| `create_map_package` | `create_map` | tool |
-| `refine_map_package` | `refine_map` | tool |
-| `preview_map_package` | `preview_map` | tool |
-| `create_app_package` | `create_app` | tool |
-| `preview_app_package` | `preview_app` | tool |
-| `validate_package` | `validate_content` | tool |
-| `preview_package` | `preview_content` | tool |
-| `Map package` | `Map` | resource family |
-| `App package` | `App` | resource family |
-| `composition` | `interactivity` | conformance profile |
+saved Studio content is a Map or an App, never a "package". Renamed tools,
+resource families and conformance profiles are renamed outright, with no
+deprecated aliases: `index.json` and the manifest checker accept only the
+current names. A manifest that maps a tool or resource onto a former name
+fails as unknown, and a former profile name claims no profile.
+The [CHANGELOG](../CHANGELOG.md) lists each former name with its replacement.
 
 Reference-implementation advertised names (`honua_create_map_package`, …),
 resource URIs (`honua://map-packages/{map_package_id}`,

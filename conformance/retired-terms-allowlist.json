@@ -31,153 +31,81 @@
     },
     {
       "path": "conformance/test_check_manifest.py",
-      "reason": "Guard and alias regression tests use the retired names as inputs."
-    },
-    {
-      "path": "spec/schemas/resources/app-package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/resources/map-package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/create_app_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/create_map_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/preview_app_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/preview_map_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/preview_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/refine_map_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
-    },
-    {
-      "path": "spec/schemas/tools/validate_package.schema.json",
-      "reason": "Deprecated alias schema ($ref to its replacement), kept for one release."
+      "reason": "Retired-name regression tests use the retired names as inputs."
     }
   ],
   "exceptions": [
     {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"create_map_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"refine_map_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"preview_map_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"create_app_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"preview_app_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"validate_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "retired-tool-name",
-      "line": "\"deprecatedAliases\": [\"preview_package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "studio-package-prose",
-      "line": "\"deprecatedAliases\": [\"Map package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/schemas/index.json",
-      "rule": "studio-package-prose",
-      "line": "\"deprecatedAliases\": [\"App package\"],",
-      "reason": "deprecatedAliases declaration, kept for one release."
-    },
-    {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `create_map_package` | `create_map` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `refine_map_package` | `refine_map` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `preview_map_package` | `preview_map` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `create_app_package` | `create_app` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `preview_app_package` | `preview_app` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `validate_package` | `validate_content` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "retired-tool-name",
       "line": "| `preview_package` | `preview_content` | tool |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "studio-package-prose",
       "line": "| `Map package` | `Map` | resource family |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     },
     {
-      "path": "spec/taxonomy.md",
+      "path": "CHANGELOG.md",
       "rule": "studio-package-prose",
       "line": "| `App package` | `App` | resource family |",
-      "reason": "Deprecated-names table that maps each former name to its replacement."
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `resources/map-package.schema.json` | `resources/map.schema.json` | schema |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `resources/app-package.schema.json` | `resources/app.schema.json` | schema |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "`tools/create_map_package.schema.json` is now `tools/create_map.schema.json`).",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     }
   ]
 }

@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/create_app_package.schema.json",
-  "title": "create_app_package (deprecated alias of create_app)",
-  "description": "Deprecated alias kept for one release. Use tools/create_app.schema.json (standard tool create_app). Removed in the next release.",
-  "deprecated": true,
-  "$ref": "https://geospatial-mcp.honua.io/spec/schemas/tools/create_app.schema.json"
-}

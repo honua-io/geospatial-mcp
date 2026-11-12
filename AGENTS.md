@@ -198,8 +198,9 @@ BLOCKING:
   [canonical glossary](https://github.com/honua-io/honua-server/blob/trunk/docs/concepts/domain/README.md)
   and the shared policy (honua-server `scripts/ci/retired-terms.v1.json`): saved Studio content is a
   Map or an App, never a "package" or a "composition", and a served dataset is a Layer. Wire literals
-  the reference server serves keep their spelling until the server migrates them. Renaming a standard tool, resource family or
-  profile keeps the former name under `deprecatedAliases` in `spec/schemas/index.json` for one release.
+  the reference server serves keep their spelling until the server migrates them. The standard is unreleased, so a
+  standard tool, resource family or profile is renamed outright: no deprecated aliases, alias tables or shims; the
+  former name goes only into the `CHANGELOG.md` rename list and the retired-term guard.
   `conformance/check_vocabulary.py` enforces this; every exception in
   `conformance/retired-terms-allowlist.json` names an exact path, rule and line with a reason.
 

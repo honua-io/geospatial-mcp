@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/validate_package.schema.json",
-  "title": "validate_package (deprecated alias of validate_content)",
-  "description": "Deprecated alias kept for one release. Use tools/validate_content.schema.json (standard tool validate_content). Removed in the next release.",
-  "deprecated": true,
-  "$ref": "https://geospatial-mcp.honua.io/spec/schemas/tools/validate_content.schema.json"
-}

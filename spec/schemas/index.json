@@ -1,10 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "geospatial-mcp JSON Schema index",
-  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only. 'profile' (optional; default 'base') assigns a tool to a conformance profile: 'base' tools are required for the base FULL verdict; tools in an additive profile such as 'mutation' are required for FULL only when a manifest declares that profile, and are otherwise reported as informational notes (see /CONFORMANCE.md §Conformance Profiles). 'deprecatedAliases' (optional) lists former tool standardNames or resource family names that a manifest may still declare for one release; the checker maps each to the current name and reports a deprecation note. 'deprecatedProfileAliases' maps former conformance profile names to their current names the same way.",
+  "description": "Machine-readable map from standard MCP tool names and resource family URIs to their JSON Schema (draft 2020-12) files. 'standardName' is the bare taxonomy.md tool name; 'referenceToolName' is the name the reference implementation (Honua /mcp) advertises. 'implementationStatus' records whether the reference implementation ships the tool/resource family today (implemented) or whether it is a standard family not yet served by the reference (known-gap). For resources, 'implementationStatus' gates the FULL conformance level the same way it does for tools: a manifest must advertise every 'implemented' resource family to reach FULL; 'known-gap' families are reported as informational notes only. 'profile' (optional; default 'base') assigns a tool to a conformance profile: 'base' tools are required for the base FULL verdict; tools in an additive profile such as 'mutation' are required for FULL only when a manifest declares that profile, and are otherwise reported as informational notes (see /CONFORMANCE.md §Conformance Profiles).",
   "date": "2026-08-12",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
-  "deprecatedProfileAliases": { "composition": "interactivity" },
   "tools": [
     {
       "standardName": "plan_analysis",
@@ -44,7 +43,6 @@
     },
     {
       "standardName": "create_map",
-      "deprecatedAliases": ["create_map_package"],
       "referenceToolName": "honua_create_map_package",
       "family": "Map composition",
       "schema": "tools/create_map.schema.json",
@@ -53,7 +51,6 @@
     },
     {
       "standardName": "refine_map",
-      "deprecatedAliases": ["refine_map_package"],
       "referenceToolName": null,
       "family": "Map composition",
       "schema": "tools/refine_map.schema.json",
@@ -82,7 +79,6 @@
     },
     {
       "standardName": "preview_map",
-      "deprecatedAliases": ["preview_map_package"],
       "referenceToolName": null,
       "family": "Map composition",
       "schema": "tools/preview_map.schema.json",
@@ -90,7 +86,6 @@
     },
     {
       "standardName": "create_app",
-      "deprecatedAliases": ["create_app_package"],
       "referenceToolName": "honua_create_app_package",
       "family": "App composition",
       "schema": "tools/create_app.schema.json",
@@ -99,7 +94,6 @@
     },
     {
       "standardName": "preview_app",
-      "deprecatedAliases": ["preview_app_package"],
       "referenceToolName": null,
       "family": "App composition",
       "schema": "tools/preview_app.schema.json",
@@ -371,7 +365,6 @@
     },
     {
       "standardName": "validate_content",
-      "deprecatedAliases": ["validate_package"],
       "referenceToolName": "honua_validate_package",
       "family": "Map and App review (reference shape)",
       "schema": "tools/validate_content.schema.json",
@@ -380,7 +373,6 @@
     },
     {
       "standardName": "preview_content",
-      "deprecatedAliases": ["preview_package"],
       "referenceToolName": "honua_preview_package",
       "family": "Map and App review (reference shape)",
       "schema": "tools/preview_content.schema.json",
@@ -446,7 +438,6 @@
     },
     {
       "family": "Map",
-      "deprecatedAliases": ["Map package"],
       "uriForm": "honua://map-packages/{map_package_id}",
       "schema": "resources/map.schema.json",
       "shapeFidelity": "responsibility-level",
@@ -454,7 +445,6 @@
     },
     {
       "family": "App",
-      "deprecatedAliases": ["App package"],
       "uriForm": "honua://app-packages/{app_package_id}",
       "schema": "resources/app.schema.json",
       "shapeFidelity": "responsibility-level",

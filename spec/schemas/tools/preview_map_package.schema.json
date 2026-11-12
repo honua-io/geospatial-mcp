@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/preview_map_package.schema.json",
-  "title": "preview_map_package (deprecated alias of preview_map)",
-  "description": "Deprecated alias kept for one release. Use tools/preview_map.schema.json (standard tool preview_map). Removed in the next release.",
-  "deprecated": true,
-  "$ref": "https://geospatial-mcp.honua.io/spec/schemas/tools/preview_map.schema.json"
-}

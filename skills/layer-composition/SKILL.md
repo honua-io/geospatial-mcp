@@ -14,7 +14,6 @@ not provide.
 1. State the takeaway, audience, viewing scale, and primary evidence layer.
 2. Discover MCP operation schemas with `tools/list`; use `list_layers` only to
    inspect layer identity, geometry, extent, CRS, fields, and source protocol.
-   Servers may still advertise the deprecated `*_package` tool names for one release.
 3. Assign every candidate one role: primary evidence, comparison, reference,
    labels, or background. Drop candidates with no distinct role.
 4. Record source order, opacity, scale range, label priority, and the condition

@@ -23,15 +23,22 @@ import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fi
 // producer's OPERATIONS. Deriving both from OPERATIONS hid the retired tool.
 const publishedIndex = JSON.parse(readFileSync(new URL("../../spec/schemas/index.json", import.meta.url), "utf8"));
 const publishedManifest = JSON.parse(readFileSync(new URL("../../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
-// The reference manifest may still declare a deprecated alias of a standard name for one release.
-const manifestToolNames = new Set(publishedManifest.tools.map(({ standardName }) => standardName));
-const declaredToolName = ({ standardName, deprecatedAliases = [] }) =>
-  deprecatedAliases.find((alias) => manifestToolNames.has(alias)) ?? standardName;
+// Certification operations name the surface the reference server serves (the governed
+// catalog keys on it), so derive them from the served tool name and resource URI rather
+// than from the standard name, which can be renamed ahead of the server.
+const servedToolOperation = ({ referenceToolName }) => `tools/call:${referenceToolName.replace(/^honua_/, "")}`;
+const servedResourceOperation = ({ uriForm }) => {
+  const path = uriForm.replace(/^honua:\/\//, "");
+  const templated = path.includes("/{");
+  const words = path.replace(/\/\{.*$/, "").replace(/s$/, templated ? "" : "s").split(/[-/]/);
+  const name = words.join(" ");
+  return `resources/read:${name[0].toUpperCase()}${name.slice(1)}`;
+};
 const expectedOperations = [
   ...["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) => ["mcp.transport", operation]),
-  ...publishedManifest.resources.map(({ family }) => ["mcp.resource", `resources/read:${family}`]),
+  ...publishedManifest.resources.map((resource) => ["mcp.resource", servedResourceOperation(resource)]),
   ...publishedIndex.tools.filter(({ implementationStatus }) => implementationStatus === "implemented")
-    .map((tool) => ["mcp.tool", `tools/call:${declaredToolName(tool)}`]),
+    .map((tool) => ["mcp.tool", servedToolOperation(tool)]),
 ];
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: expectedOperations.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({

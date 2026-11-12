@@ -28,7 +28,6 @@ condition. A successful preview is not publication authorization.
 ## Private-to-public promotion
 
 1. Discover the live operation schemas with `tools/list`.
-   Servers may still advertise the deprecated `*_package` tool names for one release.
 2. Create or retain a private, immutable candidate with `create_map`
    only when its advertised schema can bind the intended sources and view.
 3. Use `preview_map`; inspect the full extent, representative edge and

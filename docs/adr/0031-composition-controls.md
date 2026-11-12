@@ -23,8 +23,8 @@ event set includes `change`, described there as "the event a control emits".
 
 But **no `controls` collection exists in any composition document**. The
 `MapPackage` and `AppPackage` bodies carry layers, view, and widgets only
-([`resources/map-package.schema.json`](../../spec/schemas/resources/map-package.schema.json),
-[`resources/app-package.schema.json`](../../spec/schemas/resources/app-package.schema.json)).
+([`resources/map.schema.json`](../../spec/schemas/resources/map.schema.json),
+[`resources/app.schema.json`](../../spec/schemas/resources/app.schema.json)).
 The consequence is concrete rather than theoretical: because reference
 resolution is a validation-gate responsibility under ADR-0030, an
 implementation MUST reject every `control:` ref as unresolvable — there is

@@ -6,8 +6,9 @@ reported FULL while ignoring resource-family coverage (issue #25). The core
 assertion: a manifest that omits a resource family the index marks `implemented`
 must NOT reach FULL — it downgrades to MAPPED with a note naming the family.
 
-It also pins the deprecated-alias mapping of former standard names and the
-retired-vocabulary guard (conformance/check_vocabulary.py) over the repository.
+It also pins that former standard names are retired outright (no deprecated
+aliases: the checker rejects them) and runs the retired-vocabulary guard
+(conformance/check_vocabulary.py) over the repository.
 
 Pure stdlib (`unittest`); no server and no third-party deps required. Run via:
 
@@ -34,17 +35,10 @@ def _implemented_families(index):
     )
 
 
-def _current_family(index, family):
-    """The current family name for a manifest family that may be a deprecated alias."""
-    return cm.deprecated_alias_map(index.get("resources", []), "family").get(family, family)
-
-
-def _without_family(manifest, index, family):
-    """A copy of ``manifest`` that does not advertise ``family`` under any name."""
+def _without_family(manifest, family):
+    """A copy of ``manifest`` that does not advertise ``family``."""
     trimmed = copy.deepcopy(manifest)
-    trimmed["resources"] = [
-        r for r in trimmed["resources"] if _current_family(index, r.get("family")) != family
-    ]
+    trimmed["resources"] = [r for r in trimmed["resources"] if r.get("family") != family]
     return trimmed
 
 
@@ -85,8 +79,7 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
 
         # The reference manifest must actually advertise every implemented
         # family, otherwise the drop below would be a no-op.
-        advertised = {_current_family(self.index, r.get("family"))
-                      for r in self.reference.get("resources", [])}
+        advertised = {r.get("family") for r in self.reference.get("resources", [])}
         for family in implemented:
             self.assertIn(
                 family, advertised,
@@ -94,7 +87,7 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
             )
 
         for family in implemented:
-            manifest = _without_family(self.reference, self.index, family)
+            manifest = _without_family(self.reference, family)
             level, errors, warnings = _check(manifest, self.index)
             self.assertEqual(errors, [], f"dropping '{family}' should not error")
             self.assertEqual(
@@ -122,7 +115,7 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
             self.reference.get("implementation", {}).get("isReferenceImplementation"),
             "reference manifest must be flagged isReferenceImplementation",
         )
-        manifest = _without_family(self.reference, self.index, family)
+        manifest = _without_family(self.reference, family)
 
         # Non-strict: downgrade to MAPPED, no error.
         level, errors, _warnings = _check(manifest, self.index, strict=False)
@@ -225,84 +218,75 @@ class AnalysisProfileGatingTest(unittest.TestCase):
         self.assertEqual(level, "FULL")
 
 
-class DeprecatedAliasTest(unittest.TestCase):
-    """Former standard names stay accepted for one release, with a deprecation note."""
+class RetiredNameTest(unittest.TestCase):
+    """Former standard names are renamed outright: no aliases, and the checker rejects them."""
+
+    RENAMED_TOOLS = {
+        "create_map_package": "create_map", "refine_map_package": "refine_map",
+        "preview_map_package": "preview_map", "create_app_package": "create_app",
+        "preview_app_package": "preview_app", "validate_package": "validate_content",
+        "preview_package": "preview_content",
+    }
+    RENAMED_FAMILIES = {"Map package": "Map", "App package": "App"}
 
     @classmethod
     def setUpClass(cls):
         cls.index = cm.load_json(cm.INDEX_PATH)
         cls.reference = cm.load_json(REFERENCE_MANIFEST)
 
-    def test_aliases_are_unique_and_never_current_names(self):
-        for entries, key in ((self.index["tools"], "standardName"),
-                             (self.index["resources"], "family")):
-            current = {entry[key] for entry in entries}
-            aliases = [alias for entry in entries for alias in entry.get("deprecatedAliases", [])]
-            self.assertEqual(len(aliases), len(set(aliases)), f"duplicate {key} alias")
-            self.assertFalse(current & set(aliases), f"{key} alias shadows a current name")
+    def test_guard_lists_every_renamed_tool(self):
+        self.assertEqual(set(self.RENAMED_TOOLS), set(cv.RETIRED_TOOL_NAMES))
 
-    def test_each_tool_alias_keeps_a_schema_stub_for_its_replacement(self):
-        for tool in self.index["tools"]:
-            target = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", tool["schema"]))
-            for alias in tool.get("deprecatedAliases", []):
-                stub = cm.load_json(os.path.join(
-                    cm.REPO, "spec", "schemas", "tools", f"{alias}.schema.json"))
-                self.assertTrue(stub.get("deprecated"), alias)
-                self.assertEqual(stub.get("$ref"), target["$id"], alias)
+    def test_index_carries_only_current_names_and_no_alias_fields(self):
+        tools = {t["standardName"] for t in self.index["tools"]}
+        families = {r["family"] for r in self.index["resources"]}
+        self.assertLessEqual(set(self.RENAMED_TOOLS.values()), tools)
+        self.assertLessEqual(set(self.RENAMED_FAMILIES.values()), families)
+        self.assertFalse(tools & set(self.RENAMED_TOOLS))
+        self.assertFalse(families & set(self.RENAMED_FAMILIES))
+        text = json.dumps(self.index)
+        self.assertNotIn("deprecatedAliases", text)
+        self.assertNotIn("deprecatedProfileAliases", text)
 
-    def test_vocabulary_guard_blocks_every_former_tool_name(self):
-        aliases = set(cm.deprecated_alias_map(self.index["tools"], "standardName"))
-        self.assertLessEqual(aliases, set(cv.RETIRED_TOOL_NAMES))
+    def test_no_schema_file_remains_at_a_former_path(self):
+        for name in self.RENAMED_TOOLS:
+            self.assertFalse(os.path.exists(os.path.join(
+                cm.REPO, "spec", "schemas", "tools", f"{name}.schema.json")), name)
+        for name in ("map-package", "app-package"):
+            self.assertFalse(os.path.exists(os.path.join(
+                cm.REPO, "spec", "schemas", "resources", f"{name}.schema.json")), name)
 
-    def _renamed(self, tool_names, families):
-        manifest = copy.deepcopy(self.reference)
-        for tool in manifest["tools"]:
-            tool["standardName"] = tool_names.get(tool["standardName"], tool["standardName"])
-        for res in manifest["resources"]:
-            res["family"] = families.get(res["family"], res["family"])
-        return manifest
+    def test_former_tool_name_is_rejected(self):
+        for former, current in self.RENAMED_TOOLS.items():
+            manifest = copy.deepcopy(self.reference)
+            manifest["tools"].append({"standardName": former, "advertisedName": f"x_{current}",
+                                      "workflowFamily": "Build App"})
+            level, errors, _warnings = _check(manifest, self.index)
+            self.assertEqual(level, "FAIL", former)
+            self.assertTrue(any(f"unknown standardName '{former}'" in e for e in errors), former)
 
-    def test_former_and_current_names_both_reach_full(self):
-        tool_aliases = cm.deprecated_alias_map(self.index["tools"], "standardName")
-        family_aliases = cm.deprecated_alias_map(self.index["resources"], "family")
-        self.assertEqual(tool_aliases["create_map_package"], "create_map")
-        self.assertEqual(family_aliases["Map package"], "Map")
-        for tool_names, families in (({v: k for k, v in tool_aliases.items()},
-                                      {v: k for k, v in family_aliases.items()}),
-                                     (tool_aliases, family_aliases)):
-            manifest = self._renamed(tool_names, families)
-            level, errors, _warnings = _check(manifest, self.index, strict=True)
-            self.assertEqual(errors, [])
-            self.assertEqual(level, "FULL")
+    def test_former_family_name_is_rejected(self):
+        for former, current in self.RENAMED_FAMILIES.items():
+            manifest = copy.deepcopy(self.reference)
+            for res in manifest["resources"]:
+                if res["family"] == current:
+                    res["family"] = former
+            level, errors, _warnings = _check(manifest, self.index)
+            self.assertEqual(level, "FAIL", former)
+            self.assertTrue(any(f"'{former}' is not a standard family" in e for e in errors), former)
 
-    def test_alias_use_is_reported_as_deprecated(self):
-        manifest = self._renamed({"create_map": "create_map_package"}, {"Map": "Map package"})
-        _level, _errors, warnings = _check(manifest, self.index)
-        self.assertTrue(any("'create_map_package' is a deprecated alias of 'create_map'" in w
-                            for w in warnings))
-        self.assertTrue(any("'Map package' is a deprecated alias of 'Map'" in w for w in warnings))
-
-    def test_current_names_carry_no_deprecation_note(self):
-        tool_aliases = cm.deprecated_alias_map(self.index["tools"], "standardName")
-        family_aliases = cm.deprecated_alias_map(self.index["resources"], "family")
-        manifest = self._renamed(tool_aliases, family_aliases)
-        _level, _errors, warnings = _check(manifest, self.index)
-        self.assertFalse(any("deprecated alias" in w for w in warnings))
-
-    def test_former_profile_name_declares_the_current_profile(self):
+    def test_former_profile_name_claims_no_profile(self):
         index = copy.deepcopy(self.index)
         for t in index["tools"]:
             if t["standardName"] == "bind_component_context":
                 t["implementationStatus"] = "implemented"
         manifest = copy.deepcopy(self.reference)
         manifest["implementation"]["profiles"] = ["base", "composition"]
-        level, errors, warnings = _check(manifest, index)
+        level, errors, warnings = _check(manifest, index, strict=True)
         self.assertEqual(errors, [])
-        self.assertEqual(level, "MAPPED")
-        self.assertTrue(any("standard tool 'bind_component_context' is marked 'implemented'" in w
-                            for w in warnings))
-        self.assertTrue(any("profile 'composition' is a deprecated alias of 'interactivity'" in w
-                            for w in warnings))
+        self.assertEqual(level, "FULL")
+        self.assertTrue(any("'bind_component_context' belongs to the 'interactivity' conformance "
+                            "profile, which this manifest does not declare" in w for w in warnings))
 
 
 class RetiredVocabularyTest(unittest.TestCase):

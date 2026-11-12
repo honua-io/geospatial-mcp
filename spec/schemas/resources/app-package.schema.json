@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://geospatial-mcp.honua.io/spec/schemas/resources/app-package.schema.json",
-  "title": "app-package (deprecated alias of app)",
-  "description": "Deprecated alias kept for one release. Use resources/app.schema.json (the App resource). Removed in the next release.",
-  "deprecated": true,
-  "$ref": "https://geospatial-mcp.honua.io/spec/schemas/resources/app.schema.json"
-}

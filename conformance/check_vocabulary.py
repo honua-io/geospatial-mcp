@@ -9,10 +9,11 @@ replacement.
 
 Wire literals the reference implementation still serves (for example
 ``honua://map-packages/{map_package_id}``) are not findings; their rename
-follows the server migration. Deprecated aliases and historical records are
-declared in ``conformance/retired-terms-allowlist.json`` with a reason; an
-exception names the literal path, rule id and exact (stripped) line, so changing
-the line invalidates it.
+follows the server migration. Renamed names are retired outright, with no
+aliases. The CHANGELOG rename list and historical records are declared in
+``conformance/retired-terms-allowlist.json`` with a reason; an exception names
+the literal path, rule id and exact (stripped) line, so changing the line
+invalidates it.
 
 Usage:
     python3 conformance/check_vocabulary.py
@@ -30,8 +31,8 @@ REPO = os.path.abspath(os.path.join(HERE, ".."))
 ALLOWLIST_PATH = os.path.join(HERE, "retired-terms-allowlist.json")
 SCANNED_SUFFIXES = (".md", ".json", ".py", ".mjs", ".yaml", ".yml")
 
-# Former standard tool names; spec/schemas/index.json lists each under deprecatedAliases
-# while it remains accepted (test_check_manifest.py keeps the two in step).
+# Former standard tool names, renamed outright (see the CHANGELOG rename list); neither
+# spec/schemas/index.json nor the manifest checker accepts them.
 RETIRED_TOOL_NAMES = (
     "create_map_package", "refine_map_package", "preview_map_package",
     "create_app_package", "preview_app_package", "validate_package", "preview_package",
@@ -43,7 +44,7 @@ RULES = [
     ("studio-package-prose", r"(?i)\b(?:map|app)[ /-]packages?\b", "Map or App"),
     ("retired-tool-name",
      r"(?<![A-Za-z0-9_])(?:" + "|".join(RETIRED_TOOL_NAMES) + r")(?![A-Za-z0-9_])",
-     "the current standard name (see deprecatedAliases in spec/schemas/index.json)"),
+     "the current standard name (see the CHANGELOG rename list)"),
     ("composition-document", r"(?i)\bcomposition documents?\b", "Map or App document"),
     ("composition-profile", r"(?i)\bcomposition profile\b", "interactivity profile"),
     ("composition-profile-value", r'"profiles?"\s*:\s*(?:\[[^\]]*)?"composition"', "interactivity"),

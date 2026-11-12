@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/common/exploration.schema.json",
-  "title": "Composition exploration contexts",
-  "description": "Standard-owned `explorationContexts` collection for composition documents (MapPackage/AppPackage). An exploration context is a named unit of shared interaction state — filters, spatial filter, extent, selection, sort, page, visible fields, grouping, aggregation — that components bind to. Components that name the same context share that state, so cross-filtering is context membership rather than an event→action edge; this is the primary interaction model, and the `interactions` block (common/interactions.schema.json) is retained for one-shot gestures. Propagation between bound components is governed by a closed preset vocabulary keyed on the component's role. Contexts are data, never code: there is no expression language and no $event.* substitution here, because a context's state is not produced by an event. Reference resolution (context ids, source ids) is a validation-gate responsibility. See docs/adr/0032-shared-exploration-contexts.md.",
+  "title": "Map and App exploration contexts",
+  "description": "Standard-owned `explorationContexts` collection for Map and App documents. An exploration context is a named unit of shared interaction state — filters, spatial filter, extent, selection, sort, page, visible fields, grouping, aggregation — that components bind to. Components that name the same context share that state, so cross-filtering is context membership rather than an event→action edge; this is the primary interaction model, and the `interactions` block (common/interactions.schema.json) is retained for one-shot gestures. Propagation between bound components is governed by a closed preset vocabulary keyed on the component's role. Contexts are data, never code: there is no expression language and no $event.* substitution here, because a context's state is not produced by an event. Reference resolution (context ids, source ids) is a validation-gate responsibility. See docs/adr/0032-shared-exploration-contexts.md.",
   "type": "object",
   "$defs": {
     "presetName": {
@@ -159,7 +159,7 @@
       "items": {
         "$ref": "#/$defs/explorationContext"
       },
-      "description": "Units of shared interaction state declared by this composition document. Optional and additive: a document without exploration contexts is valid, and one whose components are all unbound behaves exactly as it did before this block existed. Ids must be unique within the collection, and a declared context with no bound components is valid but should warn (validation-gate checks)."
+      "description": "Units of shared interaction state declared by this Map or App document. Optional and additive: a document without exploration contexts is valid, and one whose components are all unbound behaves exactly as it did before this block existed. Ids must be unique within the collection, and a declared context with no bound components is valid but should warn (validation-gate checks)."
     }
   }
 }

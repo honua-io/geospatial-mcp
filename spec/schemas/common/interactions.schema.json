@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/common/interactions.schema.json",
-  "title": "Composition interactions and layout",
-  "description": "Standard-owned declarative blocks for composition documents (MapPackage/AppPackage): `interactions` wires component events to bounded action verbs; `layout` places widgets on a grid. Bindings are data, never code: the only dynamic element is $event.* path substitution in string argument values. Actions never emit events (only user gestures do), so binding graphs cannot cycle by construction. Reference resolution and the per-(ref,event) fan-out cap (recommended 8) are validation-gate responsibilities. See docs/adr/0030-declarative-interactions-and-layout.md.",
+  "title": "Map and App interactions and layout",
+  "description": "Standard-owned declarative blocks for Map and App documents: `interactions` wires component events to bounded action verbs; `layout` places widgets on a grid. Bindings are data, never code: the only dynamic element is $event.* path substitution in string argument values. Actions never emit events (only user gestures do), so binding graphs cannot cycle by construction. Reference resolution and the per-(ref,event) fan-out cap (recommended 8) are validation-gate responsibilities. See docs/adr/0030-declarative-interactions-and-layout.md.",
   "type": "object",
   "$defs": {
     "componentRef": {
       "type": "string",
       "pattern": "^(map|layer:.+|widget:.+|control:.+)$",
-      "description": "Reference to a component declared in the same composition document: `map`, `layer:{id}`, `widget:{id}`, or `control:{id}`. Must resolve within the document (validation-gate check, not a schema check)."
+      "description": "Reference to a component declared in the same Map or App document: `map`, `layer:{id}`, `widget:{id}`, or `control:{id}`. Must resolve within the document (validation-gate check, not a schema check)."
     },
     "eventName": {
       "type": "string",
@@ -30,7 +30,7 @@
         "runWidgetQuery",
         "setVisibility"
       ],
-      "description": "Closed verb set drawn from the existing composition vocabulary. Verbs mutate presentation/exploration state only, never source records (ADR-0028 unaffected). Extending the set requires a standard ADR (ADR-0030)."
+      "description": "Closed verb set drawn from the existing Map and App authoring vocabulary. Verbs mutate presentation/exploration state only, never source records (ADR-0028 unaffected). Extending the set requires a standard ADR (ADR-0030)."
     },
     "interaction": {
       "type": "object",
@@ -229,7 +229,7 @@
       "items": {
         "$ref": "#/$defs/interaction"
       },
-      "description": "Declarative event→action bindings between components of this composition document."
+      "description": "Declarative event→action bindings between components of this Map or App document."
     },
     "layout": {
       "type": "object",
@@ -254,7 +254,7 @@
           "items": {
             "$ref": "#/$defs/layoutItem"
           },
-          "description": "Widget placements. A composition with widgets and no layout is valid; hosts choose a default flow."
+          "description": "Widget placements. A Map or App with widgets and no layout is valid; hosts choose a default flow."
         }
       },
       "description": "Presentation-only grid placement for the document's widgets."

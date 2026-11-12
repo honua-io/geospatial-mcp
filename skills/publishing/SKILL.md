@@ -15,7 +15,7 @@ Before creating or promoting anything, record:
 - intended audience, owner, destination, `targetKind`, and `visibility`;
 - a stable `routePrefix` only when `targetKind` is `deployment`; omit it when
   `targetKind` is `published_service`;
-- stable source and package identifiers, source revision or timestamps, query
+- stable source and Map or App identifiers, source revision or timestamps, query
   predicates, transformations, styles, CRS, and software revision;
 - redistribution rights, attribution, privacy review, retention, accessibility,
   and freshness expectations;
@@ -28,9 +28,10 @@ condition. A successful preview is not publication authorization.
 ## Private-to-public promotion
 
 1. Discover the live operation schemas with `tools/list`.
-2. Create or retain a private, immutable candidate with `create_map_package`
+   Servers may still advertise the deprecated `*_package` tool names for one release.
+2. Create or retain a private, immutable candidate with `create_map`
    only when its advertised schema can bind the intended sources and view.
-3. Use `preview_map_package`; inspect the full extent, representative edge and
+3. Use `preview_map`; inspect the full extent, representative edge and
    no-data cases, attribution, legend, keyboard access, text alternatives,
    target dimensions, and performance.
 4. Reconcile the candidate against its release contract. Record validation
@@ -59,7 +60,7 @@ Do not delete or mutate source data to make a release appear successful.
 
 ## Shareability checklist
 
-A service or package is shareable only when it has stable identity, bounded and
+A Service, Map or App is shareable only when it has stable identity, bounded and
 reproducible data derivation, explicit CRS and units, useful title and summary,
 legend and no-data semantics, source date, provenance, attribution, rights,
 privacy review, accessible alternatives, owner and support path, target

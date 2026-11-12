@@ -151,7 +151,7 @@ and workspaces using canonical object names
 and the URI grammar fixed in
 [resources.md §Resource URI Conventions](resources.md#resource-uri-conventions).
 The corpus does not mint synthetic `honua://` URIs that do not resolve
-under that grammar. Where a scenario expects a package-embedded
+under that grammar. Where a scenario expects an embedded
 artifact reference, it cites the reference by canonical field
 responsibility; concrete upstream field names are consumed by
 reference, consistent with
@@ -220,8 +220,8 @@ source responsibilities (source `kind`, `provider`, `locator`, and
 `acquisitionMode`) and records the `PublishingIntent.publishTargets`
 that a downstream publish scenario should exercise. The corpus does not
 mint new source-kind or publish-target vocabulary; it reuses the
-upstream set. `SourceBinding` is a `MapPackage` concept and is
-referenced only by the map-package and mirror-pack contexts (§5), not
+upstream set. `SourceBinding` is a `Map` concept and is
+referenced only by the Map and mirror-pack contexts (§5), not
 by the publish-source packs in this section.
 
 | Pack identifier | Source shape | Purpose |
@@ -275,7 +275,7 @@ Pack identifiers under a logical pack follow
 upstream `SourceBinding.protocol` token when one has been pinned
 upstream. Today upstream only pins `geoservices_feature_service` and
 `ogc_features` as concrete `SourceBinding.protocol` values
-([AI_OPERATOR_CONTRACT.md §SourceBinding / §MapPackage](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding));
+([AI_OPERATOR_CONTRACT.md §SourceBinding / §Map](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding));
 WFS, WMS, OGC API Maps, OGC API Tiles, and OData are named only as
 protocol families in upstream prose. The corpus therefore pins its own
 labels for those adapters — `wfs`, `wms`, `ogc_maps`, `ogc_tiles`, and
@@ -344,10 +344,10 @@ result-package and resource URI the scenario expects, the expected
 `ArtifactKind` values (literal `ArtifactKind` enum members per
 [resources.md §Result Package Resources](resources.md#result-package-resources)),
 and any expected resource projections (canonical references such as
-`PublishedService`, `AppPackage`, `MapPackage`, `Deployment`, and
+`PublishedService`, `App`, `Map`, `Deployment`, and
 `honua://...` bindings, which are not `ArtifactKind` values). All
 references stay at responsibility level, consistent with how
-[resources.md](resources.md) handles `MapPackage`, `AppPackage`, and
+[resources.md](resources.md) handles `Map`, `App`, and
 `Deployment` while upstream field names finalize.
 
 ### 7.1 Analyze
@@ -432,7 +432,7 @@ references stay at responsibility level, consistent with how
   - `UseDefaults`: verify non-suppression of `PublishAction` and
     `PolicyBoundary`.
 - **Result package and resource URI:** Build App scenarios expect an
-  `AppPackage` surfaced under `honua://app-packages/{app_package_id}`
+  `App` surfaced under `honua://app-packages/{app_package_id}`
   ([resources.md §`honua://app-packages/{app_package_id}`](resources.md#honuaapp-packagesapp_package_id)).
   `BuilderResultPackage` routing under the reserved
   `honua://results/{id}` builder route becomes constructible once
@@ -442,7 +442,7 @@ references stay at responsibility level, consistent with how
 - **Expected `ArtifactKind` values:** scenarios produce an `AppBundle`
   artifact; scenarios that bind a map additionally produce a `Map`
   artifact.
-- **Expected resource projections:** a canonical `AppPackage`
+- **Expected resource projections:** a canonical `App`
   reference; scenarios that bind a map additionally surface a
   `honua://map-packages/{id}` binding. Build App output vocabulary remains
   upstream-owned per [planning.md §4.3](planning.md#43-build-app);
@@ -476,7 +476,7 @@ references stay at responsibility level, consistent with how
   canonical resource references rather than new `ArtifactKind`
   artifacts.
 - **Expected resource projections:** target binding resolves to
-  `AppPackage`, `MapPackage`, or `PublishedService` when the target
+  `App`, `Map`, or `PublishedService` when the target
   has a defined MCP resource contract; `ProcessDefinition` and
   `PipelineDefinition` targets appear as opaque identifiers per
   resources.md.
@@ -531,7 +531,7 @@ upstream pins concrete tokens for those adapters. The
 `Expected ArtifactKind values` column lists only literal `ArtifactKind`
 enum members; the `Expected resource projections or outcomes` column
 captures canonical resource references (`PublishedService`,
-`AppPackage`, `MapPackage`, `Deployment`), `honua://...` bindings, and
+`App`, `Map`, `Deployment`), `honua://...` bindings, and
 planner- or execution-plane outcomes (`ClarificationRequest` codes,
 `GeoprocessingError.kind` values) that are not `ArtifactKind` values.
 `publish.source.*` rows are baseline descriptors, not end-to-end
@@ -570,8 +570,8 @@ of the §7.2 publishing-result / `PublishedService` surfaces.
 | `dirty.dedupe.geometric` | `dirty` | `publisher` | `database` | -- | `dedupe` | -- | Expected `ClarificationRequest` with `DestructiveAction` |
 | `dirty.enrich.lookup-gaps` | `dirty` | `publisher` | `database` | -- | `enrich` | -- | Expected `ClarificationRequest` with `MissingRequiredInput` |
 | `dirty.quality_check.out-of-range` | `dirty` | `publisher` | `file` | -- | `quality_check` | -- | Expected rejection via `GeoprocessingError.kind = ValidationFailed` |
-| `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` | Canonical `AppPackage` reference |
-| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` | Canonical `AppPackage` and `MapPackage` references; `honua://map-packages/{id}` binding |
+| `build-app.dashboard.basic` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle` | Canonical `App` reference |
+| `build-app.field-ops.analysis-bound` | `build-app` | `analyst` | `synthetic` | -- | -- | `AppBundle`, `Map` | Canonical `App` and `Map` references; `honua://map-packages/{id}` binding |
 | `deploy.app.promotion` | `deploy` | `analyst` | `synthetic` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 | `deploy.service.promotion` | `deploy` | `publisher` | `service` | -- | -- | -- | Canonical `Deployment` reference (deferred per capability matrix) |
 
@@ -624,7 +624,7 @@ documents. The corpus references them; it does not mint synonyms.
 
 Canonical shapes (`AnalysisIntent`, `PublishingIntent`, `BuilderIntent`,
 `DeploymentIntent`, the `*Plan` family, `AnalysisResultPackage`,
-`MapPackage`, `AppPackage`, `PublishedService`, `Deployment`,
+`Map`, `App`, `PublishedService`, `Deployment`,
 `ProvenanceRecord`, `ArtifactRef`, `WorkspaceRef`, `SourceBinding`,
 `GeoprocessingError`) are referenced by name, not reproduced. When an
 upstream shape evolves, scenario shapes absorb the change by

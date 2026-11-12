@@ -120,13 +120,13 @@ Geospatial resource families:
 - **Map template resources** -- cartographic composition templates
 - **App template resources** -- application scaffold templates
 - **Result package resources** -- saved analysis results and their provenance
-- **Map package resources** -- composed map definitions with source bindings,
+- **Map resources** -- composed map definitions with source bindings,
   styles, and view state
-- **App package resources** -- SDK application scaffolds with map and artifact
+- **App resources** -- SDK application scaffolds with map and artifact
   bindings
 - **Published service resources** -- published dataset or service surfaces with
   protocol endpoints
-- **Deployment resources** -- routable runtime surfaces for promoted packages
+- **Deployment resources** -- routable runtime surfaces for promoted Maps, Apps and results
 - **Workspace resources** -- managed working state and artifact lifecycle views
 
 Per-family resource contracts (URI grammar, inspection fields, lifecycle
@@ -152,8 +152,8 @@ Geospatial tool families:
   `StyleRef` — style_id / title / encodings — from the server OGC API – Styles
   surface, or lists available styles; see
   [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id))
-- **Map composition** -- `create_map_package`, `refine_map_package`,
-  `apply_style_preset`, `compose_mixed_protocol_map`, `preview_map_package`.
+- **Map composition** -- `create_map`, `refine_map`,
+  `apply_style_preset`, `compose_mixed_protocol_map`, `preview_map`.
   The reference implementation ships `apply_style_preset` as an
   `x-honua-reference-shape` tool (advertised `honua_apply_style_preset`): it
   binds a preset `StyleRef` as the primary/default style of a published
@@ -161,20 +161,51 @@ Geospatial tool families:
   authoring surface (ADR-0048) so subsequent `render_map` calls reflect it. It
   authors presentation metadata on the hosted service and never edits feature
   records (ADR-0028).
-- **App composition** -- `create_app_package`, `preview_app_package`
-- **Composition exploration contexts (composition profile)** --
+- **App composition** -- `create_app`, `preview_app`
+- **Exploration contexts (interactivity profile)** --
   `create_exploration_context`, `remove_exploration_context`,
   `bind_component_context`. Named units of shared interaction state that
   components join by id, making cross-filtering context membership rather than
   an event->action edge (ADR-0032).
-- **Composition controls (composition profile)** -- `add_control`,
+- **Controls (interactivity profile)** -- `add_control`,
   `remove_control`. The closed input-affordance vocabulary that `control:{id}`
   interaction references resolve against; presentation only (ADR-0031).
-- **Composition interactions (composition profile)** -- `bind_interaction`,
+- **Interactions (interactivity profile)** -- `bind_interaction`,
   `remove_interaction`. Declarative event->action bindings over components already
-  declared in a composition document; presentation wiring only, never source
+  declared in a Map or App document; presentation wiring only, never source
   records (ADR-0028 unaffected).
 - **Publishing** -- `publish_result`
+
+#### Deprecated Names
+
+Standard names follow the Honua vocabulary
+([glossary](https://github.com/honua-io/honua-server/blob/trunk/docs/concepts/domain/README.md)):
+saved Studio content is a Map or an App, never a "package". The former names
+below remain accepted for one release: `index.json` lists each one under
+`deprecatedAliases` (or `deprecatedProfileAliases`), a schema file stays at
+the former path as a deprecated `$ref` to its replacement, and the manifest
+checker maps the former name to the current one with a deprecation note. They
+are removed in the next minor release.
+
+| Former name | Current name | Kind |
+|---|---|---|
+| `create_map_package` | `create_map` | tool |
+| `refine_map_package` | `refine_map` | tool |
+| `preview_map_package` | `preview_map` | tool |
+| `create_app_package` | `create_app` | tool |
+| `preview_app_package` | `preview_app` | tool |
+| `validate_package` | `validate_content` | tool |
+| `preview_package` | `preview_content` | tool |
+| `Map package` | `Map` | resource family |
+| `App package` | `App` | resource family |
+| `composition` | `interactivity` | conformance profile |
+
+Reference-implementation advertised names (`honua_create_map_package`, …),
+resource URIs (`honua://map-packages/{map_package_id}`,
+`honua://app-packages/{app_package_id}`) and payload fields (`mapPackageId`,
+`appPackageId`, `packageFamily`, `packageId`, `packagePayload`) are wire
+literals the reference server owns; they keep their spelling until the server
+migrates them.
 
 ### Prompts
 
@@ -221,7 +252,7 @@ plans analysis, executes geoprocessing, and packages results including maps.
 
 Lifecycle: `AnalysisIntent` -> `ClarificationRequest` / `ClarificationResponse`
 -> `AnalysisPlan` -> `ExecutionJob` -> `AnalysisResultPackage` (with
-`MapPackage`)
+`Map`)
 
 ### Publish Data
 
@@ -235,11 +266,11 @@ Lifecycle: `PublishingIntent` -> `ClarificationRequest` /
 
 ### Build App
 
-Compose SDK-native applications from analysis results, map packages, and
+Compose SDK-native applications from analysis results, Maps, and
 templates. V1 targets `honua-sdk-js` with MapLibre GL JS.
 
 Lifecycle: `BuilderIntent` -> `ClarificationRequest` /
-`ClarificationResponse` -> `BuilderPlan` -> `AppPackage`
+`ClarificationResponse` -> `BuilderPlan` -> `App`
 
 ### Automate / Deploy
 
@@ -374,13 +405,13 @@ authoritative.
 
 | Object | Role |
 |---|---|
-| `MapPackage` | Runnable map definition with source bindings, styles, and view state |
-| `AppPackage` | Runnable SDK application scaffold with map and artifact bindings |
+| `Map` | Runnable map definition with source bindings, styles, and view state |
+| `App` | Runnable SDK application scaffold with map and artifact bindings |
 | `AnalysisResultPackage` | Complete result: summary, assumptions, provenance, artifacts, map |
 | `PublishingResultPackage` | Complete result from publishing: lineage, quality report, published service |
 | `PublishedService` | Published dataset or service surface with protocol endpoints and lineage |
 | `ProvenanceRecord` | Audit trail: sources, versions, assumptions, clarifications, timestamps |
-| `Deployment` | Routable runtime surface for a promoted package |
+| `Deployment` | Routable runtime surface for a promoted Map, App or result |
 
 ## v1 Capability Matrix
 
@@ -426,9 +457,9 @@ not read `v1` in this matrix as "available in the reference".
 | Artifact publishing | v1 | v1 | v1 | deferred |
 | Deployment orchestration | -- | -- | -- | deferred |
 | Direct geoprocessing verbs (analysis profile) | analysis | analysis | -- | -- |
-| Declarative interactions and layout (composition profile) | -- | -- | composition | -- |
-| Shared exploration contexts (composition profile) | -- | -- | composition | -- |
-| Composition controls (`add_control`/`remove_control`, composition profile) | -- | -- | composition | -- |
+| Declarative interactions and layout (interactivity profile) | -- | -- | interactivity | -- |
+| Shared exploration contexts (interactivity profile) | -- | -- | interactivity | -- |
+| Controls (`add_control`/`remove_control`, interactivity profile) | -- | -- | interactivity | -- |
 | Autonomous source-data mutation | excluded | excluded | excluded | excluded |
 | Governed feature editing (`edit_features`, mutation profile) | mutation | mutation | mutation | mutation |
 
@@ -450,14 +481,14 @@ not read `v1` in this matrix as "available in the reference".
 | `clarify_intent` | v1 | v1 | v1 |
 | `validate_plan` | v1 | v1 | v1 |
 | `execute_plan` | v1 | v1 | -- |
-| `create_map_package` | v1 | -- | v1 |
-| `refine_map_package` | v1 | -- | v1 |
+| `create_map` | v1 | -- | v1 |
+| `refine_map` | v1 | -- | v1 |
 | `get_style` | v1 | v1 | v1 |
 | `apply_style_preset` | v1 | -- | v1 |
 | `compose_mixed_protocol_map` | v1 | -- | v1 |
-| `preview_map_package` | v1 | -- | v1 |
-| `create_app_package` | -- | -- | v1 |
-| `preview_app_package` | -- | -- | v1 |
+| `preview_map` | v1 | -- | v1 |
+| `create_app` | -- | -- | v1 |
+| `preview_app` | -- | -- | v1 |
 | `publish_result` | v1 | v1 | v1 |
 | `buffer_features` (analysis profile) | analysis | analysis | -- |
 | `overlay_features` (analysis profile) | analysis | analysis | -- |
@@ -465,13 +496,13 @@ not read `v1` in this matrix as "available in the reference".
 | `reproject_features` (analysis profile) | analysis | analysis | -- |
 | `join_features` (analysis profile) | analysis | analysis | -- |
 | `export_dataset` (analysis profile) | analysis | analysis | -- |
-| `create_exploration_context` (composition profile) | -- | -- | composition |
-| `remove_exploration_context` (composition profile) | -- | -- | composition |
-| `bind_component_context` (composition profile) | -- | -- | composition |
-| `add_control` (composition profile) | -- | -- | composition |
-| `remove_control` (composition profile) | -- | -- | composition |
-| `bind_interaction` (composition profile) | -- | -- | composition |
-| `remove_interaction` (composition profile) | -- | -- | composition |
+| `create_exploration_context` (interactivity profile) | -- | -- | interactivity |
+| `remove_exploration_context` (interactivity profile) | -- | -- | interactivity |
+| `bind_component_context` (interactivity profile) | -- | -- | interactivity |
+| `add_control` (interactivity profile) | -- | -- | interactivity |
+| `remove_control` (interactivity profile) | -- | -- | interactivity |
+| `bind_interaction` (interactivity profile) | -- | -- | interactivity |
+| `remove_interaction` (interactivity profile) | -- | -- | interactivity |
 | `edit_features` (mutation profile) | mutation | mutation | mutation |
 
 Automate / Deploy tools are deferred and not listed. The direct geoprocessing

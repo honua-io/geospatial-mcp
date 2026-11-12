@@ -106,6 +106,12 @@
       "rule": "retired-tool-name",
       "line": "`tools/create_map_package.schema.json` is now `tools/create_map.schema.json`).",
       "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "composition-profile-name",
+      "line": "| `composition` | `interactivity` | conformance profile |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
     }
   ]
 }

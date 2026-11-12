@@ -310,12 +310,13 @@ class RetiredVocabularyTest(unittest.TestCase):
                 "Edit the composition document.\nDo not touch a hosted layer.\n"
                 "Return a MapPackageRef.\n" '"profiles": ["base", "composition"]\n'
                 "Save the map package.\nDeclare the composition profile.\n"
-                "Use the opt-in `composition` conformance profile.\n")
+                "- **composition** -- available only under the opt-in `composition` conformance\n"
+                "cell reading `composition` means the tool is required for FULL conformance only when\n")
         rules = [rule for _p, _n, rule, _r, _l in cv.scan_text("spec/x.md", text, self.allowlist)]
         self.assertEqual(rules, ["map-envelope", "retired-tool-name", "composition-document",
                                  "hosted-layer", "map-envelope", "composition-profile-value",
                                  "studio-package-prose", "composition-profile",
-                                 "composition-profile"])
+                                 "composition-profile-name", "composition-profile-name"])
 
     def test_stale_exception_is_reported(self):
         allowlist = {"exceptions": [{"path": "AGENTS.md", "rule": "hosted-layer",

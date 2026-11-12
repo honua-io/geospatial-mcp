@@ -426,7 +426,7 @@ not read `v1` in this matrix as "available in the reference".
 - **analysis** -- available only under the opt-in `analysis` conformance
   profile (direct geoprocessing verbs; see
   [Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile))
-- **composition** -- available only under the opt-in `composition` conformance
+- **interactivity** -- available only under the opt-in `interactivity` conformance
   profile (declarative interaction and control authoring; see
   [`/CONFORMANCE.md` §Conformance Profiles](../CONFORMANCE.md#conformance-profiles))
 
@@ -499,8 +499,8 @@ opt-in `mutation` conformance profile; each is `v1` only for implementations tha
 declare its profile. `add_control`, `remove_control`, `bind_interaction`, `remove_interaction`,
 `create_exploration_context`, `remove_exploration_context`, and
 `bind_component_context` are the members of
-the opt-in `composition` conformance profile (ADR-0030) and follow the same rule: a
-cell reading `composition` means the tool is required for FULL conformance only when
+the opt-in `interactivity` conformance profile (ADR-0030) and follow the same rule: a
+cell reading `interactivity` means the tool is required for FULL conformance only when
 an implementation declares that profile, exactly as `analysis` and `mutation` behave
 elsewhere in this table (see
 [Direct Analysis Verbs (Analysis Profile)](#direct-analysis-verbs-analysis-profile),

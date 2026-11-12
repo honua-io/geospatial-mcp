@@ -30,8 +30,8 @@ const servedToolOperation = ({ referenceToolName }) => `tools/call:${referenceTo
 const servedResourceOperation = ({ uriForm }) => {
   const path = uriForm.replace(/^honua:\/\//, "");
   const templated = path.includes("/{");
-  const words = path.replace(/\/\{.*$/, "").replace(/s$/, templated ? "" : "s").split(/[-/]/);
-  const name = words.join(" ");
+  const base = path.replace(/\/\{.*$/, "");
+  const name = (templated ? base.replace(/s$/, "") : base).replace(/[-/]/g, " ");
   return `resources/read:${name[0].toUpperCase()}${name.slice(1)}`;
 };
 const expectedOperations = [

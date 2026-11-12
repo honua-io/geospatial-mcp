@@ -121,7 +121,7 @@ def scan_repo(repo=REPO, allowlist=None):
 
 
 def stale_exceptions(repo=REPO, allowlist=None):
-    """Exceptions whose exact line no longer exists or no longer triggers their rule."""
+    """Exceptions whose exact line is absent or does not trigger their rule."""
     allowlist = load_allowlist() if allowlist is None else allowlist
     patterns = {rule_id: pattern for rule_id, pattern, _replacement in COMPILED_RULES}
     stale = []

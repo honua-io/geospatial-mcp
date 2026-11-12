@@ -88,15 +88,28 @@ def deprecated_alias_map(entries, key):
     return {alias: entry[key] for entry in entries for alias in entry.get("deprecatedAliases", [])}
 
 
-def resolve_name(name, current, aliases, kind, label, warnings):
-    """Return the current name for ``name``, noting a deprecated alias; None if unknown."""
+def resolve_name(name, current, aliases):
+    """Return the current name for ``name``, which may be a deprecated alias; None if unknown."""
     if name in current:
         return name
-    if name in aliases:
-        warnings.append(f"{label}: {kind} '{name}' is a deprecated alias of '{aliases[name]}' "
-                        f"(accepted for one release; removed in the next release)")
-        return aliases[name]
-    return None
+    return aliases.get(name)
+
+
+def alias_warning(label, kind, alias, current):
+    """Warning text for a manifest that uses the deprecated alias ``alias`` of ``current``."""
+    return (f"{label}: {kind} '{alias}' is a deprecated alias of '{current}' "
+            f"(accepted for one release; removed in the next release)")
+
+
+def declared_profiles(manifest, profile_aliases, label, warnings):
+    """Return 'base' plus the profiles ``manifest`` declares, with deprecated aliases resolved."""
+    profiles = {"base"}
+    for profile in manifest.get("implementation", {}).get("profiles", ["base"]):
+        current = profile_aliases.get(profile, profile)
+        if current != profile:
+            warnings.append(alias_warning(label, "profile", profile, current))
+        profiles.add(current)
+    return profiles
 
 
 def check_manifest(path, index, strict=False):
@@ -125,23 +138,27 @@ def check_manifest(path, index, strict=False):
     advertised_std_tools = set()
     for tool in manifest.get("tools", []):
         adv = tool.get("advertisedName")
-        std = resolve_name(tool.get("standardName"), index_tools, tool_aliases,
-                           "standardName", label, warnings)
+        named = tool.get("standardName")
+        std = resolve_name(named, index_tools, tool_aliases)
         if std is None:
-            errors.append(f"{label}: tool '{adv}' maps to unknown standardName "
-                          f"'{tool.get('standardName')}' (not in spec/schemas/index.json)")
+            errors.append(f"{label}: tool '{adv}' maps to unknown standardName '{named}' "
+                          f"(not in spec/schemas/index.json)")
             continue
+        if std != named:
+            warnings.append(alias_warning(label, "standardName", named, std))
         advertised_std_tools.add(std)
 
     # Every advertised resource family must map onto a standard family.
     advertised_families = set()
     for res in manifest.get("resources", []):
-        fam = resolve_name(res.get("family"), index_resources, family_aliases,
-                           "resource family", label, warnings)
+        named = res.get("family")
+        fam = resolve_name(named, index_resources, family_aliases)
         if fam is None:
-            errors.append(f"{label}: resource family '{res.get('family')}' is not a standard "
-                          f"family (not in spec/schemas/index.json)")
+            errors.append(f"{label}: resource family '{named}' is not a standard family "
+                          f"(not in spec/schemas/index.json)")
             continue
+        if fam != named:
+            warnings.append(alias_warning(label, "resource family", named, fam))
         advertised_families.add(fam)
         idx_uri = index_resources[fam].get("uriForm")
         if idx_uri and res.get("uriForm") != idx_uri:
@@ -158,22 +175,15 @@ def check_manifest(path, index, strict=False):
     def tool_profile(entry):
         return entry.get("profile", "base")
 
-    profile_aliases = index.get("deprecatedProfileAliases", {})
-    declared_profiles = {"base"}
-    for profile in manifest.get("implementation", {}).get("profiles", ["base"]):
-        if profile in profile_aliases:
-            warnings.append(f"{label}: profile '{profile}' is a deprecated alias of "
-                            f"'{profile_aliases[profile]}' (accepted for one release; "
-                            f"removed in the next release)")
-            profile = profile_aliases[profile]
-        declared_profiles.add(profile)
+    profiles = declared_profiles(manifest, index.get("deprecatedProfileAliases", {}),
+                                 label, warnings)
 
     implemented_std_tools = {n for n, t in index_tools.items()
                              if t.get("implementationStatus") == "implemented"
-                             and tool_profile(t) in declared_profiles}
+                             and tool_profile(t) in profiles}
     undeclared_profile_tools = {n for n, t in index_tools.items()
                                 if t.get("implementationStatus") == "implemented"
-                                and tool_profile(t) not in declared_profiles}
+                                and tool_profile(t) not in profiles}
     known_gap_std_tools = {n for n, t in index_tools.items()
                            if t.get("implementationStatus") == "known-gap"}
     is_reference = bool(manifest.get("implementation", {}).get("isReferenceImplementation"))
@@ -218,7 +228,7 @@ def check_manifest(path, index, strict=False):
         "coveredStandardFamilies": len(advertised_families),
         "knownGaps": len(known_gap_std_tools) + len(known_gap_std_families),
         "isReference": is_reference,
-        "profiles": sorted(declared_profiles),
+        "profiles": sorted(profiles),
     }
 
 

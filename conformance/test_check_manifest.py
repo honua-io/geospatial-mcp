@@ -40,7 +40,7 @@ def _current_family(index, family):
 
 
 def _without_family(manifest, index, family):
-    """A copy of ``manifest`` that no longer advertises ``family`` under any name."""
+    """A copy of ``manifest`` that does not advertise ``family`` under any name."""
     trimmed = copy.deepcopy(manifest)
     trimmed["resources"] = [
         r for r in trimmed["resources"] if _current_family(index, r.get("family")) != family

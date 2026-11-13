@@ -19,6 +19,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 import check_manifest as cm
 import check_vocabulary as cv
@@ -304,8 +305,18 @@ class RetiredVocabularyTest(unittest.TestCase):
 
     def test_downloaded_certification_inputs_do_not_exempt_authored_specs(self):
         text = "Call create_app_package.\n"
-        self.assertEqual(cv.scan_text(".certification/server-contract.md", text, self.allowlist), [])
-        self.assertTrue(cv.scan_text("spec/server-contract.md", text, self.allowlist))
+        paths = [".certification/server-contract.md",
+                 "certification/artifacts/server-contract.md", "spec/server-contract.md"]
+        with tempfile.TemporaryDirectory() as repo:
+            for path in paths:
+                full = os.path.join(repo, path)
+                os.makedirs(os.path.dirname(full), exist_ok=True)
+                with open(full, "w", encoding="utf-8") as handle:
+                    handle.write(text)
+            with mock.patch.object(cv, "tracked_files", return_value=paths):
+                findings = cv.scan_repo(repo=repo, allowlist=self.allowlist)
+        self.assertEqual([(path, rule) for path, _n, rule, _r, _l in findings],
+                         [("spec/server-contract.md", "retired-tool-name")])
 
     def test_allowlist_has_no_stale_exceptions(self):
         self.assertEqual(cv.stale_exceptions(allowlist=self.allowlist), [])

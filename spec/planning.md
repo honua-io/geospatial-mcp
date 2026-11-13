@@ -394,9 +394,9 @@ kind requires a taxonomy change and a matching extension in this document.
   artifact references. `execute_plan` is not in scope in v1 for Build
   App; the v1 Build App MCP tool surface is `create_app` and
   `preview_app` (`spec/taxonomy.md` §MCP Tools to Workflow
-  Family Mapping). `generate_project` and `preview_app` are
-  `BuilderPlan` step kinds (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderPlan),
-  not MCP tools, and MUST NOT be referenced as MCP tool names.
+  Family Mapping). `preview_app` is also a `BuilderPlan` step kind
+  (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderPlan). `generate_project` is
+  only a `BuilderPlan` step kind and MUST NOT be referenced as an MCP tool name.
 
 ### 4.4 Automate / Deploy
 

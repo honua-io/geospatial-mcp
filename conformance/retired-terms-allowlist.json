@@ -2,6 +2,10 @@
   "description": "Declared exceptions for conformance/check_vocabulary.py. Paths are literal (a directory prefix ends with '/'); every entry carries a reason. Glossary: honua-server docs/concepts/domain/README.md. Shared policy: honua-server scripts/ci/retired-terms.v1.json.",
   "excludedPaths": [
     {
+      "path": ".certification/",
+      "reason": "Downloaded immutable server certification inputs; these advertise the pinned server vocabulary rather than authored standard names."
+    },
+    {
       "path": "certification/",
       "reason": "Live-server certification harness: pins the reference implementation's advertised names and recorded receipts; it follows the server migration."
     },

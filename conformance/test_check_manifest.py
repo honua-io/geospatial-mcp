@@ -302,6 +302,11 @@ class RetiredVocabularyTest(unittest.TestCase):
             f"{path}:{number}: [{rule}] use {replacement}"
             for path, number, rule, replacement, _line in findings))
 
+    def test_downloaded_certification_inputs_do_not_exempt_authored_specs(self):
+        text = "Call create_app_package.\n"
+        self.assertEqual(cv.scan_text(".certification/server-contract.md", text, self.allowlist), [])
+        self.assertTrue(cv.scan_text("spec/server-contract.md", text, self.allowlist))
+
     def test_allowlist_has_no_stale_exceptions(self):
         self.assertEqual(cv.stale_exceptions(allowlist=self.allowlist), [])
 

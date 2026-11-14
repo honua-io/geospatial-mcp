@@ -1,42 +1,14 @@
 # AGENTS.md
 
 ## Overview
+Draft geospatial MCP specification, not a runtime implementation. Markdown under `spec/`
+owns taxonomy, resources, transport, planning, corpus and conformance; `docs/features/README.md`
+is the feature map. Typed deterministic execution belongs in `geospatial-grpc`; upstream
+field shapes belong in `honua-server` and are referenced rather than redefined.
 
-`geospatial-mcp` is the **open geospatial MCP (Model Context Protocol) standard**
-for analyst, map, and app-builder workflows. It defines the *agent interaction
-plane* for geospatial operator workflows: the semantic operations agents use to
-discover data, gather requirements, plan work, execute analysis, compose maps,
-build applications, and publish results.
-
-This is a **specification / documentation repository, not a runtime
-implementation.** The deliverables are Markdown spec documents. It is *not*
-entirely code-free, though: it ships a small set of pure-Python, no-runtime
-**static checks** over its own published artifacts — fixture/schema validation
-(`conformance/fixtures/validate.py`), manifest conformance scoring
-(`conformance/check_manifest.py`), and a Markdown link/anchor checker
-(`tools/check_links.py`) — and GitHub Actions workflows that run them. There is
-no application/service/runtime code or compiled artifact. MCP sits *above* the
-execution layer; typed deterministic execution lives in the sibling
-[`geospatial-grpc`](https://github.com/honua-io/geospatial-grpc) repo, and
-upstream contracts/ADRs live in
-[`honua-server`](https://github.com/honua-io/honua-server).
-
-**Status:** Draft. Covers vocabulary baseline, per-family resource contracts,
-planning/handoff semantics, canonical corpus + scenario-pack taxonomy, and
-conformance strategy.
-
-## Tech Stack
-
-- **Markdown** for the normative specification (the bulk of the repo).
-- **Python 3** (standard library) for the static conformance and link checks
-  under `conformance/` and `tools/`. Full JSON Schema validation additionally
-  uses `jsonschema` + `referencing`, pinned in
-  [`conformance/requirements.txt`](conformance/requirements.txt) and installed
-  by CI.
-- **GitHub Actions** CI in [`.github/workflows/`](.github/workflows): `docs.yml`
-  (markdownlint, the relative-link/anchor check, and the conformance checks) and
-  `security.yml` (Trivy + OpenSSF Scorecard). No Dockerfile or Makefile.
-- Git for version control.
+Static Python checks live in `conformance/` and `tools/`. Full JSON Schema checks use the
+pinned `jsonschema`/`referencing` dependencies in `conformance/requirements.txt`.
+CI and lint configuration live in `.github/workflows/` and `.markdownlint-cli2.yaml`.
 
 ## Setup
 
@@ -89,41 +61,13 @@ authenticated, per-edit-type authorized, transactional `edit_features`);
 Layer boundary the spec enforces:
 
 - **MCP** — agent interaction and orchestration (tools, resources, prompts,
-  elicitation). Read-only inspection projections; never mutates server state.
+  elicitation). Read-only inspection projections in the base profile; governed mutation is opt-in as above.
 - **gRPC** (`geospatial-grpc`) — typed deterministic execution.
 - **Server internals** (`honua-server`) — private runtime (worker routing,
   queues, provider adapters, storage). Must not leak into MCP or gRPC surfaces.
 
 Canonical object field shapes are owned upstream by `honua-server` and
 referenced by name in these specs, not redefined here.
-
-## Directory Layout
-
-```text
-.
-├── README.md                 # Repo intro, spec index, workflow families, related repos
-├── CONFORMANCE.md            # Conformance entry point: reference impl, levels, manifest check
-├── LICENSE
-├── .github/workflows/        # CI: docs.yml (lint, links, conformance), security.yml
-├── conformance/              # Static checks over the published artifacts
-│   ├── check_manifest.py     # Scores a manifest's tool/resource coverage vs index.json
-│   ├── requirements.txt      # Optional deps for full JSON Schema validation
-│   ├── fixtures/             # Example tool inputs/resource payloads + validate.py
-│   └── manifests/            # Reference (Honua) conformance manifest
-├── tools/
-│   └── check_links.py        # Relative-link + #anchor-fragment checker
-├── docs/
-│   └── features/
-│       └── README.md         # Geospatial MCP feature map / capability families
-└── spec/                     # The normative specification (single source of truth)
-    ├── taxonomy.md           # Vocabulary baseline, v1 capability matrix, MCP-vs-gRPC boundary, non-goals
-    ├── resources.md          # Per-family resource URIs (honua:// grammar), inspection fields, lifecycle, relationship graph
-    ├── transport.md          # Session/streaming transport: protocol revision, Mcp-Session-Id, SSE, progress + list_changed notifications
-    ├── planning.md           # Clarification, elicitation, planning, and handoff semantics
-    ├── corpus.md             # Canonical dataset corpus, fixture conventions, scenario-pack taxonomy
-    ├── conformance.md        # Conformance fixtures, evaluation rubric, pass/fail, runtime portability
-    └── schemas/              # JSON Schemas + index.json vocabulary map
-```
 
 ## Conventions & Gotchas
 
@@ -151,17 +95,10 @@ referenced by name in these specs, not redefined here.
   over the base plan/execute analysis floor. Adding a verb to the profile
   requires a new standard ADR under `docs/adr/`.
 - Downstream consumer work (harnesses, fixtures, runners) is tracked in other
-  repos (`honua-server`, `honua-devops`), not here.
+  runtime implementation repos, not here.
 
-## Shared dev-environment rules (multi-agent WSL)
-
-This machine runs many agents concurrently (**Codex + Claude**, often via agentflow with multiple tabs/agents). To prevent host lockups and lost work, every agent MUST follow these:
-
-1. **Heavy builds/tests are throttled by a shared lock.** `dotnet` and `npm` are PATH-shimmed, so their build/test/publish/pack and ci/install/test/run-build/run-test subcommands automatically run under a global semaphore (default 1 concurrent, `HONUA_BUILD_SLOTS`). For other heavy tools, call the wrapper explicitly: `with-build-lock pytest ...`, `with-build-lock cargo build`, `with-build-lock make build`. The lock is shared across ALL of this user's processes (every Codex/Claude tab, agentflow children). Do not bypass it for compiles or test suites. Long-running servers (`dotnet run`, `npm run dev`) are intentionally NOT locked — never wrap those.
-
-2. **Commit and push when you finish a task** so your worktree can be reclaimed. An hourly job (`honua-clean`) removes a worktree ONLY when it is clean AND fully pushed (merged, remote-gone, or idle >=2d). Dirty or unpushed worktrees are NEVER touched — but uncommitted/unpushed work blocks reclamation and is at risk if the instance is reset. Build artifacts (bin/obj and untracked node_modules) are reclaimed automatically and safely.
-
-3. **Commit hygiene — no agent attribution.** Author every commit as the repo owner only (git identity: Mike McDougall <mike@honua.io>). Do **NOT** add any agent/tool attribution to commits: no `Co-Authored-By: Claude ...`, no `Co-Authored-By: Codex ...` (or other bot co-authors), and no "Generated with Claude Code" / "Generated with Codex" / "🤖" lines in the message or PR body. Write a plain, descriptive commit message and stop. This rule is enforced going forward: the `attribution` CI workflow (`.github/workflows/attribution.yml`) rejects a PR whose introduced commits or PR body carry AI/agent attribution, and the same check runs locally as a `commit-msg` hook (install once with `tools/hooks/install.sh`). The shared checker is `tools/check_attribution.py`. Existing published history is intentionally left as-is; only newly introduced commits and the PR body are checked.
+Attribution CI uses `tools/check_attribution.py`; install its commit-message hook with
+`tools/hooks/install.sh`. Existing published history is unchanged.
 
 ## Release component versions
 
@@ -172,7 +109,8 @@ any contract or schema version bump must change this file in the same PR.
 
 ## SDK capability baseline
 
-`release/sdk-capability-baseline.json` (`honua.sdk-capability-baseline/v1`, defined by honua-release `schemas/sdk-capability-baseline.v1.schema.json` and `docs/SDK-SERVER-BASELINE-RULE.md`) declares the honua-server capabilities this repository requires and the `minimumServerVersion` derived from them. The honua-release nightly resolver reads it at the same selected trunk commit as `release/component-versions.json`, so the baseline takes effect as soon as that commit is selected. Every required capability must be a key in honua-server `docs/gis/data/capability-keys.v1.json`, and `capabilities` must hold exactly one introduction entry per required capability. Add or remove a required capability in the same PR that starts or stops depending on it.
+`release/sdk-capability-baseline.json` uses honua-release's `honua.sdk-capability-baseline/v1` schema and `docs/SDK-SERVER-BASELINE-RULE.md`; the nightly resolver reads it with the selected `release/component-versions.json` commit.
+Keep `minimumServerVersion` derived from required server capability keys, with exactly one introduction entry per requirement. Change requirements in the same PR that adds or removes the dependency.
 
 ## Review guidelines
 
@@ -192,3 +130,20 @@ BLOCKING:
 
 WARNING: the rubric's other smells (N2-N7, G6-G36, T1-T9), e.g. G25 magic numbers or G12
 single-implementation interfaces.
+
+<!-- fleet:begin v3 sha256=4faeba041ae102508d105847af58b407641cbfdf1ae506488819a2ccdbe73e29 -->
+## Fleet rules (all Honua repos)
+
+Generated from the org fleet-rules source; do not edit this block. Start with org skill `honua-system-map`.
+
+1. Author commits as the repository owner's configured git identity. No AI attribution in commits or PR bodies.
+2. Use a separate worktree per task, off the default branch, on durable disk. Include current trunk before opening a PR. No shared-checkout edits or git stash; preserve work with commits.
+3. Run .NET builds and tests only through the approved remote build-host shims. Never fall back to a local build. See org skill `honua-build-host`.
+4. Commit and push completed work; keep existing branches, commits and worktrees until their retention rules permit cleanup.
+5. Claim work before starting, reread the issue and current lane rulings, and release the claim after completion. See org skill `honua-dev-loop`.
+6. Use a PR slot and bundle at least three issues, a plan row, or a permitted single-work reason. Current caps and exceptions come from current lane rulings.
+7. Target the default branch with the repository's PR template and conventional title. Never force-push or use an admin merge.
+8. Run pre-PR checks, obtain one independent review of the final head, and resolve every review thread. Merge on green required checks; arm auto-merge where enforced checks support it. See org skill `honua-pr-flow`.
+9. Read failed required-check logs and fix in one push. For red trunk, fix forward or revert within the repository's current ruling deadline; see org skills `honua-red-pr` and `honua-trunk-red`.
+10. Never commit secrets, deployment identifiers, private repository names or infrastructure details. Security findings belong in the private tracker. Archived repos get no issues or PRs; public instructions name org skills only.
+<!-- fleet:end -->

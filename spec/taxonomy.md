@@ -66,13 +66,14 @@ While the standard carries `**Status:** Draft`, `SPEC_VERSION` MAY change
 without the guarantees above; the compatibility policy governs released
 versions.
 
-**Breaking draft change:** the service-scoped selector in `query_features`,
-`render_map` layer references, `get_style` and `apply_style_preset` is now
-`serviceLayerIndex` (formerly `layerId`). The corresponding `query_features`, `render_map`,
-`apply_style_preset`, `list_layers` and `resolve_entity` results use the same name. Clients
-must use the index returned by discovery together with its `serviceId`;
-an internal storage layer id cannot substitute for that index. The obsolete
-selector is rejected, including when both spellings are supplied.
+**Service layer selector:** `query_features`, `render_map` layer references,
+`get_style` and `apply_style_preset` select a published layer with `serviceId`
+and `serviceLayerIndex`. The `query_features`, `render_map`,
+`apply_style_preset`, `list_layers` and `resolve_entity` results use the same
+name. Clients must use the index returned by discovery together with its
+`serviceId`; an internal storage layer id cannot substitute for that index. A
+`layerId` selector is rejected on these tools (see the
+[changelog](../docs/CHANGELOG.md)).
 
 ## MCP Role in the Architecture
 
@@ -318,7 +319,8 @@ difference / erase / clip), `summarize_statistics` (group-by + statistics),
   `plan_analysis` + `execute_plan` for multi-step analysis with dependencies,
   clarification, and a packaged result.
 - **Source.** Each verb operates on EITHER a published layer (`LayerRef`:
-  `serviceId` + `layerId`) OR a prior-result `ArtifactRef` (`artifactId`), so
+  `serviceId` + `layerId`, where `layerId` carries the service-local index that
+  `list_layers` returns as `serviceLayerIndex`) OR a prior-result `ArtifactRef` (`artifactId`), so
   verbs chain onto earlier job/verb outputs without a plan.
 - **Async posture.** A verb returns an `ExecutionJob` handle
   (`honua://jobs/{job_id}`) for durable, long-running work — pollable, and

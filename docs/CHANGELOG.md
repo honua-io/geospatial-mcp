@@ -32,6 +32,21 @@ their schema files are removed.
 Each renamed tool's schema moves with it (for example
 `tools/create_map_package.schema.json` is now `tools/create_map.schema.json`).
 
+### Service layer selector
+
+The service-scoped layer selector is named for what it holds, a service-local
+layer index, so it cannot be confused with an internal storage layer id. The
+former name is rejected, including when both spellings are supplied.
+
+| Former name | Current name | Where |
+|---|---|---|
+| `layerId` | `serviceLayerIndex` | `query_features`, `get_style` and `apply_style_preset` inputs; `render_map` layer references |
+| `layerId` | `serviceLayerIndex` | `query_features`, `render_map`, `apply_style_preset`, `list_layers` and `resolve_entity` results |
+
+The direct analysis verbs and `edit_features` keep `layerId` in their
+`LayerRef` until the reference server migrates those wire fields; the value
+is the same service-local index.
+
 Reference-implementation advertised names (for example
 `honua_create_map_package`), resource URIs and payload fields are wire literals
 the reference server owns; they change when the server migrates them.

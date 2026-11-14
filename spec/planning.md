@@ -361,16 +361,16 @@ kind requires a taxonomy change and a matching extension in this document.
 ### 4.3 Build App
 
 - **Inputs.** A `BuilderIntent` that references a target template family,
-  plus the set of artifacts, map packages, or datasets the app will bind.
+  plus the set of artifacts, Maps, or datasets the app will bind.
 - **Plan construction.** Emit a `BuilderPlan` whose steps are drawn from
   the Build App step kinds. A plan MUST begin with `select_template` and MUST
   NOT emit `generate_project` before all `bind_*` and `compose_*` steps
   required by the chosen template are present.
 - **Pre-execution warnings.** The planner SHOULD warn when the plan
-  references artifacts that are not yet available (for example, a map
-  package from an in-progress analysis). Build App v1 uses direct
-  BuilderService-backed calls (`create_app_package`,
-  `preview_app_package`) that require all bound artifacts to be
+  references artifacts that are not yet available (for example, a Map
+  from an in-progress analysis). Build App v1 uses direct
+  BuilderService-backed calls (`create_app`,
+  `preview_app`) that require all bound artifacts to be
   resolved at call time; deferred dependency ordering is not available
   in the v1 path. If a future upstream contract adds job-backed
   Builder execution, dependency ordering semantics will follow the
@@ -388,15 +388,15 @@ kind requires a taxonomy change and a matching extension in this document.
   canonical ahead of upstream harmonization. Downstream consumers MUST
   follow the current upstream Builder examples verbatim until that
   vocabulary is unified there. The plan still resolves to an
-  `AppPackage` resource object; if the app itself is to be published,
+  `App` resource object; if the app itself is to be published,
   `PublishAction` clarification fires before handoff (see Section 2.1).
 - **Dry-run vs. submit.** `validate_plan` validates template binding and
   artifact references. `execute_plan` is not in scope in v1 for Build
-  App; the v1 Build App MCP tool surface is `create_app_package` and
-  `preview_app_package` (`spec/taxonomy.md` §MCP Tools to Workflow
-  Family Mapping). `generate_project` and `preview_app` are
-  `BuilderPlan` step kinds (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderPlan),
-  not MCP tools, and MUST NOT be referenced as MCP tool names.
+  App; the v1 Build App MCP tool surface is `create_app` and
+  `preview_app` (`spec/taxonomy.md` §MCP Tools to Workflow
+  Family Mapping). `preview_app` is also a `BuilderPlan` step kind
+  (`AI_OPERATOR_TECHNICAL_PLAN.md` §BuilderPlan). `generate_project` is
+  only a `BuilderPlan` step kind and MUST NOT be referenced as an MCP tool name.
 
 ### 4.4 Automate / Deploy
 
@@ -450,7 +450,7 @@ families. Downstream orchestration hosts consume those same contracts
 `PipelineService`, but upstream does not yet standardize a shared job object,
 job-status vocabulary, or terminal-state contract for that family. Build App
 keeps v1 planning and direct Builder tool semantics (`validate_plan`,
-`create_app_package`, `preview_app_package`), but does not enter the
+`create_app`, `preview_app`), but does not enter the
 `ExecutionJob` handoff model described in Sections 5.2 and 5.3. Automate /
 Deploy execution is deferred; its plan shape is specified in Section 4.4 for
 forward compatibility. Sections 5.1 and 5.2 below therefore distinguish
@@ -512,8 +512,8 @@ for Build App, `DeploymentService` for Automate / Deploy). This
 document does not commit to exact method names until the upstream
 contracts add them.
 
-Build App's v1 boundary-crossing tools are `create_app_package` and
-`preview_app_package`. They are direct BuilderService-backed composition
+Build App's v1 boundary-crossing tools are `create_app` and
+`preview_app`. They are direct BuilderService-backed composition
 calls that return builder artifacts or previews, not `ExecutionJob`
 references, and they do not inherit the post-handoff job-state
 semantics in Section 5.3.
@@ -745,7 +745,7 @@ execution host marks the backing `ExecutionJob` terminal. For Publish Data,
 `PublishingResultPackage` is surfaced through the publishing contract once
 `PipelineService` reports final publication state; this document does not
 assign Publish Data a shared `ExecutionJob` terminal-state dependency. For
-Build App v1, `AppPackage` is produced directly by `create_app_package` and
+Build App v1, `App` is produced directly by `create_app` and
 returned to the MCP plane without an intermediate job; when a future upstream
 contract adds job-backed Builder execution, result packaging will follow the
 same family-specific execution model. `Deployment` output semantics are

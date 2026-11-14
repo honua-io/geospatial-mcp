@@ -42,18 +42,18 @@
       "implementationStatus": "implemented"
     },
     {
-      "standardName": "create_map_package",
+      "standardName": "create_map",
       "referenceToolName": "honua_create_map_package",
       "family": "Map composition",
-      "schema": "tools/create_map_package.schema.json",
+      "schema": "tools/create_map.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft MapPackage directly from the structured inputs defined in this schema (template, source bindings, style/theme selection, initial view) and returns its stable map package identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the composition is then refined through the fine-grained composition element operations."
+      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft Map directly from the structured inputs defined in this schema (template, source bindings, style/theme selection, initial view) and returns its stable Map identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the draft is then refined through the fine-grained authoring operations."
     },
     {
-      "standardName": "refine_map_package",
+      "standardName": "refine_map",
       "referenceToolName": null,
       "family": "Map composition",
-      "schema": "tools/refine_map_package.schema.json",
+      "schema": "tools/refine_map.schema.json",
       "implementationStatus": "known-gap"
     },
     {
@@ -78,89 +78,89 @@
       "implementationStatus": "known-gap"
     },
     {
-      "standardName": "preview_map_package",
+      "standardName": "preview_map",
       "referenceToolName": null,
       "family": "Map composition",
-      "schema": "tools/preview_map_package.schema.json",
+      "schema": "tools/preview_map.schema.json",
       "implementationStatus": "known-gap"
     },
     {
-      "standardName": "create_app_package",
+      "standardName": "create_app",
       "referenceToolName": "honua_create_app_package",
       "family": "App composition",
-      "schema": "tools/create_app_package.schema.json",
+      "schema": "tools/create_app.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft AppPackage directly from the structured inputs defined in this schema (app template, target SDK, bound map package and artifacts, runtime config) and returns its stable app package identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the composition is then refined through the fine-grained composition element operations."
+      "notes": "Reference implementation (honua-server#3255): deterministic draft-creation entry point. It builds a draft App directly from the structured inputs defined in this schema (app template, target SDK, bound Map and artifacts, runtime config) and returns its stable App identifier; no server-side model inference runs. Model reasoning is owned by the client agent, and the draft is then refined through the fine-grained authoring operations."
     },
     {
-      "standardName": "preview_app_package",
+      "standardName": "preview_app",
       "referenceToolName": null,
       "family": "App composition",
-      "schema": "tools/preview_app_package.schema.json",
+      "schema": "tools/preview_app.schema.json",
       "implementationStatus": "known-gap"
     },
     {
       "standardName": "bind_interaction",
       "referenceToolName": null,
-      "family": "Composition interactions",
+      "family": "Interactions",
       "schema": "tools/bind_interaction.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Adds or replaces one declarative event→action binding in a composition document; member of the opt-in composition conformance profile (docs/adr/0030-declarative-interactions-and-layout.md). Bindings are data-only ($event.* substitution, no expression language); actions never emit events. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the composition profile."
+      "profile": "interactivity",
+      "notes": "Adds or replaces one declarative event→action binding in a Map or App document; member of the opt-in interactivity conformance profile (docs/adr/0030-declarative-interactions-and-layout.md). Bindings are data-only ($event.* substitution, no expression language); actions never emit events. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the interactivity profile."
     },
     {
       "standardName": "remove_interaction",
       "referenceToolName": null,
-      "family": "Composition interactions",
+      "family": "Interactions",
       "schema": "tools/remove_interaction.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Removes one declarative binding, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0030-declarative-interactions-and-layout.md)."
+      "profile": "interactivity",
+      "notes": "Removes one declarative binding, by id, from a Map or App document; member of the opt-in interactivity conformance profile (docs/adr/0030-declarative-interactions-and-layout.md)."
     },
     {
       "standardName": "add_control",
       "referenceToolName": null,
-      "family": "Composition controls",
+      "family": "Controls",
       "schema": "tools/add_control.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Adds or replaces (by id) one control in a composition document's controls collection; member of the opt-in composition conformance profile (docs/adr/0031-composition-controls.md). The control kind vocabulary is closed and excludes a feature-editing draw control (ADR-0028). Controls are what control:{id} interaction references resolve against. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the composition profile."
+      "profile": "interactivity",
+      "notes": "Adds or replaces (by id) one control in a Map or App document's controls collection; member of the opt-in interactivity conformance profile (docs/adr/0031-composition-controls.md). The control kind vocabulary is closed and excludes a feature-editing draw control (ADR-0028). Controls are what control:{id} interaction references resolve against. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the interactivity profile."
     },
     {
       "standardName": "remove_control",
       "referenceToolName": null,
-      "family": "Composition controls",
+      "family": "Controls",
       "schema": "tools/remove_control.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Removes one control, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0031-composition-controls.md). Interactions bound to the removed control must be removed with it or the call rejected — no dangling control: references."
+      "profile": "interactivity",
+      "notes": "Removes one control, by id, from a Map or App document; member of the opt-in interactivity conformance profile (docs/adr/0031-composition-controls.md). Interactions bound to the removed control must be removed with it or the call rejected — no dangling control: references."
     },
     {
       "standardName": "create_exploration_context",
       "referenceToolName": null,
-      "family": "Composition exploration",
+      "family": "Exploration contexts",
       "schema": "tools/create_exploration_context.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Adds or replaces (by id) one exploration context in a composition document's explorationContexts collection; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). A context is a named unit of shared interaction state (filters, spatial filter, extent, selection, sort, page, visible fields, grouping, aggregation) governed by a closed preset vocabulary. Contexts are data-only: no expression language and no $event.* substitution. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the composition profile."
+      "profile": "interactivity",
+      "notes": "Adds or replaces (by id) one exploration context in a Map or App document's explorationContexts collection; member of the opt-in interactivity conformance profile (docs/adr/0032-shared-exploration-contexts.md). A context is a named unit of shared interaction state (filters, spatial filter, extent, selection, sort, page, visible fields, grouping, aggregation) governed by a closed preset vocabulary. Contexts are data-only: no expression language and no $event.* substitution. The reference implementation does not ship the standard-named tool yet; required for FULL only when a manifest declares the interactivity profile."
     },
     {
       "standardName": "remove_exploration_context",
       "referenceToolName": null,
-      "family": "Composition exploration",
+      "family": "Exploration contexts",
       "schema": "tools/remove_exploration_context.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Removes one exploration context, by id, from a composition document; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). Components bound to the removed context must be unbound with it or the call rejected — no orphaned explorationContextId."
+      "profile": "interactivity",
+      "notes": "Removes one exploration context, by id, from a Map or App document; member of the opt-in interactivity conformance profile (docs/adr/0032-shared-exploration-contexts.md). Components bound to the removed context must be unbound with it or the call rejected — no orphaned explorationContextId."
     },
     {
       "standardName": "bind_component_context",
       "referenceToolName": null,
-      "family": "Composition exploration",
+      "family": "Exploration contexts",
       "schema": "tools/bind_component_context.schema.json",
       "implementationStatus": "known-gap",
-      "profile": "composition",
-      "notes": "Sets or clears one component's exploration-context membership and role, addressed by the ADR-0030 ref grammar; member of the opt-in composition conformance profile (docs/adr/0032-shared-exploration-contexts.md). Linking N components into one shared-state workspace is N calls, not one per component pair — the authoring-cost difference that motivates ADR-0032."
+      "profile": "interactivity",
+      "notes": "Sets or clears one component's exploration-context membership and role, addressed by the ADR-0030 ref grammar; member of the opt-in interactivity conformance profile (docs/adr/0032-shared-exploration-contexts.md). Linking N components into one shared-state workspace is N calls, not one per component pair — the authoring-cost difference that motivates ADR-0032."
     },
     {
       "standardName": "publish_result",
@@ -361,23 +361,23 @@
       "family": "Publishing",
       "schema": "tools/publish_service.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Native divergence from publish_result: honua_publish_service publishes a source table as a new hosted service (connectionId/schema/table/layerName), whereas the standard publish_result promotes an existing result/package (sourceId). publish_result stays a known-gap until the standard finalizes a service-publish contract (honua-server#730/#732)."
+      "notes": "Native divergence from publish_result: honua_publish_service publishes a source table as a new hosted service (connectionId/schema/table/layerName), whereas the standard publish_result promotes an existing result (sourceId). publish_result stays a known-gap until the standard finalizes a service-publish contract (honua-server#730/#732)."
     },
     {
-      "standardName": "validate_package",
+      "standardName": "validate_content",
       "referenceToolName": "honua_validate_package",
-      "family": "Composition review (reference shape)",
-      "schema": "tools/validate_package.schema.json",
+      "family": "Map and App review (reference shape)",
+      "schema": "tools/validate_content.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference-shape review tool: read-only inspection of a map/app package's requirement coverage."
+      "notes": "Reference-shape review tool: read-only inspection of the requirement coverage of a Map or App."
     },
     {
-      "standardName": "preview_package",
+      "standardName": "preview_content",
       "referenceToolName": "honua_preview_package",
-      "family": "Composition review (reference shape)",
-      "schema": "tools/preview_package.schema.json",
+      "family": "Map and App review (reference shape)",
+      "schema": "tools/preview_content.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference-shape review tool: read-only preview plan for a map/app package before publishing."
+      "notes": "Reference-shape review tool: read-only preview plan for a Map or App before publishing."
     },
     {
       "standardName": "resolve_entity",
@@ -437,16 +437,16 @@
       "notes": "Per-artifact workspace sub-resource is not served as a stand-alone URI by the reference implementation. Known-gap."
     },
     {
-      "family": "Map package",
+      "family": "Map",
       "uriForm": "honua://map-packages/{map_package_id}",
-      "schema": "resources/map-package.schema.json",
+      "schema": "resources/map.schema.json",
       "shapeFidelity": "responsibility-level",
       "implementationStatus": "implemented"
     },
     {
-      "family": "App package",
+      "family": "App",
       "uriForm": "honua://app-packages/{app_package_id}",
-      "schema": "resources/app-package.schema.json",
+      "schema": "resources/app.schema.json",
       "shapeFidelity": "responsibility-level",
       "implementationStatus": "implemented"
     },
@@ -516,19 +516,19 @@
       "role": "Canonical error envelope reused by all tool/resource failure paths."
     },
     {
-      "name": "CompositionInteractions",
+      "name": "Interactions",
       "schema": "common/interactions.schema.json",
-      "role": "Standard-owned interactions and layout blocks for composition documents (MapPackage/AppPackage); referenced by both resource schemas and by bind_interaction. See docs/adr/0030-declarative-interactions-and-layout.md."
+      "role": "Standard-owned interactions and layout blocks for Map and App documents; referenced by both resource schemas and by bind_interaction. See docs/adr/0030-declarative-interactions-and-layout.md."
     },
     {
-      "name": "CompositionControls",
+      "name": "Controls",
       "schema": "common/controls.schema.json",
-      "role": "Standard-owned controls collection for composition documents (MapPackage/AppPackage) — the closed input-affordance vocabulary that control:{id} references resolve against; referenced by both resource schemas and by add_control. See docs/adr/0031-composition-controls.md."
+      "role": "Standard-owned controls collection for Map and App documents — the closed input-affordance vocabulary that control:{id} references resolve against; referenced by both resource schemas and by add_control. See docs/adr/0031-composition-controls.md."
     },
     {
-      "name": "CompositionExplorationContexts",
+      "name": "ExplorationContexts",
       "schema": "common/exploration.schema.json",
-      "role": "Standard-owned explorationContexts collection for composition documents (MapPackage/AppPackage) — named units of shared interaction state that components join by id, making cross-filtering context membership rather than an event→action edge; referenced by both resource schemas, by the controls schema's component binding, and by create_exploration_context / bind_component_context. See docs/adr/0032-shared-exploration-contexts.md."
+      "role": "Standard-owned explorationContexts collection for Map and App documents — named units of shared interaction state that components join by id, making cross-filtering context membership rather than an event→action edge; referenced by both resource schemas, by the controls schema's component binding, and by create_exploration_context / bind_component_context. See docs/adr/0032-shared-exploration-contexts.md."
     }
   ],
   "conformance": [

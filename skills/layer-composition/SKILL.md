@@ -39,22 +39,22 @@ Use this bottom-to-top order unless the evidence requires a documented change:
 - Suppress parcel outlines, minor roads, and dense labels at overview scales.
 - Require text, pattern, shape, or boundary cues when color alone is ambiguous.
 
-## Mixed sources and package paths
+## Mixed sources and Map paths
 
 Keep stable source identity and CRS explicit for every binding. Use
 `compose_mixed_protocol_map` when advertised source bindings span protocols.
-Otherwise use `create_map_package` or `refine_map_package` only for properties
+Otherwise use `create_map` or `refine_map` only for properties
 their live schemas advertise. Never silently substitute a similarly titled
 layer or assume every source shares the first layer's CRS, extent, freshness,
 visibility, or access policy.
 
-Prefer server-side or package-level composition. Do not download full layers
+Prefer server-side or Map-level composition. Do not download full layers
 to manufacture a local overlay when a bounded preview or configured rendering
 path is available.
 
 ## Preview and removal test
 
-Use `preview_map_package` for an isolated package. Use `render_map` only for
+Use `preview_map` for an isolated draft Map. Use `render_map` only for
 already configured layers; it accepts layers and an extent, not invented
 palette or class-break inputs.
 
@@ -74,7 +74,7 @@ verified, or it cannot remain legible at the target scale.
 - Treating `list_layers` as MCP tool-schema discovery.
 - Assuming mixed-protocol sources share CRS, freshness, rights, or visibility.
 - Sending palette or class-break properties to `render_map`.
-- Mutating a hosted layer solely to obtain a composition preview.
+- Mutating a shared Layer solely to obtain a composition preview.
 
 ## Completion check
 

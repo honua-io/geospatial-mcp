@@ -36,6 +36,9 @@ python3 conformance/check_manifest.py --strict
 
 # Verify internal relative links AND #anchor fragments resolve:
 python3 tools/check_links.py
+
+# Find retired vocabulary outside declared exceptions (also run by test_check_manifest.py):
+python3 conformance/check_vocabulary.py
 ```
 
 `--strict` (or `CONFORMANCE_STRICT=1`) turns a missing validation dependency
@@ -127,6 +130,16 @@ BLOCKING:
   on public members.
 - N1 names that hide intent; F1 more than 3 parameters; F2 output arguments; F3 boolean flag arguments.
 - Over budget with no reason in the PR: functions ~40 lines or 2 nesting levels; classes, files ~400 lines.
+
+- Vocabulary: names, schema titles, descriptions, spec prose and skills use the Honua vocabulary in the
+  [canonical glossary](https://github.com/honua-io/honua-server/blob/trunk/docs/concepts/domain/README.md)
+  and the shared policy (honua-server `scripts/ci/retired-terms.v1.json`): saved Studio content is a
+  Map or an App, never a "package" or a "composition", and a served dataset is a Layer. Wire literals
+  the reference server serves keep their spelling until the server migrates them. The standard is unreleased, so a
+  standard tool, resource family or profile is renamed outright: no deprecated aliases, alias tables or shims; the
+  former name goes only into the `docs/CHANGELOG.md` rename list and the retired-term guard.
+  `conformance/check_vocabulary.py` enforces this; every exception in
+  `conformance/retired-terms-allowlist.json` names an exact path, rule and line with a reason.
 
 WARNING: the rubric's other smells (N2-N7, G6-G36, T1-T9), e.g. G25 magic numbers or G12
 single-implementation interfaces.

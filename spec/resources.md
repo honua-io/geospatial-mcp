@@ -66,12 +66,12 @@ Families introduced by this document:
 | Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result) |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
-| Map package | `honua://map-packages/{map_package_id}` | `MapPackage` |
-| App package | `honua://app-packages/{app_package_id}` | `AppPackage` |
+| Map | `honua://map-packages/{map_package_id}` | `Map` |
+| App | `honua://app-packages/{app_package_id}` | `App` |
 | Style | `honua://styles/{style_id}` | `StyleRef` (`geospatial.v1.StyleRef`, geospatial-grpc; resolved via the server OGC API – Styles surface) |
 | Theme | `honua://themes/{theme_id}` | `ThemeSpec` |
 | Map template | `honua://templates/maps/{map_template_id}` | `MapTemplate` |
-| App template | `honua://templates/apps/{app_template_id}` | `AppPackage.templateId` (shape deferred) |
+| App template | `honua://templates/apps/{app_template_id}` | `App.templateId` (shape deferred) |
 | Published service | `honua://published-services/{published_service_id}` | `PublishedService` |
 | Deployment | `honua://deployments/{deployment_id}` | `Deployment` |
 | Ops health | `honua://ops/health` | `OpsHealthSnapshotResponse` (honua-server) |
@@ -95,7 +95,7 @@ serves a given family today is tracked in
 [`spec/schemas/index.json`](schemas/index.json) `implementationStatus` and the
 reference conformance manifest (`conformance/manifests/honua.manifest.json`),
 and is enforced by `conformance/check_manifest.py --strict`. As of this writing
-the reference serves the **Map package**, **App package**, **Published
+the reference serves the **Map**, **App**, **Published
 service**, **Deployment**, **Ops health**, **Ops findings**, and **Workspace**
 families under the URIs above. The
 **Result package**, **Result artifact**, **Result provenance**, **Workspace
@@ -239,7 +239,7 @@ The canonical shape is finalizing in `honua-server#730`; the Technical
 Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
 than by concrete field names, consistent with the approach used for
-`MapPackage` and `AppPackage` below. Upstream does not yet define a stable
+`Map` and `App` below. Upstream does not yet define a stable
 identifier shared with `AnalysisResultPackage`, so this section is a
 reserved subtype note rather than a constructible MCP resource contract.
 
@@ -257,11 +257,11 @@ read-only.
 - published service reference (canonical `PublishedService` reference)
   or service-definition output branch (`serviceDefinition` field
   per the Technical Plan); the output branch is determined upstream;
-- map package when spatially relevant (canonical `MapPackage` reference);
+- Map when spatially relevant (canonical `Map` reference);
 - provenance (canonical `ProvenanceRecord`).
 
 Reserved edges once the shared identifier lands: published service or
-service-definition output branch, quality-assessment outcome, map package,
+service-definition output branch, quality-assessment outcome, Map,
 provenance.
 MCP exposes compositions by canonical object name or upstream field
 reference; field names finalize alongside `honua-server#730`.
@@ -285,12 +285,12 @@ following responsibilities read-only.
 
 **Inspection responsibilities surfaced read-only:**
 
-- app package (canonical `AppPackage` reference);
-- map package when applicable (canonical `MapPackage` reference);
+- App (canonical `App` reference);
+- Map when applicable (canonical `Map` reference);
 - preview artifacts (canonical `ArtifactRef` references);
 - provenance (canonical `ProvenanceRecord`).
 
-Reserved edges once the shared identifier lands: app package, map package,
+Reserved edges once the shared identifier lands: App, Map,
 preview artifacts, provenance. MCP exposes compositions by canonical object
 name; upstream field names finalize alongside the packaging lifecycle (see
 §Downstream Coordination).
@@ -310,7 +310,7 @@ defines a shared stable identifier and its canonical shape finalizes in
 ### `honua://map-packages/{map_package_id}`
 
 Projection of
-[`MapPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
+[`Map`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
 The canonical shape is finalizing in the packaging lifecycle; the
 [`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage)
 and
@@ -326,7 +326,7 @@ the canonical shape when the packaging lifecycle ticket lands.
 
 **Inspection responsibilities surfaced read-only:**
 
-- package format and template binding (target identifies the canonical
+- document format and template binding (target identifies the canonical
   `MapTemplate`);
 - source bindings (each binding is a canonical `SourceBinding`);
 - styling composition (style and theme selection via canonical
@@ -346,7 +346,7 @@ this surface.
 ### `honua://app-packages/{app_package_id}`
 
 Projection of
-[`AppPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage).
+[`App`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage).
 The canonical shape is finalizing in the packaging lifecycle; the
 [`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage)
 and
@@ -366,16 +366,16 @@ by concrete field names.
   runtime);
 - template binding (references the app-template registry; see
   `honua://templates/apps/{id}`);
-- package format and generated file manifest;
+- document format and generated file manifest;
 - bundle artifact reference (canonical `ArtifactRef`);
 - delivery asset manifest (paths with content types);
-- map binding (canonical `MapPackage` reference);
+- map binding (canonical `Map` reference);
 - runtime configuration schema;
 - hosting and route hints (hosting mode and default route prefix);
 - bound data artifacts required at runtime (canonical `ArtifactRef`
   references).
 
-Edges: map package, bundle artifact, asset manifest, delivery hints,
+Edges: Map, bundle artifact, asset manifest, delivery hints,
 runtime config schema, bound artifacts. MCP exposes compositions by
 canonical object name; upstream field renames in the packaging lifecycle
 flow through by reference.
@@ -423,7 +423,7 @@ available styles, each with its `styleId`, `title`, and canonical
 `honua://styles/{id}` URI, plus the server-designated `default` when present.
 
 Edges: renderer, label, and popup composition are owned by the canonical
-`StyleRef`; styles are consumed by `MapPackage` style composition and by
+`StyleRef`; styles are consumed by `Map` style composition and by
 `PublishedService` styling composition. This projection is read-only — MCP
 never mutates server-side styles; persisting a style onto a map or published
 service stays with the gRPC execution layer (see
@@ -447,7 +447,7 @@ projection by responsibility rather than by concrete field names.
 - semantic status colors.
 
 Edges: theme composition owned by the canonical `ThemeSpec`; themes are
-referenced by `MapPackage` theme selection and by `AppPackage` runtime
+referenced by `Map` theme selection and by `App` runtime
 presentation configuration. Concrete field names finalize upstream; the
 resource URI and responsibility list stay stable under reference.
 
@@ -468,10 +468,10 @@ projection by responsibility rather than by concrete field names.
   print-friendly review);
 - named slots for `SourceBinding` placement;
 - default style and theme composition;
-- layout and view presets that seed `MapPackage` generation.
+- layout and view presets that seed `Map` generation.
 
 Edges: template composition owned by the canonical `MapTemplate`; map
-templates are referenced by `MapPackage.templateId`. Concrete field names
+templates are referenced by `Map.templateId`. Concrete field names
 finalize upstream; the resource URI and responsibility list stay stable
 under reference.
 
@@ -479,20 +479,20 @@ under reference.
 
 App-template inspection view. The canonical app-template shape is not yet
 owned by a single honua-server type; it surfaces through
-`AppPackage.templateId` and builder-side template registries. MCP
+`App.templateId` and builder-side template registries. MCP
 therefore standardizes the URI and template identity only, and passes
 through builder-owned inspection metadata without renaming it.
 
 **Stable identifier:** app-template ID (registry-defined, surfaced
-through `AppPackage.templateId`).
+through `App.templateId`).
 
 **Inspection responsibilities surfaced read-only:**
 
-- template identity carried by `AppPackage.templateId`;
+- template identity carried by `App.templateId`;
 - template class and label when published by the builder registry;
 - additional builder-owned inspection metadata, passed through verbatim.
 
-Edges: referenced by `AppPackage.templateId`. Concrete field names beyond
+Edges: referenced by `App.templateId`. Concrete field names beyond
 the template identity finalize alongside the packaging lifecycle ticket; until then
 this resource does not create an MCP-local app-template field table.
 
@@ -547,9 +547,9 @@ responsibility rather than by concrete field names.
 
 **Inspection responsibilities surfaced read-only:**
 
-- deployment kind (package class — for example `app_package`,
+- deployment kind (deployed class — for example `app_package`,
   `published_service`, `process`, `pipeline`);
-- target binding (`targetRef` resolves to `AppPackage`, `MapPackage`,
+- target binding (`targetRef` resolves to `App`, `Map`,
   or `PublishedService` when the target has a defined MCP resource
   contract; `ProcessDefinition` and `PipelineDefinition` targets are
   surfaced as **opaque identifiers** — no MCP resource URI or inspection
@@ -570,7 +570,7 @@ responsibility rather than by concrete field names.
 - approval policy reference;
 - publication lifecycle state (read-only projection).
 
-Edges: `targetRef` → `AppPackage` | `MapPackage` | `PublishedService` |
+Edges: `targetRef` → `App` | `Map` | `PublishedService` |
 `ProcessDefinition` | `PipelineDefinition`; delivery artifact
 references → `ArtifactRef`. The full target-kind set matches the
 upstream `Deployment` shape; deployment creation tooling for
@@ -682,7 +682,7 @@ is server-internal and not exposed through the read surface.
 The normative composition graph downstream consumers should code against.
 Edges are expressed by canonical object name (`ArtifactRef`, `StyleRef`,
 `WorkspaceRef`, `SourceBinding`, …) rather than by the scoped URIs those
-objects happen to resolve to. Upstream package shapes carry artifact IDs
+objects happen to resolve to. Upstream Map, App and Deployment shapes carry artifact IDs
 without a result or workspace inspection scope, so downstream consumers
 resolve result-rooted artifact reads from the owning analysis result
 package's artifact fields (`AnalysisResultPackage.artifacts[]`) today.
@@ -696,19 +696,19 @@ reads come from workspace ownership and lifecycle context (see
 | `results/{result_package_id}` | `ArtifactRef` | composes (`AnalysisResultPackage.artifacts[]`) |
 | `results/{result_package_id}` | `WorkspaceRef` | references (`AnalysisResultPackage.workspaceRefs[]`) |
 | `results/{result_package_id}` | `results/{result_package_id}/provenance` | composes (`AnalysisResultPackage.provenance`) |
-| `results/{result_package_id}` | `MapPackage` | references (`AnalysisResultPackage.mapPackageId?`) |
-| `results/{result_package_id}` | `AppPackage` | references (`AnalysisResultPackage.appPackageId?`) |
+| `results/{result_package_id}` | `Map` | references (`AnalysisResultPackage.mapPackageId?`) |
+| `results/{result_package_id}` | `App` | references (`AnalysisResultPackage.appPackageId?`) |
 | `results/{result_package_id}` | `GeoprocessingError` | composes (`AnalysisResultPackage.errors[]`) |
 | `map-packages/{id}` | `SourceBinding` | composes (binding list) |
 | `map-packages/{id}` | `StyleRef` | references (style composition) |
 | `map-packages/{id}` | `ThemeSpec` | references (theme selection) |
 | `map-packages/{id}` | `MapTemplate` | references (template composition) |
 | `map-packages/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
-| `app-packages/{id}` | `MapPackage` | references (map binding) |
+| `app-packages/{id}` | `Map` | references (map binding) |
 | `app-packages/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
-| `app-packages/{id}` | app-template registry entry | references (template binding via `AppPackage.templateId`; standalone shape deferred) |
+| `app-packages/{id}` | app-template registry entry | references (template binding via `App.templateId`; standalone shape deferred) |
 | `published-services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
-| `deployments/{id}` | `AppPackage` \| `MapPackage` \| `PublishedService` \| `ProcessDefinition` (opaque) \| `PipelineDefinition` (opaque) | references (`targetRef`); navigable for families with MCP resource contracts; `ProcessDefinition` and `PipelineDefinition` targets are opaque identifiers in this version |
+| `deployments/{id}` | `App` \| `Map` \| `PublishedService` \| `ProcessDefinition` (opaque) \| `PipelineDefinition` (opaque) | references (`targetRef`); navigable for families with MCP resource contracts; `ProcessDefinition` and `PipelineDefinition` targets are opaque identifiers in this version |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
 | `ArtifactRef` | `workspaces/{wsid}/artifacts/{aid}` | inspected through workspace ownership and lifecycle context (not via `ArtifactRef.uri`) |
 | `ArtifactRef` | `results/{rpid}/artifacts/{aid}` | resolves through the owning `AnalysisResultPackage.artifacts[]`; reserved builder-result routing extends this once upstream lands a stable shared result identifier |
@@ -716,14 +716,14 @@ reads come from workspace ownership and lifecycle context (see
 Reserved non-analysis result extensions follow the same graph once
 upstream lands a constructible shared result identifier: publishing
 results reference `PublishedService` or the `serviceDefinition` output
-branch, `MapPackage`, and `ProvenanceRecord`; builder results reference
-`AppPackage`, `MapPackage`, preview `ArtifactRef` values, and
+branch, `Map`, and `ProvenanceRecord`; builder results reference
+`App`, `Map`, preview `ArtifactRef` values, and
 `ProvenanceRecord`; deployment-result routing stays deferred with the
 `Automate / Deploy` workflow family.
 
 Expressing edges by canonical object name keeps the graph stable when
 upstream field names evolve. Upstream field additions or renames in
-`MapPackage`, `AppPackage`, `Deployment`, and `PublishedService` (still
+`Map`, `App`, `Deployment`, and `PublishedService` (still
 finalizing in `honua-server#730`/`#731`/`#732`) flow through by
 reference.
 
@@ -733,8 +733,8 @@ The canonical `ArtifactRef` (§AI_OPERATOR_CONTRACT) carries its own
 content `uri` (for example
 `honua://workspaces/ws_123/layers/candidate_parcels`). That locator points
 to the artifact payload within the workspace namespace; it is not the MCP
-inspection URI `honua://workspaces/{wsid}/artifacts/{aid}`. Package shapes
-that reference artifacts (`MapPackage`, `AppPackage`, `Deployment`) carry
+inspection URI `honua://workspaces/{wsid}/artifacts/{aid}`. Shapes
+that reference artifacts (`Map`, `App`, `Deployment`) carry
 artifact references through canonical fields whose concrete names are
 finalizing in `honua-server#731`/`#732`. Regardless of final spelling,
 these references identify artifacts without embedding a result-package or
@@ -762,14 +762,14 @@ alone. Scoped inspection routes exist only where result ownership or
 workspace ownership is carried by the containing object or resolved by the
 workspace lifecycle service.
 
-**Resolution path for package-embedded artifact references.** Package
-resources (`MapPackage`, `AppPackage`, `Deployment`) carry artifact
+**Resolution path for embedded artifact references.** The
+resources `Map`, `App` and `Deployment` carry artifact
 identifiers through canonical fields. No unscoped artifact lookup
 exists in the public contract (`WorkspaceService` exposes
 `ListArtifacts` scoped by workspace; there is no `GetArtifact`
 by ID alone). Consumers resolve these identifiers to full
 `ArtifactRef` objects through a known ownership context. The
-target resolution sequence is: read the package resource → extract
+target resolution sequence is: read the owning resource → extract
 the artifact identifier → match the identifier against `ArtifactRef`
 objects obtained from the owning
 `AnalysisResultPackage.artifacts[]` or from the workspace lifecycle
@@ -799,7 +799,7 @@ which is unconditionally available today:
 
 Until at least one mechanism is unconditionally present on every
 `ArtifactRef` returned by the server, workspace-rooted lifecycle
-inspection for a package-embedded artifact is available only when the
+inspection for an embedded artifact is available only when the
 artifact's content URI is populated or `workspaceRef` is present.
 Consumers should treat the absence of both as a deferred-resolution
 case and fall back to the `ArtifactRef` payload fields (`kind`,
@@ -1007,11 +1007,11 @@ not mint MCP-local cache states or synonyms.
 
 ### 6. No Inlined Canonical Shapes
 
-Canonical shapes (`AnalysisResultPackage`, `MapPackage`, `AppPackage`,
+Canonical shapes (`AnalysisResultPackage`, `Map`, `App`,
 `StyleRef`, `ThemeSpec`, `MapTemplate`, `SourceBinding`, `Deployment`,
 `PublishedService`, `ProvenanceRecord`, `ArtifactRef`, `WorkspaceRef`,
 `GeoprocessingError`) are referenced, not reproduced. When an upstream
-shape finalizes (e.g., `MapPackage` in the packaging lifecycle ticket),
+shape finalizes (e.g., `Map` in the packaging lifecycle ticket),
 the resource contract absorbs the change by reference without local
 redefinition.
 
@@ -1064,8 +1064,8 @@ implementation details.
 Sequencing: the resource grammar, inspection fields, lifecycle visibility,
 and relationship graph above are the stable interface. Downstream tickets
 finalize the concrete canonical shapes: `PublishedService` and
-`PublishingResultPackage` in `honua-server#730`; `MapPackage` and
-`AppPackage` in the packaging lifecycle ticket (`honua-server#731` per the
+`PublishingResultPackage` in `honua-server#730`; `Map` and
+`App` in the packaging lifecycle ticket (`honua-server#731` per the
 Technical Plan; the AI Operator Contract references `#730` in some
 sections — downstream consumers should follow the ticket that lands the
 concrete type).

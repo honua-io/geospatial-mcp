@@ -103,13 +103,13 @@ and reprojection after a large result has already crossed the network.
   target scale.
 
 Inspect the advertised schemas before choosing a composition path. When the
-live surface exposes enough non-mutating package inputs to bind the intended
-sources and style, create an isolated package and use `preview_map_package`.
-Use `refine_map_package` or `compose_mixed_protocol_map` only for the inputs
-their live schemas advertise; do not assume a package accepts source bindings
-or an initial view. If no non-mutating package path can express the candidate,
+live surface exposes enough non-mutating Map inputs to bind the intended
+sources and style, create an isolated draft Map and use `preview_map`.
+Use `refine_map` or `compose_mixed_protocol_map` only for the inputs
+their live schemas advertise; do not assume a draft Map accepts source bindings
+or an initial view. If no non-mutating Map path can express the candidate,
 preview an already configured layer or return a composition plan for review.
-Do not mutate a hosted layer merely to obtain a preview. Use
+Do not mutate a shared Layer merely to obtain a preview. Use
 `apply_style_preset` only when the operator explicitly approves a persistent
 default-style change. A direct `render_map` call accepts layers and an extent;
 it does not accept palette or class-break instructions. Never fabricate
@@ -117,8 +117,8 @@ styling arguments on the render call.
 
 ## Preview and publishing gate
 
-1. Prefer an isolated styled package with `preview_map_package` only when the
-   advertised package schema can express it. Otherwise use `render_map` for an
+1. Prefer an isolated styled draft Map with `preview_map` only when the
+   advertised Map schema can express it. Otherwise use `render_map` for an
    already configured layer or stop at a reviewable plan; do not first change
    that layer's persistent style unless the operator explicitly approved it.
 2. Inspect the full intended extent and representative dense, sparse, edge,
@@ -128,7 +128,7 @@ styling arguments on the render call.
 4. Keep the work private or draft unless the user requested publication and
    the target visibility is explicit.
 5. Before `publish_result`, confirm stable source identity, provenance,
-   redistribution rights, privacy review, package validation, and a way to
+   redistribution rights, privacy review, Map or App validation, and a way to
    verify the published endpoint. Do not imply that a successful preview is a
    publication.
 
@@ -144,7 +144,7 @@ styling arguments on the render call.
 - Omitting CRS identifiers from an extent or silently mixing coordinate axes.
 - Stacking similarly colored layers or allowing a background to dominate.
 - Keeping every available layer and compensating with tiny labels or opacity.
-- Mutating a hosted layer's default style solely to produce a preview.
+- Mutating a shared Layer's default style solely to produce a preview.
 - Sending palette or class-break fields to `render_map` when they are absent
   from its advertised schema.
 - Publishing a draft without provenance, rights, privacy, visibility, and

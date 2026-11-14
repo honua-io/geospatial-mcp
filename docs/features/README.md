@@ -6,7 +6,7 @@ This repository defines the agent interaction plane for geospatial workflows. It
 
 - Analyze workflows for dataset discovery, inspection, analysis planning, result review, and artifact handoff.
 - Publish Data workflows for dataset intake, validation, transform planning, publication handoff, and result inspection.
-- Build App workflows for requirements gathering, app planning, map/app package composition, and deployment handoff.
+- Build App workflows for requirements gathering, app planning, Map or App authoring, and deployment handoff.
 - Deferred Automate / Deploy workflows for operator automation beyond v1.
 - Explicitly excluded Edit Data workflows, matching the upstream Honua ADR stance that AI agents should not directly mutate geospatial records.
 

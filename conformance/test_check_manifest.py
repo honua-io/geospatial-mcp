@@ -6,6 +6,10 @@ reported FULL while ignoring resource-family coverage (issue #25). The core
 assertion: a manifest that omits a resource family the index marks `implemented`
 must NOT reach FULL — it downgrades to MAPPED with a note naming the family.
 
+It also pins that former standard names are retired outright (no deprecated
+aliases: the checker rejects them) and runs the retired-vocabulary guard
+(conformance/check_vocabulary.py) over the repository.
+
 Pure stdlib (`unittest`); no server and no third-party deps required. Run via:
 
     python3 conformance/test_check_manifest.py
@@ -15,8 +19,10 @@ import json
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 import check_manifest as cm
+import check_vocabulary as cv
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REFERENCE_MANIFEST = os.path.join(HERE, "manifests", "honua.manifest.json")
@@ -28,6 +34,13 @@ def _implemented_families(index):
         for r in index.get("resources", [])
         if r.get("implementationStatus") == "implemented"
     )
+
+
+def _without_family(manifest, family):
+    """A copy of ``manifest`` that does not advertise ``family``."""
+    trimmed = copy.deepcopy(manifest)
+    trimmed["resources"] = [r for r in trimmed["resources"] if r.get("family") != family]
+    return trimmed
 
 
 def _check(manifest, index, strict=False):
@@ -75,10 +88,7 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
             )
 
         for family in implemented:
-            manifest = copy.deepcopy(self.reference)
-            manifest["resources"] = [
-                r for r in manifest["resources"] if r.get("family") != family
-            ]
+            manifest = _without_family(self.reference, family)
             level, errors, warnings = _check(manifest, self.index)
             self.assertEqual(errors, [], f"dropping '{family}' should not error")
             self.assertEqual(
@@ -102,14 +112,11 @@ class ResourceFamilyCoverageTest(unittest.TestCase):
         self.assertTrue(implemented, "index must mark some families implemented")
         family = implemented[0]
 
-        manifest = copy.deepcopy(self.reference)
         self.assertTrue(
-            manifest.get("implementation", {}).get("isReferenceImplementation"),
+            self.reference.get("implementation", {}).get("isReferenceImplementation"),
             "reference manifest must be flagged isReferenceImplementation",
         )
-        manifest["resources"] = [
-            r for r in manifest["resources"] if r.get("family") != family
-        ]
+        manifest = _without_family(self.reference, family)
 
         # Non-strict: downgrade to MAPPED, no error.
         level, errors, _warnings = _check(manifest, self.index, strict=False)
@@ -210,6 +217,151 @@ class AnalysisProfileGatingTest(unittest.TestCase):
         level, errors, _warnings = _check(manifest, index, strict=True)
         self.assertEqual(errors, [])
         self.assertEqual(level, "FULL")
+
+
+class RetiredNameTest(unittest.TestCase):
+    """Former standard names are renamed outright: no aliases, and the checker rejects them."""
+
+    RENAMED_TOOLS = {
+        "create_map_package": "create_map", "refine_map_package": "refine_map",
+        "preview_map_package": "preview_map", "create_app_package": "create_app",
+        "preview_app_package": "preview_app", "validate_package": "validate_content",
+        "preview_package": "preview_content",
+    }
+    RENAMED_FAMILIES = {"Map package": "Map", "App package": "App"}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.index = cm.load_json(cm.INDEX_PATH)
+        cls.reference = cm.load_json(REFERENCE_MANIFEST)
+
+    def test_guard_lists_every_renamed_tool(self):
+        self.assertEqual(set(self.RENAMED_TOOLS), set(cv.RETIRED_TOOL_NAMES))
+
+    def test_index_carries_only_current_names_and_no_alias_fields(self):
+        tools = {t["standardName"] for t in self.index["tools"]}
+        families = {r["family"] for r in self.index["resources"]}
+        self.assertLessEqual(set(self.RENAMED_TOOLS.values()), tools)
+        self.assertLessEqual(set(self.RENAMED_FAMILIES.values()), families)
+        self.assertFalse(tools & set(self.RENAMED_TOOLS))
+        self.assertFalse(families & set(self.RENAMED_FAMILIES))
+        text = json.dumps(self.index)
+        self.assertNotIn("deprecatedAliases", text)
+        self.assertNotIn("deprecatedProfileAliases", text)
+
+    def test_no_schema_file_remains_at_a_former_path(self):
+        for name in self.RENAMED_TOOLS:
+            self.assertFalse(os.path.exists(os.path.join(
+                cm.REPO, "spec", "schemas", "tools", f"{name}.schema.json")), name)
+        for name in ("map-package", "app-package"):
+            self.assertFalse(os.path.exists(os.path.join(
+                cm.REPO, "spec", "schemas", "resources", f"{name}.schema.json")), name)
+
+    def test_former_tool_name_is_rejected(self):
+        for former, current in self.RENAMED_TOOLS.items():
+            manifest = copy.deepcopy(self.reference)
+            manifest["tools"].append({"standardName": former, "advertisedName": f"x_{current}",
+                                      "workflowFamily": "Build App"})
+            level, errors, _warnings = _check(manifest, self.index)
+            self.assertEqual(level, "FAIL", former)
+            self.assertTrue(any(f"unknown standardName '{former}'" in e for e in errors), former)
+
+    def test_former_family_name_is_rejected(self):
+        for former, current in self.RENAMED_FAMILIES.items():
+            manifest = copy.deepcopy(self.reference)
+            for res in manifest["resources"]:
+                if res["family"] == current:
+                    res["family"] = former
+            level, errors, _warnings = _check(manifest, self.index)
+            self.assertEqual(level, "FAIL", former)
+            self.assertTrue(any(f"'{former}' is not a standard family" in e for e in errors), former)
+
+    def test_former_profile_name_claims_no_profile(self):
+        index = copy.deepcopy(self.index)
+        for t in index["tools"]:
+            if t["standardName"] == "bind_component_context":
+                t["implementationStatus"] = "implemented"
+        manifest = copy.deepcopy(self.reference)
+        manifest["implementation"]["profiles"] = ["base", "composition"]
+        level, errors, warnings = _check(manifest, index, strict=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(level, "FULL")
+        self.assertTrue(any("'bind_component_context' belongs to the 'interactivity' conformance "
+                            "profile, which this manifest does not declare" in w for w in warnings))
+
+
+class RetiredVocabularyTest(unittest.TestCase):
+    """The published artifacts use the Honua vocabulary (conformance/check_vocabulary.py)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.allowlist = cv.load_allowlist()
+
+    def test_repository_has_no_retired_vocabulary(self):
+        findings = cv.scan_repo(allowlist=self.allowlist)
+        self.assertEqual(findings, [], "\n".join(
+            f"{path}:{number}: [{rule}] use {replacement}"
+            for path, number, rule, replacement, _line in findings))
+
+    def test_downloaded_certification_inputs_do_not_exempt_authored_specs(self):
+        text = "Call create_app_package.\n"
+        paths = [".certification/server-contract.md",
+                 "certification/artifacts/server-contract.md", "spec/server-contract.md"]
+        with tempfile.TemporaryDirectory() as repo:
+            for path in paths:
+                full = os.path.join(repo, path)
+                os.makedirs(os.path.dirname(full), exist_ok=True)
+                with open(full, "w", encoding="utf-8") as handle:
+                    handle.write(text)
+            with mock.patch.object(cv, "tracked_files", return_value=paths):
+                findings = cv.scan_repo(repo=repo, allowlist=self.allowlist)
+        self.assertEqual([(path, rule) for path, _n, rule, _r, _l in findings],
+                         [("spec/server-contract.md", "retired-tool-name")])
+
+    def test_allowlist_has_no_stale_exceptions(self):
+        self.assertEqual(cv.stale_exceptions(allowlist=self.allowlist), [])
+
+    def test_retired_names_are_found(self):
+        text = ("Create a MapPackage.\nCall create_app_package.\n"
+                "Edit the composition document.\nDo not touch a hosted layer.\n"
+                "Return a MapPackageRef.\n" '"profiles": ["base", "composition"]\n'
+                "Save the map package.\nDeclare the composition profile.\n"
+                "- **composition** -- available only under the opt-in `composition` conformance\n"
+                "cell reading `composition` means the tool is required for FULL conformance only when\n")
+        rules = [rule for _p, _n, rule, _r, _l in cv.scan_text("spec/x.md", text, self.allowlist)]
+        self.assertEqual(rules, ["map-envelope", "retired-tool-name", "composition-document",
+                                 "hosted-layer", "map-envelope", "composition-profile-value",
+                                 "studio-package-prose", "composition-profile",
+                                 "composition-profile-name", "composition-profile-name"])
+
+    def test_multiline_retired_profile_is_found(self):
+        for declaration in ({"profiles": ["base", "composition"]},
+                            {"profile": "composition"}):
+            with self.subTest(declaration=declaration):
+                text = json.dumps(declaration, indent=2)
+                findings = cv.scan_text("spec/x.json", text, self.allowlist)
+                self.assertEqual([(n, rule) for _p, n, rule, _r, _l in findings],
+                                 [(2, "composition-profile-value")])
+        self.assertEqual(cv.scan_text("spec/x.json", json.dumps(
+            {"profiles": ["base", "interactivity"]}, indent=2), self.allowlist), [])
+
+    def test_stale_exception_is_reported(self):
+        allowlist = {"exceptions": [{"path": "AGENTS.md", "rule": "hosted-layer",
+                                     "line": "no such line", "reason": "test"}]}
+        self.assertEqual(len(cv.stale_exceptions(allowlist=allowlist)), 1)
+
+    def test_wire_literals_are_not_findings(self):
+        text = ("Read honua://map-packages/{map_package_id} with mapPackageId.\n"
+                "The reference advertises honua_create_map_package.\n")
+        self.assertEqual(cv.scan_text("spec/x.md", text, self.allowlist), [])
+
+    def test_exception_covers_only_its_exact_line(self):
+        allowlist = {"exceptions": [{"path": "spec/x.md", "rule": "retired-tool-name",
+                                     "line": "| `create_map_package` | `create_map` |",
+                                     "reason": "test"}]}
+        text = "| `create_map_package` | `create_map` |\nUse create_map_package.\n"
+        findings = cv.scan_text("spec/x.md", text, allowlist)
+        self.assertEqual([number for _p, number, _r, _rep, _l in findings], [2])
 
 
 if __name__ == "__main__":

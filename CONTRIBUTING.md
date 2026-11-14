@@ -44,7 +44,7 @@ Every normative change follows the same three steps. Small editorial fixes
 python3 -m pip install -r conformance/requirements.txt   # one-time
 python3 conformance/fixtures/validate.py --strict         # schemas + fixtures
 python3 conformance/check_manifest.py --strict            # reference manifest coverage
-python3 conformance/test_check_manifest.py                # checker regression tests
+python3 conformance/test_check_manifest.py                # checker, retired-name and vocabulary tests
 python3 tools/check_links.py                              # relative links + anchors
 ```
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://geospatial-mcp.honua.io/spec/schemas/tools/remove_control.schema.json",
   "title": "remove_control inputSchema",
-  "description": "Argument shape for remove_control (composition profile, ADR-0031). Removes one control, by id, from a composition document's `controls` collection. Target addressing matches add_control: a composition document (mapPackageId or appPackageId) at the standard level, with the reference implementation's draft-lifecycle spelling (draftId + generation) admitted as x-honua-reference-shape. Removing an unknown controlId is an error, not a no-op. Removing a control leaves any interaction bound to `control:{id}` unresolvable, so an implementation MUST either reject the removal or remove those bindings with it — silently keeping a dangling binding is not conformant. See docs/adr/0031-composition-controls.md. Exactly one target must be supplied: mapPackageId, appPackageId, or the x-honua-reference-shape draftId (which requires generation, and generation may not appear without it). The oneOf enforces that; without it a call with no destination, several destinations, a bare draftId, or a stray generation all validated against a contract no server can route.",
+  "description": "Argument shape for remove_control (interactivity profile, ADR-0031). Removes one control, by id, from a Map or App document's `controls` collection. Target addressing matches add_control: a Map or App document (mapPackageId or appPackageId) at the standard level, with the reference implementation's draft-lifecycle spelling (draftId + generation) admitted as x-honua-reference-shape. Removing an unknown controlId is an error, not a no-op. Removing a control leaves any interaction bound to `control:{id}` unresolvable, so an implementation MUST either reject the removal or remove those bindings with it — silently keeping a dangling binding is not conformant. See docs/adr/0031-composition-controls.md. Exactly one target must be supplied: mapPackageId, appPackageId, or the x-honua-reference-shape draftId (which requires generation, and generation may not appear without it). The oneOf enforces that; without it a call with no destination, several destinations, a bare draftId, or a stray generation all validated against a contract no server can route.",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -12,12 +12,12 @@
     "mapPackageId": {
       "type": "string",
       "minLength": 1,
-      "description": "Target MapPackage composition document. Exactly one of mapPackageId / appPackageId / draftId identifies the target."
+      "description": "Target Map document. Exactly one of mapPackageId / appPackageId / draftId identifies the target."
     },
     "appPackageId": {
       "type": "string",
       "minLength": 1,
-      "description": "Target AppPackage composition document. Exactly one of mapPackageId / appPackageId / draftId identifies the target."
+      "description": "Target App document. Exactly one of mapPackageId / appPackageId / draftId identifies the target."
     },
     "draftId": {
       "type": "string",

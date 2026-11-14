@@ -27,12 +27,12 @@
       "workflowFamily": "Planning"
     },
     {
-      "standardName": "create_app_package",
+      "standardName": "create_app",
       "advertisedName": "honua_create_app_package",
       "workflowFamily": "Execution"
     },
     {
-      "standardName": "create_map_package",
+      "standardName": "create_map",
       "advertisedName": "honua_create_map_package",
       "workflowFamily": "Execution"
     },
@@ -112,7 +112,7 @@
       "workflowFamily": "Results"
     },
     {
-      "standardName": "preview_package",
+      "standardName": "preview_content",
       "advertisedName": "honua_preview_package",
       "workflowFamily": "Planning"
     },
@@ -172,7 +172,7 @@
       "workflowFamily": "Execution"
     },
     {
-      "standardName": "validate_package",
+      "standardName": "validate_content",
       "advertisedName": "honua_validate_package",
       "workflowFamily": "Planning"
     },
@@ -184,7 +184,7 @@
   ],
   "resources": [
     {
-      "family": "App package",
+      "family": "App",
       "uriForm": "honua://app-packages/{app_package_id}"
     },
     {
@@ -192,7 +192,7 @@
       "uriForm": "honua://deployments/{deployment_id}"
     },
     {
-      "family": "Map package",
+      "family": "Map",
       "uriForm": "honua://map-packages/{map_package_id}"
     },
     {

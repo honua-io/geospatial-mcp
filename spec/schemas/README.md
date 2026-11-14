@@ -37,7 +37,7 @@ These schemas are **derived from**, and faithful to, the normative prose:
 ### Where the prose is intentionally upstream-owned
 
 The prose **defers concrete field spellings** for several canonical objects to
-`honua-server` (`MapPackage`, `AppPackage`, `PublishedService`, `Deployment`
+`honua-server` (`Map`, `App`, `PublishedService`, `Deployment`
 — see [`resources.md` §2.4 Deferred-Shape Fixtures](../conformance.md#24-deferred-shape-fixtures)
 and the responsibility-level projections in `resources.md`). For those, the
 prose deliberately gives **responsibilities**, not a frozen field table.
@@ -50,7 +50,7 @@ the standard constructible today while remaining honest that the concrete field
 names track the reference implementation until the upstream ticket lands.
 
 Resources whose concrete shape is still fully deferred upstream (e.g.
-`MapPackage`, `AppPackage`, `PublishedService`, `Deployment`,
+`Map`, `App`, `PublishedService`, `Deployment`,
 `PublishingResultPackage`) carry **responsibility-level** schemas: the stable
 identifier and `honua://` URI are pinned and required, additional properties are
 permitted (`additionalProperties: true`), and the responsibility fields are

@@ -1,0 +1,121 @@
+{
+  "description": "Declared exceptions for conformance/check_vocabulary.py. Paths are literal (a directory prefix ends with '/'); every entry carries a reason. Glossary: honua-server docs/concepts/domain/README.md. Shared policy: honua-server scripts/ci/retired-terms.v1.json.",
+  "excludedPaths": [
+    {
+      "path": ".certification/",
+      "reason": "Downloaded immutable server certification inputs; these advertise the pinned server vocabulary rather than authored standard names."
+    },
+    {
+      "path": "certification/",
+      "reason": "Live-server certification harness: pins the reference implementation's advertised names and recorded receipts; it follows the server migration."
+    },
+    {
+      "path": "conformance/manifests/",
+      "reason": "Generated from the reference server surface by honua-server manifest-gen; regenerated after the server migration."
+    },
+    {
+      "path": "docs/adr/",
+      "reason": "Historical decision records keep the names in force when they were decided."
+    },
+    {
+      "path": "skills/evals/",
+      "reason": "Recorded evaluation inputs and model outputs, pinned by hash."
+    },
+    {
+      "path": ".github/",
+      "reason": "Workflow files change only in separate CI pull requests."
+    },
+    {
+      "path": "conformance/check_vocabulary.py",
+      "reason": "The guard itself names the retired terms."
+    },
+    {
+      "path": "conformance/retired-terms-allowlist.json",
+      "reason": "Policy data."
+    },
+    {
+      "path": "conformance/test_check_manifest.py",
+      "reason": "Retired-name regression tests use the retired names as inputs."
+    }
+  ],
+  "exceptions": [
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `create_map_package` | `create_map` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `refine_map_package` | `refine_map` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `preview_map_package` | `preview_map` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `create_app_package` | `create_app` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `preview_app_package` | `preview_app` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `validate_package` | `validate_content` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "| `preview_package` | `preview_content` | tool |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `Map package` | `Map` | resource family |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `App package` | `App` | resource family |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `resources/map-package.schema.json` | `resources/map.schema.json` | schema |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `resources/app-package.schema.json` | `resources/app.schema.json` | schema |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "retired-tool-name",
+      "line": "`tools/create_map_package.schema.json` is now `tools/create_map.schema.json`).",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "composition-profile-name",
+      "line": "| `composition` | `interactivity` | conformance profile |",
+      "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    }
+  ]
+}

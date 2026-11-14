@@ -23,11 +23,22 @@ import { syntheticInspectorCancellationProof } from "./inspector-cancellation-fi
 // producer's OPERATIONS. Deriving both from OPERATIONS hid the retired tool.
 const publishedIndex = JSON.parse(readFileSync(new URL("../../spec/schemas/index.json", import.meta.url), "utf8"));
 const publishedManifest = JSON.parse(readFileSync(new URL("../../conformance/manifests/honua.manifest.json", import.meta.url), "utf8"));
+// Certification operations name the surface the reference server serves (the governed
+// catalog keys on it), so derive them from the served tool name and resource URI rather
+// than from the standard name, which can be renamed ahead of the server.
+const servedToolOperation = ({ referenceToolName }) => `tools/call:${referenceToolName.replace(/^honua_/, "")}`;
+const servedResourceOperation = ({ uriForm }) => {
+  const path = uriForm.replace(/^honua:\/\//, "");
+  const templated = path.includes("/{");
+  const base = path.replace(/\/\{.*$/, "");
+  const name = (templated ? base.replace(/s$/, "") : base).replace(/[-/]/g, " ");
+  return `resources/read:${name[0].toUpperCase()}${name.slice(1)}`;
+};
 const expectedOperations = [
   ...["initialize", "ping", "tools/list", "resources/templates/list"].map((operation) => ["mcp.transport", operation]),
-  ...publishedManifest.resources.map(({ family }) => ["mcp.resource", `resources/read:${family}`]),
+  ...publishedManifest.resources.map((resource) => ["mcp.resource", servedResourceOperation(resource)]),
   ...publishedIndex.tools.filter(({ implementationStatus }) => implementationStatus === "implemented")
-    .map(({ standardName }) => ["mcp.tool", `tools/call:${standardName}`]),
+    .map((tool) => ["mcp.tool", servedToolOperation(tool)]),
 ];
 const requirements = { schema: "honua.protocol-certification-requirements/v1", receipt_schema_min: "v2", complete: true,
   revision: "test-owned-catalog/v1", requirements: expectedOperations.flatMap(([capability_key, operation]) => Object.values(CLIENTS).map((client) => ({
@@ -113,6 +124,9 @@ test("offline grounding and declared status join all six original rows without c
     for (const row of rows) {
       assert.equal(row.result, "pass", row.operation + row.canonical_client);
       assert.equal(row.evidence_receipt.facets.auth, "pass");
+      const key = Object.keys(CLIENTS).find(name => CLIENTS[name].canonicalClient === row.canonical_client);
+      assert.deepEqual(JSON.parse(Buffer.from(row.evidence_receipt.payload_base64, "base64").toString("utf8")),
+        checks[key][row.operation]);
     }
     for (const key of ["sdk", "inspector"]) for (const operation of operations) {
       for (const mutation of ["no-raw", "helper", "image", "caller", "intent", "status", "cleanup"]) {

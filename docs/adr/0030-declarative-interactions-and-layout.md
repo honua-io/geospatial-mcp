@@ -17,8 +17,8 @@ filter, selection, and viewport state.
 ## Context
 
 The standard's composition documents — `MapPackage` and `AppPackage`
-([`resources/map-package.schema.json`](../../spec/schemas/resources/map-package.schema.json),
-[`resources/app-package.schema.json`](../../spec/schemas/resources/app-package.schema.json))
+([`resources/map.schema.json`](../../spec/schemas/resources/map.schema.json),
+[`resources/app.schema.json`](../../spec/schemas/resources/app.schema.json))
 — describe *static* composition: layers bound to sources, styling, an initial
 view, widgets. Nothing in the vocabulary lets an agent wire those components
 together: "when a feature is selected on this layer, filter that chart",

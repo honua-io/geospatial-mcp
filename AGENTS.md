@@ -1,6 +1,7 @@
 # AGENTS.md
 
 ## Overview
+
 Draft geospatial MCP specification, not a runtime implementation. Markdown under `spec/`
 owns taxonomy, resources, transport, planning, corpus and conformance; `docs/features/README.md`
 is the feature map. Typed deterministic execution belongs in `geospatial-grpc`; upstream

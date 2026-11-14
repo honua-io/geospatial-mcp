@@ -68,7 +68,8 @@
       "referenceToolName": "honua_apply_style_preset",
       "family": "Map composition (reference shape)",
       "schema": "tools/apply_style_preset.schema.json",
-      "implementationStatus": "implemented"
+      "implementationStatus": "implemented",
+      "notes": "Result identity schema: tools/apply_style_preset.result.schema.json."
     },
     {
       "standardName": "compose_mixed_protocol_map",
@@ -176,14 +177,15 @@
       "family": "Discovery and query (reference shape)",
       "schema": "tools/list_layers.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Reference-implementation discovery tool over the open-core data-access surface; the bare taxonomy models discovery as a CapabilityCatalog read."
+      "notes": "Reference-implementation discovery tool over the open-core data-access surface; the bare taxonomy models discovery as a CapabilityCatalog read. Result identity schema: tools/list_layers.result.schema.json."
     },
     {
       "standardName": "query_features",
       "referenceToolName": "honua_query_features",
       "family": "Discovery and query (reference shape)",
       "schema": "tools/query_features.schema.json",
-      "implementationStatus": "implemented"
+      "implementationStatus": "implemented",
+      "notes": "Result identity schema: tools/query_features.result.schema.json."
     },
     {
       "standardName": "edit_features",
@@ -199,7 +201,8 @@
       "referenceToolName": "honua_render_map",
       "family": "Discovery and query (reference shape)",
       "schema": "tools/render_map.schema.json",
-      "implementationStatus": "implemented"
+      "implementationStatus": "implemented",
+      "notes": "Result identity schema: tools/render_map.result.schema.json."
     },
     {
       "standardName": "geocode_address",
@@ -385,7 +388,7 @@
       "family": "Discovery and grounding (Honua extension)",
       "schema": "tools/resolve_entity.schema.json",
       "implementationStatus": "implemented",
-      "notes": "Honua extension (#1949): NL/text -> ranked service/layer references grounded in the live catalog. Pending formalization in the standard; schema marks x-honua-extension."
+      "notes": "Honua extension (#1949): NL/text -> ranked service/layer references grounded in the live catalog. Pending formalization in the standard; schema marks x-honua-extension. Result identity schema: tools/resolve_entity.result.schema.json."
     },
     {
       "standardName": "list_capabilities",
@@ -529,6 +532,11 @@
       "name": "ExplorationContexts",
       "schema": "common/exploration.schema.json",
       "role": "Standard-owned explorationContexts collection for Map and App documents — named units of shared interaction state that components join by id, making cross-filtering context membership rather than an event→action edge; referenced by both resource schemas, by the controls schema's component binding, and by create_exploration_context / bind_component_context. See docs/adr/0032-shared-exploration-contexts.md."
+    },
+    {
+      "name": "ServiceLayerReference",
+      "schema": "common/service-layer-reference.schema.json",
+      "role": "Service-scoped layer selector shared by query_features, render_map and apply_style_preset inputs and the five layer-identity result projections."
     }
   ],
   "conformance": [

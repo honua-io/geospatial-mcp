@@ -1,7 +1,7 @@
 # MCP Taxonomy, Capability Matrix, and Non-Goals
 
 **Status:** Draft
-**Date:** 2026-04-11
+**Date:** 2026-11-07
 **Scope:** Vocabulary baseline for the geospatial MCP standard
 
 This document defines the standard vocabulary, capability coverage, and explicit
@@ -65,6 +65,15 @@ version an artifact was produced against; each MUST resolve to a released
 While the standard carries `**Status:** Draft`, `SPEC_VERSION` MAY change
 without the guarantees above; the compatibility policy governs released
 versions.
+
+**Service layer selector:** `query_features`, `render_map` layer references,
+`get_style` and `apply_style_preset` select a published layer with `serviceId`
+and `serviceLayerIndex`. The `query_features`, `render_map`,
+`apply_style_preset`, `list_layers` and `resolve_entity` results use the same
+name. Clients must use the index returned by discovery together with its
+`serviceId`; an internal storage layer id cannot substitute for that index. A
+`layerId` selector is rejected on these tools (see the
+[changelog](../docs/CHANGELOG.md)).
 
 ## MCP Role in the Architecture
 
@@ -157,7 +166,7 @@ Geospatial tool families:
   The reference implementation ships `apply_style_preset` as an
   `x-honua-reference-shape` tool (advertised `honua_apply_style_preset`): it
   binds a preset `StyleRef` as the primary/default style of a published
-  `(serviceId, layerId)` layer, persisting through the server OGC API – Styles
+  `(serviceId, serviceLayerIndex)` layer, persisting through the server OGC API – Styles
   authoring surface (ADR-0048) so subsequent `render_map` calls reflect it. It
   authors presentation metadata on the hosted service and never edits feature
   records (ADR-0028).
@@ -310,7 +319,8 @@ difference / erase / clip), `summarize_statistics` (group-by + statistics),
   `plan_analysis` + `execute_plan` for multi-step analysis with dependencies,
   clarification, and a packaged result.
 - **Source.** Each verb operates on EITHER a published layer (`LayerRef`:
-  `serviceId` + `layerId`) OR a prior-result `ArtifactRef` (`artifactId`), so
+  `serviceId` + `layerId`, where `layerId` carries the service-local index that
+  `list_layers` returns as `serviceLayerIndex`) OR a prior-result `ArtifactRef` (`artifactId`), so
   verbs chain onto earlier job/verb outputs without a plan.
 - **Async posture.** A verb returns an `ExecutionJob` handle
   (`honua://jobs/{job_id}`) for durable, long-running work — pollable, and

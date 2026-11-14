@@ -79,8 +79,9 @@ identical machinery to `mutation`, no checker change needed.
   analysis with dependencies, clarification, and a packaged result.
 - **Source reference.** Each verb's `source` (and second operand, for
   `overlay_features` / `join_features`) is EITHER a published layer
-  (`serviceId` + `layerId`, the `LayerRef` spelling used by `query_features` and
-  `edit_features`) OR a prior-result artifact (`artifactId`, the `ArtifactRef`
+  (`serviceId` + `layerId`, the `LayerRef` spelling used by `edit_features`;
+  `layerId` carries the service-local index that `list_layers` returns as
+  `serviceLayerIndex`, the name `query_features` uses) OR a prior-result artifact (`artifactId`, the `ArtifactRef`
   spelling of [`resources/artifact.schema.json`](../../spec/schemas/resources/artifact.schema.json)).
   This lets verbs chain onto earlier job/verb outputs without a plan. The concrete
   layer/artifact spellings track the reference pipeline and are marked

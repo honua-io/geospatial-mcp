@@ -364,5 +364,38 @@ class RetiredVocabularyTest(unittest.TestCase):
         self.assertEqual([number for _p, number, _r, _rep, _l in findings], [2])
 
 
+class ServiceLayerSelectorTest(unittest.TestCase):
+    """Service-scoped selectors are named serviceLayerIndex; no schema may accept layerId."""
+
+    SELECTOR_SCHEMAS = (
+        "tools/query_features.schema.json", "tools/query_features.result.schema.json",
+        "tools/render_map.schema.json", "tools/render_map.result.schema.json",
+        "tools/get_style.schema.json", "tools/apply_style_preset.schema.json",
+        "tools/apply_style_preset.result.schema.json", "tools/list_layers.result.schema.json",
+        "tools/resolve_entity.result.schema.json", "common/service-layer-reference.schema.json",
+    )
+
+    @staticmethod
+    def _property_names(node):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "properties" and isinstance(value, dict):
+                    yield from value
+                yield from ServiceLayerSelectorTest._property_names(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from ServiceLayerSelectorTest._property_names(value)
+
+    def test_selector_schemas_do_not_define_layer_id(self):
+        for name in self.SELECTOR_SCHEMAS:
+            schema = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", name))
+            self.assertNotIn("layerId", set(self._property_names(schema)), name)
+
+    def test_input_schemas_reject_layer_id(self):
+        for name in ("common/service-layer-reference.schema.json", "tools/get_style.schema.json"):
+            schema = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", name))
+            self.assertEqual(schema.get("not"), {"required": ["layerId"]}, name)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -60,7 +60,8 @@ export function verifyEntityResolution(observations) {
     const ids = new Set();
     let priorScore = Infinity;
     for (const match of output.matches) {
-      require(object(match) && match.kind === "service" && (match.layerId === null || match.layerId === undefined)
+      require(object(match) && match.kind === "service" && (match.serviceLayerIndex === null || match.serviceLayerIndex === undefined)
+        && !Object.hasOwn(match, "layerId")
         && [match.serviceId, match.serviceName, match.name].every((value) => typeof value === "string" && value.length > 0)
         && !ids.has(match.serviceId) && typeof match.score === "number" && Number.isFinite(match.score)
         && match.score > 0 && match.score <= 1 && match.score <= priorScore

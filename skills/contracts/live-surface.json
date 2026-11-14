@@ -8,7 +8,7 @@
     },
     {
       "skill": "choosing-a-visualization", "standardTool": "query_features", "profile": "base",
-      "requiredFields": ["serviceId", "layerId"],
+      "requiredFields": ["serviceId", "serviceLayerIndex"],
       "requiredProperties": ["where", "bbox", "bboxSrid", "outFields", "limit", "resultOffset", "returnGeometry", "returnCountOnly", "outSrid", "geometryPrecision"]
     },
     {
@@ -37,7 +37,7 @@
     },
     {
       "skill": "choosing-a-visualization", "standardTool": "apply_style_preset", "profile": "base",
-      "requiredFields": ["serviceId", "layerId", "styleId"], "requiredProperties": []
+      "requiredFields": ["serviceId", "serviceLayerIndex", "styleId"], "requiredProperties": []
     },
     {
       "skill": "choosing-a-visualization", "standardTool": "render_map", "profile": "base",
@@ -85,7 +85,7 @@
     },
     {
       "skill": "query-shaping", "standardTool": "query_features", "profile": "base",
-      "requiredFields": ["serviceId", "layerId"],
+      "requiredFields": ["serviceId", "serviceLayerIndex"],
       "requiredProperties": ["where", "bbox", "bboxSrid", "outFields", "limit", "resultOffset", "returnGeometry", "returnCountOnly", "outSrid", "geometryPrecision"]
     },
     {

@@ -19,6 +19,7 @@ strict mode was requested without the validation dependencies installed.
 """
 import json
 import os
+from pathlib import Path
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +31,17 @@ FIXTURE_ROOT = HERE
 def load_json(path):
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def schema_registry(schema_root):
+    from referencing import Registry, Resource
+
+    registry = Registry()
+    for path in Path(schema_root).rglob("*.json"):
+        schema = load_json(path)
+        if "$id" in schema:
+            registry = registry.with_resource(schema["$id"], Resource.from_contents(schema))
+    return registry
 
 
 def iter_fixtures():
@@ -65,17 +77,7 @@ def main(argv=None):
     import_error = None
     try:
         import jsonschema  # type: ignore
-        from referencing import Registry, Resource  # type: ignore
-
-        registry = Registry()
-        for dirpath, _dirs, files in os.walk(SCHEMA_ROOT):
-            for name in files:
-                if name.endswith(".json"):
-                    p = os.path.join(dirpath, name)
-                    d = load_json(p)
-                    if "$id" in d:
-                        registry = registry.with_resource(d["$id"], Resource.from_contents(d))
-        validator_cls = (jsonschema, registry)
+        validator_cls = (jsonschema, schema_registry(SCHEMA_ROOT))
     except Exception as exc:  # noqa: BLE001
         validator_cls = None
         import_error = exc

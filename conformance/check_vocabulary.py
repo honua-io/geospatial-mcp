@@ -103,9 +103,19 @@ def scan_text(path, text, allowlist):
     for number, line in enumerate(text.splitlines(), start=1):
         checked = WIRE_LITERALS.sub("", line)
         for rule_id, pattern, replacement in COMPILED_RULES:
+            if rule_id == "composition-profile-value":
+                continue  # Profile declarations may span several JSON lines.
             if (rule_id, line.strip()) not in excepted and pattern.search(checked):
                 findings.append((path, number, rule_id, replacement, line.strip()))
-    return findings
+    for rule_id, pattern, replacement in COMPILED_RULES:
+        if rule_id != "composition-profile-value":
+            continue
+        for match in pattern.finditer(text):
+            number = text.count("\n", 0, match.start()) + 1
+            line = text.splitlines()[number - 1].strip()
+            if (rule_id, line) not in excepted:
+                findings.append((path, number, rule_id, replacement, line))
+    return sorted(findings, key=lambda finding: finding[1])
 
 
 def scan_repo(repo=REPO, allowlist=None):

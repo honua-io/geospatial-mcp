@@ -334,6 +334,17 @@ class RetiredVocabularyTest(unittest.TestCase):
                                  "studio-package-prose", "composition-profile",
                                  "composition-profile-name", "composition-profile-name"])
 
+    def test_multiline_retired_profile_is_found(self):
+        for declaration in ({"profiles": ["base", "composition"]},
+                            {"profile": "composition"}):
+            with self.subTest(declaration=declaration):
+                text = json.dumps(declaration, indent=2)
+                findings = cv.scan_text("spec/x.json", text, self.allowlist)
+                self.assertEqual([(n, rule) for _p, n, rule, _r, _l in findings],
+                                 [(2, "composition-profile-value")])
+        self.assertEqual(cv.scan_text("spec/x.json", json.dumps(
+            {"profiles": ["base", "interactivity"]}, indent=2), self.allowlist), [])
+
     def test_stale_exception_is_reported(self):
         allowlist = {"exceptions": [{"path": "AGENTS.md", "rule": "hosted-layer",
                                      "line": "no such line", "reason": "test"}]}

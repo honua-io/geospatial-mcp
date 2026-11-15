@@ -17,8 +17,11 @@ wire so server and client implementers share one authoritative contract.
 
 Upstream references (authoritative for object field shapes):
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
+> The AI operator documents linked below were retired from honua-server in
+> November 2026. These links pin their last published revision.
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md)
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md)
 
 Protocol references (authoritative for transport framing and message shapes):
 

@@ -11,10 +11,13 @@ the capability matrix, or the MCP-vs-gRPC boundary.
 
 Upstream references (authoritative for object field shapes):
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
-- [AI Operator Agent Handoff](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_AGENT_HANDOFF.md)
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
+> The AI operator documents linked below were retired from honua-server in
+> November 2026. These links pin their last published revision.
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md)
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+- [AI Operator Agent Handoff](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_AGENT_HANDOFF.md)
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md)
 
 This repository owns protocol interaction semantics. Canonical object field
 shapes remain in the upstream contract documents and are not restated here.

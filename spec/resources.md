@@ -14,10 +14,13 @@ relationship graph that build on that baseline.
 
 Upstream references:
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
-- [MCP Server (open-core data access)](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md)
+> The AI operator documents linked below were retired from honua-server in
+> November 2026. These links pin their last published revision.
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md)
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md)
+- [Connect AI agents to Honua over MCP](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md)
 - [Taxonomy, Capability Matrix, and Non-Goals](taxonomy.md)
 
 ## Boundary Restatement
@@ -54,7 +57,7 @@ resource within the family; it is omitted for collection roots.
 
 The open-core data-access surface already exposes the collection
 resource `honua://published-services` (see
-[MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources));
+[ai-agents-mcp.md §Read results through resources](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md#read-results-through-resources));
 that resource remains valid under this grammar. Families introduced by
 this document address instance resources (and their subresources) only;
 they do not redefine collection roots.
@@ -80,7 +83,7 @@ Families introduced by this document:
 | Workspace artifact (lifecycle view) | `honua://workspaces/{workspace_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 
 ID prefixes follow the canonical examples in
-[AI_OPERATOR_CONTRACT.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md):
+[AI_OPERATOR_CONTRACT.md](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md):
 `result_`, `map_`, `app_`, `style_`, `theme_`, `dep_`, `ws_`, `artifact_`,
 `rev_`. Published-service identifiers follow the upstream `serviceId`
 vocabulary; this document does not impose an MCP-local prefix convention for
@@ -113,7 +116,7 @@ reduce its FULL level.
 The open-core data-access surface already uses
 `honua://published-services/{encodedServiceId}/layers/{layerId}` for catalog-backed
 layer schema inspection (see
-[MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md)).
+[ai-agents-mcp.md](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md)).
 `honua://published-services/{published_service_id}` coexists with that usage: the
 former is operator-published service metadata, the latter is a layer schema
 view. Both resolve under a single scheme; clients distinguish by path.
@@ -149,8 +152,9 @@ The contract is:
    and the client restarts from the first page; no MCP-local pagination error
    code is introduced.
 4. The open-core data-access collection surface (`honua://published-services` per
-   [MCP_SERVER.md §Exposed MCP Resources](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md#exposed-mcp-resources))
-   is authoritative for the concrete page-size defaults and token encoding.
+   [ai-agents-mcp.md §Read results through resources](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md#read-results-through-resources))
+   owns its concrete page-size defaults and token encoding; its cursors are
+   opaque ([§Pagination](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md#pagination)).
    This section pins the cursor/limit shape so MCP collection reads are
    uniformly bounded; it does not redefine the open-core token format.
 
@@ -159,7 +163,7 @@ The contract is:
 ### `honua://results/{result_package_id}`
 
 Inspection projection of
-[`AnalysisResultPackage`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#analysisresultpackage).
+[`AnalysisResultPackage`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#analysisresultpackage).
 The canonical shape is authoritative; MCP surfaces a read-only view.
 
 | Field | Role |
@@ -183,7 +187,7 @@ surfaced read-only.
 ### `honua://results/{result_package_id}/artifacts/{artifact_id}`
 
 Outcome-rooted view of an
-[`ArtifactRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#artifactref).
+[`ArtifactRef`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#artifactref).
 
 Canonical `ArtifactRef` fields:
 
@@ -219,7 +223,7 @@ service. See §Artifact Addressing Rule.
 ### `honua://results/{result_package_id}/provenance`
 
 Projection of
-[`ProvenanceRecord`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#provenancerecord).
+[`ProvenanceRecord`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#provenancerecord).
 
 | Field | Role |
 |---|---|
@@ -234,7 +238,7 @@ Projection of
 ### Reserved `honua://results/{id}` — Publishing Result
 
 Reserved inspection-route grammar for `PublishingResultPackage` (specified in the
-[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
+[Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
 The canonical shape is finalizing in `honua-server#730`; the Technical
 Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
@@ -269,7 +273,7 @@ reference; field names finalize alongside `honua-server#730`.
 ### Reserved `honua://results/{id}` — Builder Result
 
 Reserved inspection-route grammar for `BuilderResultPackage` (specified in the
-[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
+[Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)).
 The canonical shape is finalizing in the packaging lifecycle; the Technical
 Plan enumerates required fields at the responsibility level only. MCP
 therefore describes the inspection projection by responsibility rather
@@ -298,7 +302,7 @@ name; upstream field names finalize alongside the packaging lifecycle (see
 ### Reserved `honua://results/{id}` — Deployment Result
 
 `DeploymentResultPackage` (specified in the
-[Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
+[Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md))
 is deferred alongside the `Automate / Deploy` workflow column in
 [taxonomy.md §v1 Capability Matrix](taxonomy.md#v1-capability-matrix). It
 reuses the same reserved URI grammar (`honua://results/{id}`) once upstream
@@ -310,12 +314,12 @@ defines a shared stable identifier and its canonical shape finalizes in
 ### `honua://map-packages/{map_package_id}`
 
 Projection of
-[`Map`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage).
+[`Map`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#mappackage).
 The canonical shape is finalizing in the packaging lifecycle; the
-[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#mappackage)
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#mappackage)
 and
-[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#mappackage)
-sections still use different spellings for several properties
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#mappackage)
+sections use different spellings in their final revisions for several properties
 (`mapSpec` vs `honuaMapSpec`, `previewArtifactId` vs `previewArtifact`,
 etc.). To avoid freezing a draft variant, MCP describes the inspection
 projection by responsibility and by the canonical objects it references
@@ -346,12 +350,12 @@ this surface.
 ### `honua://app-packages/{app_package_id}`
 
 Projection of
-[`App`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage).
+[`App`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#apppackage).
 The canonical shape is finalizing in the packaging lifecycle; the
-[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#apppackage)
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#apppackage)
 and
-[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#apppackage)
-sections still use different spellings for several properties
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#apppackage)
+sections use different spellings in their final revisions for several properties
 (`bundleArtifactId` vs `bundleArtifactRef`, `mapPackageId` vs
 `mapPackageRef`, `deliveryHints` vs `deploymentHints`). To avoid
 freezing a draft variant, MCP describes the inspection projection by
@@ -383,7 +387,7 @@ flow through by reference.
 ### `honua://styles/{style_id}`
 
 Inspection projection of the canonical
-[`StyleRef`](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/style_types.proto)
+[`StyleRef`](https://github.com/honua-io/geospatial-grpc/blob/trunk/geospatial/v1/style_types.proto)
 message (`geospatial.v1.StyleRef` in geospatial-grpc). A style is an
 addressable, encoding-independent 2D cartography object; the concrete encoded
 representations live in `StyleRef.encodings` (one entry per encoding).
@@ -432,7 +436,7 @@ service stays with the gRPC execution layer (see
 ### `honua://themes/{theme_id}`
 
 Projection of
-[`ThemeSpec`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#themespec).
+[`ThemeSpec`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#themespec).
 The canonical source currently standardizes token families and examples
 rather than a frozen property table, so MCP describes the inspection
 projection by responsibility rather than by concrete field names.
@@ -454,7 +458,7 @@ resource URI and responsibility list stay stable under reference.
 ### `honua://templates/maps/{map_template_id}`
 
 Projection of
-[`MapTemplate`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#maptemplate).
+[`MapTemplate`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#maptemplate).
 The canonical source currently standardizes template role and examples
 rather than a frozen property table, so MCP describes the inspection
 projection by responsibility rather than by concrete field names.
@@ -504,9 +508,9 @@ state. None of them expose control operations through MCP.
 ### `honua://published-services/{published_service_id}`
 
 Projection of
-[`PublishedService`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishedservice).
+[`PublishedService`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishedservice).
 The canonical shape is owned by `honua-server#730`; the
-`AI_OPERATOR_CONTRACT` does not yet carry a `PublishedService` section,
+final `AI_OPERATOR_CONTRACT` revision carries no `PublishedService` section,
 and the `AI_OPERATOR_TECHNICAL_PLAN` enumerates properties only at the
 responsibility level. MCP therefore describes the inspection projection
 by responsibility rather than by concrete field names.
@@ -533,12 +537,12 @@ resource URI and responsibility list remain stable under reference.
 ### `honua://deployments/{deployment_id}`
 
 Projection of
-[`Deployment`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment).
+[`Deployment`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#deployment).
 The canonical shape is finalizing in `honua-server#732`; the
-[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#deployment)
+[`AI_OPERATOR_CONTRACT`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#deployment)
 and
-[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#deployment)
-sections still disagree on several properties (`approvalPolicyRef` vs
+[`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#deployment)
+sections disagree in their final revisions on several properties (`approvalPolicyRef` vs
 `approvalPolicy`; the tech plan also lists a `schedule` field not
 present in the contract). MCP describes the inspection projection by
 responsibility rather than by concrete field names.
@@ -635,7 +639,7 @@ per `honua-server#2496`; see
 ### `honua://workspaces/{workspace_id}`
 
 Projection of
-[`WorkspaceRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#workspaceref).
+[`WorkspaceRef`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#workspaceref).
 
 Canonical `WorkspaceRef` fields:
 
@@ -649,7 +653,7 @@ Canonical `WorkspaceRef` fields:
 
 MCP-layer lifecycle projection (not a field of `WorkspaceRef`; resolved
 through the workspace lifecycle service — see
-[`AI_OPERATOR_CONTRACT` §Workspace Lifecycle](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#workspace-lifecycle)):
+[`AI_OPERATOR_CONTRACT` §Workspace Lifecycle](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#workspace-lifecycle)):
 
 | Derived signal | Source |
 |---|---|
@@ -792,7 +796,7 @@ which is unconditionally available today:
    `AddArtifactAsync` permits omitting it, so this path is available
    only when the producing workflow populates the content locator.
 2. **Planned `workspaceRef` field** — the
-   [Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+   [Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
    specifies `workspaceRef` as a planned `ArtifactRef` field that
    will provide explicit workspace ownership. This field has not
    finalized upstream.
@@ -838,7 +842,7 @@ identifiers.
 ## Error Model
 
 MCP resource surfaces reuse the canonical
-[`GeoprocessingError`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#geoprocessingerror)
+[`GeoprocessingError`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#geoprocessingerror)
 envelope verbatim:
 
 | Field | Role |
@@ -873,7 +877,7 @@ source, layer, collection, capability, style, theme, template, or process:
 - dataset and layer descriptors (`DatasetRef`, `LayerRef`, field and schema
   reads, including the open-core
   `honua://published-services/{encodedServiceId}/layers/{layerId}` route per
-  [MCP_SERVER.md](https://github.com/honua-io/honua-server/blob/main/docs/developer/MCP_SERVER.md));
+  [ai-agents-mcp.md](https://github.com/honua-io/honua-server/blob/trunk/docs/guides/connect/ai-agents-mcp.md));
 - process and pipeline descriptions (`ProcessDefinition`,
   `PipelineDefinition`);
 - style, theme, and template inspection (`StyleRef`, `ThemeSpec`,
@@ -988,7 +992,7 @@ produced them.
 
 ### 4. No Autonomous AI Data Editing
 
-Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
+Per [ADR-0028](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
 and its standard reconciliation
 ([docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md)),
 AI may inspect but must not *autonomously* edit source data. Resource reads are

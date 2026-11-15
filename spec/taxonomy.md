@@ -14,9 +14,12 @@ and workspace families are in [MCP Resource Contracts](resources.md).
 
 Upstream references:
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
+> The AI operator documents linked below were retired from honua-server in
+> November 2026. These links pin their last published revision.
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md)
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md)
 - [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md) — reconciled by the standard's [ADR-0028: Governed Feature Mutation](../docs/adr/0028-governed-feature-mutation.md)
 
 ## Standard Version
@@ -346,9 +349,9 @@ The reference implementation does not ship the direct verbs yet: each is
 These transport-neutral objects form the shared vocabulary between MCP and gRPC
 surfaces. Canonical definitions are spread across three upstream documents:
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md) -- resource families, MCP contract structure, workflow lifecycle
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md) -- discovery objects, workflow-family intents and plans, publishing and pipeline nouns
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md) -- full canonical concept model, composition objects (`RendererSpec`, `LabelSpec`, `PopupSpec`)
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md) -- resource families, MCP contract structure, workflow lifecycle
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md) -- discovery objects, workflow-family intents and plans, publishing and pipeline nouns
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md) -- full canonical concept model, composition objects (`RendererSpec`, `LabelSpec`, `PopupSpec`)
 
 This section lists the objects for reference; the upstream documents are
 authoritative.
@@ -390,7 +393,7 @@ authoritative.
 
 | Object | Role |
 |---|---|
-| `StyleRef` | Reusable style asset or renderer bundle; canonical shape `geospatial.v1.StyleRef` (style_id / title / description / style_version / encodings / legend_url) in [geospatial-grpc](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/style_types.proto). Resolved read-only via [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id) over the server OGC API – Styles surface |
+| `StyleRef` | Reusable style asset or renderer bundle; canonical shape `geospatial.v1.StyleRef` (style_id / title / description / style_version / encodings / legend_url) in [geospatial-grpc](https://github.com/honua-io/geospatial-grpc/blob/trunk/geospatial/v1/style_types.proto). Resolved read-only via [`honua://styles/{style_id}`](resources.md#honuastylesstyle_id) over the server OGC API – Styles surface |
 | `MapTemplate` | Reusable cartographic composition template |
 | `ThemeSpec` | Reusable visual tokens (color ramps, typography, spacing) |
 | `RendererSpec` | Thematic renderer configuration |

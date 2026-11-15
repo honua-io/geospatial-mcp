@@ -15,12 +15,15 @@ reserved result-package routes; those remain in `spec/taxonomy.md`,
 Upstream references (authoritative for canonical object shapes and
 protocol vocabulary):
 
-- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md)
-- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
-- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_ARCHITECTURE.md)
-- [Deterministic Operator Workflow Results](https://github.com/honua-io/honua-server/blob/main/docs/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md)
+> The AI operator documents linked below were retired from honua-server in
+> November 2026. These links pin their last published revision.
+
+- [AI Operator Contract](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md)
+- [AI Operator Technical Plan](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md)
+- [AI-First Operator Architecture](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_ARCHITECTURE.md)
+- [Deterministic Operator Workflow Results](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/DETERMINISTIC_OPERATOR_WORKFLOW_RESULTS.md)
 - [ADR-0028: AI-Driven Data Editing Is Not Allowed](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md) — reconciled by the standard's [ADR-0028: Governed Feature Mutation](../docs/adr/0028-governed-feature-mutation.md)
-- [geospatial-grpc `spatial_types.proto`](https://github.com/honua-io/geospatial-grpc/blob/main/geospatial/v1/spatial_types.proto)
+- [geospatial-grpc `spatial_types.proto`](https://github.com/honua-io/geospatial-grpc/blob/trunk/geospatial/v1/spatial_types.proto)
 - [Taxonomy, Capability Matrix, and Non-Goals](taxonomy.md)
 - [MCP Resource Contracts](resources.md)
 - [Clarification, Elicitation, Planning, and Handoff Semantics](planning.md)
@@ -146,8 +149,8 @@ carry:
 
 Fixture descriptors and expected scenario shapes reference artifacts
 and workspaces using canonical object names
-([`ArtifactRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#artifactref),
-[`WorkspaceRef`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#workspaceref))
+([`ArtifactRef`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#artifactref),
+[`WorkspaceRef`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#workspaceref))
 and the URI grammar fixed in
 [resources.md §Resource URI Conventions](resources.md#resource-uri-conventions).
 The corpus does not mint synthetic `honua://` URIs that do not resolve
@@ -210,7 +213,7 @@ same geometry set without duplicating bytes.
 ## 4. Publishing and Source Packs
 
 Publishing and source packs cover the source-shape families that
-[`PublishingIntent.sourceRefs`](https://github.com/honua-io/honua-server/blob/main/docs/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishingintent)
+[`PublishingIntent.sourceRefs`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#publishingintent)
 addresses. Each `publish.source.*` pack is a clean source-shape
 baseline, not an end-to-end Publish Data scenario: it fixes the source
 descriptor and planning inputs that downstream publish scenarios (for
@@ -245,7 +248,7 @@ scenario opts into end-to-end publication.
 
 Protocol-mirror packs document which canonical adapters expose the same
 logical dataset. Adapters come from the upstream
-[`SourceBinding`](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding)
+[`SourceBinding`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#sourcebinding)
 set:
 
 - GeoServices REST (`geoservices_feature_service`);
@@ -275,7 +278,7 @@ Pack identifiers under a logical pack follow
 upstream `SourceBinding.protocol` token when one has been pinned
 upstream. Today upstream only pins `geoservices_feature_service` and
 `ogc_features` as concrete `SourceBinding.protocol` values
-([AI_OPERATOR_CONTRACT.md §SourceBinding / §Map](https://github.com/honua-io/honua-server/blob/main/docs/developer/AI_OPERATOR_CONTRACT.md#sourcebinding));
+([AI_OPERATOR_CONTRACT.md §SourceBinding / §Map](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#sourcebinding));
 WFS, WMS, OGC API Maps, OGC API Tiles, and OData are named only as
 protocol families in upstream prose. The corpus therefore pins its own
 labels for those adapters — `wfs`, `wms`, `ogc_maps`, `ogc_tiles`, and
@@ -601,7 +604,7 @@ runs against.
 
 ### 3. No Autonomous AI Data Mutation Fixtures
 
-Per [ADR-0028](https://github.com/honua-io/honua-server/blob/main/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
+Per [ADR-0028](https://github.com/honua-io/honua-server/blob/trunk/docs/internal/contributor/adr/0028-ai-data-editing-not-allowed.md)
 and its standard reconciliation
 ([docs/adr/0028-governed-feature-mutation.md](../docs/adr/0028-governed-feature-mutation.md)),
 *autonomous* AI source-data mutation is excluded from the operator contract.

@@ -51,8 +51,10 @@ software:
    standard tool and resource family the index marks `implemented` for the
    profiles you declare.
 
-Open a PR adding your row (and, if you like, your manifest under
-`conformance/manifests/`). Reaching FULL here readies you for the downstream
+Open an issue requesting your adopter listing, with a link to your manifest and
+checker result. A maintainer updates this page and any bundled manifest; outside
+pull requests are closed under [CONTRIBUTING.md](CONTRIBUTING.md). Reaching FULL
+here readies you for the downstream
 scenario rubric in [`spec/conformance.md`](spec/conformance.md); it does not by
 itself certify live-behavior conformance, which a scenario harness scores
 separately.

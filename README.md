@@ -32,7 +32,7 @@ change without compatibility guarantees (see
 | [`CONFORMANCE.md`](CONFORMANCE.md) | Conformance entry point: reference implementation, levels, profiles, how to check a manifest |
 | [`ADOPTERS.md`](ADOPTERS.md) | Implementations of the standard and the objective bar for being listed |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How decisions are made, versioning policy, vendor extension (`x-`) namespace rules |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | The issue → ADR → schema-PR proposal process and local checks |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Public feedback policy, maintainer proposal process, and local checks |
 | [`docs/adr/`](docs/adr/README.md) | Standard-level architecture decision records |
 
 ## Scope: workflow families and profiles
@@ -145,8 +145,8 @@ the reference, never the reverse.
 
 The standard is an open invitation, not a single-vendor interface. If you build
 an MCP surface for geospatial workflows, [ADOPTERS.md](ADOPTERS.md) is the
-on-ramp: emit a manifest, score it MAPPED or better, and open a PR adding your
-row.
+on-ramp: emit a manifest, score it MAPPED or better, and open an issue requesting
+an adopter listing. Maintainers update the listing; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Related repositories
 
@@ -159,9 +159,10 @@ row.
 
 ## Contributing, security, license
 
-- **Contributing:** normative changes follow an issue → ADR → schema-PR process
-  with conformance fixtures — see [CONTRIBUTING.md](CONTRIBUTING.md) and
-  [GOVERNANCE.md](GOVERNANCE.md).
+- **Feedback:** issues, interoperability reports, and standards design feedback are
+  welcome. Outside code contributions are not accepted. See
+  [CONTRIBUTING.md](CONTRIBUTING.md) and [GOVERNANCE.md](GOVERNANCE.md) for the
+  policy and maintainer process.
 - **Security:** report vulnerabilities to <security@honua.io> (see the
   [org security policy](https://github.com/honua-io/.github/blob/main/SECURITY.md)).
 - **License:** [Apache-2.0](LICENSE).

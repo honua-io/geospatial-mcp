@@ -1,5 +1,20 @@
 # Contributing to geospatial-mcp
 
+**This repository does not accept code contributions from outside Honua Geo Inc.**
+Pull requests from outside the organization are closed automatically, regardless
+of the repository's license.
+
+We welcome:
+
+- Bug reports and feature requests through GitHub Issues.
+- Interoperability reports with reproducible requests, responses, and version details.
+- Private security reports to <security@honua.io>, following the
+  [organization security policy](https://github.com/honua-io/.github/blob/main/SECURITY.md).
+  Do not disclose vulnerabilities in public issues.
+- Standards questions and design feedback through GitHub Issues; maintainers implement accepted changes.
+
+## Maintainer development guide
+
 `geospatial-mcp` is a **specification** repository: the single source of truth
 for the open geospatial MCP vocabulary, its JSON Schemas, and its conformance
 model. Downstream implementations (the Honua reference and any other adopter)

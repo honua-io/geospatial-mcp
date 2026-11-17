@@ -5,9 +5,9 @@
   "description": "Argument shape for preview_app (Build App; returns a preview ArtifactRef). Produces a read-only preview artifact for an existing App. Responsibility-level. See taxonomy.md §App composition.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["appPackageId"],
+  "required": ["appId"],
   "properties": {
-    "appPackageId": {
+    "appId": {
       "type": "string",
       "description": "Identifier (app_…) of the App to preview."
     }

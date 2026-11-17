@@ -3,7 +3,7 @@
   "schemaRef": "tools/create_exploration_context.schema.json",
   "validates": "inputs",
   "inputs": {
-    "mapPackageId": "map_maui_parcels",
+    "mapId": "map_maui_parcels",
     "explorationContext": {
       "id": "parcels-workspace",
       "sourceIds": ["parcels", "permits"],

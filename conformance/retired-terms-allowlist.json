@@ -116,6 +116,78 @@
       "rule": "composition-profile-name",
       "line": "| `composition` | `interactivity` | conformance profile |",
       "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `mapPackageId` | `mapId` | Map identity and App binding |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `appPackageId` | `appId` | App identity |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `mapPackageUri` | `mapUri` | Map reference |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `appPackageUri` | `appUri` | App reference |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `honua://map-packages/{map_package_id}` | `honua://maps/{mapId}` | resource URI |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `honua://map-packages/{map_package_id}` | `honua://maps/{mapId}` | resource URI |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "map-app-identity",
+      "line": "| `honua://app-packages/{app_package_id}` | `honua://apps/{appId}` | resource URI |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "rule": "studio-package-prose",
+      "line": "| `honua://app-packages/{app_package_id}` | `honua://apps/{appId}` | resource URI |",
+      "reason": "CHANGELOG rename list records the retired spelling."
+    },
+    {
+      "path": "spec/schemas/resources/app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"appPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/resources/app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/resources/map.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/tools/create_app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
     }
   ]
 }

@@ -7,9 +7,7 @@ docs/concepts/domain/README.md; shared policy: honua-server
 scripts/ci/retired-terms.v1.json). A finding names the file, line, rule and
 replacement.
 
-Wire literals the reference implementation still serves (for example
-``honua://map-packages/{map_package_id}``) are not findings; their rename
-follows the server migration. Renamed names are retired outright, with no
+Renamed names, fields and resource URI families are retired outright, with no
 aliases. The CHANGELOG rename list and historical records are declared in
 ``conformance/retired-terms-allowlist.json`` with a reason; an exception names
 the literal path, rule id and exact (stripped) line, so changing the line
@@ -39,6 +37,7 @@ RETIRED_TOOL_NAMES = (
 )
 
 RULES = [
+    ("map-app-identity", r"\b(?:map|app)Package(?:Id|Uri|Ref)\b|\b(?:map|app)_package_id\b", "mapId, appId, mapUri or appUri"),
     ("map-envelope", r"MapPackage(?![a-z])", "Map"),
     ("app-envelope", r"AppPackage(?![a-z])", "App"),
     ("studio-package-prose", r"(?i)\b(?:map|app)[ /-]packages?\b", "Map or App"),
@@ -66,9 +65,6 @@ RULES = [
 COMPILED_RULES = [(rule_id, re.compile(pattern), replacement)
                   for rule_id, pattern, replacement in RULES]
 
-# Served wire literals (the resource URI segments), removed before matching so the
-# prose around them is still checked.
-WIRE_LITERALS = re.compile(r"(?:honua://)?\b(?:map|app)-packages\b")
 
 
 def load_allowlist(path=ALLOWLIST_PATH):
@@ -101,7 +97,7 @@ def scan_text(path, text, allowlist):
                 for entry in allowlist.get("exceptions", []) if entry["path"] == path}
     findings = []
     for number, line in enumerate(text.splitlines(), start=1):
-        checked = WIRE_LITERALS.sub("", line)
+        checked = line
         for rule_id, pattern, replacement in COMPILED_RULES:
             if rule_id == "composition-profile-value":
                 continue  # Profile declarations may span several JSON lines.
@@ -145,7 +141,7 @@ def stale_exceptions(repo=REPO, allowlist=None):
                 lines = [line.strip() for line in fh.read().splitlines()]
         pattern = patterns.get(entry["rule"])
         if (entry["line"] not in lines or pattern is None
-                or not pattern.search(WIRE_LITERALS.sub("", entry["line"]))):
+                or not pattern.search(entry["line"])):
             stale.append(entry)
     return stale
 

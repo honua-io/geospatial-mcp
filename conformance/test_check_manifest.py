@@ -350,10 +350,10 @@ class RetiredVocabularyTest(unittest.TestCase):
                                      "line": "no such line", "reason": "test"}]}
         self.assertEqual(len(cv.stale_exceptions(allowlist=allowlist)), 1)
 
-    def test_wire_literals_are_not_findings(self):
+    def test_retired_wire_literals_are_findings(self):
         text = ("Read honua://map-packages/{map_package_id} with mapPackageId.\n"
                 "The reference advertises honua_create_map_package.\n")
-        self.assertEqual(cv.scan_text("spec/x.md", text, self.allowlist), [])
+        self.assertTrue(cv.scan_text("spec/x.md", text, self.allowlist))
 
     def test_exception_covers_only_its_exact_line(self):
         allowlist = {"exceptions": [{"path": "spec/x.md", "rule": "retired-tool-name",
@@ -395,6 +395,34 @@ class ServiceLayerSelectorTest(unittest.TestCase):
         for name in ("common/service-layer-reference.schema.json", "tools/get_style.schema.json"):
             schema = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", name))
             self.assertEqual(schema.get("not"), {"required": ["layerId"]}, name)
+
+
+class MapAppIdentityContractTest(unittest.TestCase):
+    def test_resource_identity_round_trip_rejects_retired_aliases(self):
+        from jsonschema import Draft202012Validator
+        for family, current, retired in (
+            ("map", "mapId", "mapPackageId"),
+            ("app", "appId", "appPackageId"),
+        ):
+            schema = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", "resources", family + ".schema.json"))
+            validator = Draft202012Validator(schema)
+            with self.subTest(family=family):
+                self.assertEqual(list(validator.iter_errors({current: "stable-id"})), [])
+                self.assertTrue(list(validator.iter_errors({current: "stable-id", retired: "other-id"})))
+                self.assertTrue(list(validator.iter_errors({retired: "stable-id"})))
+
+    def test_create_app_rejects_retired_map_binding(self):
+        from jsonschema import Draft202012Validator
+        schema = cm.load_json(os.path.join(cm.REPO, "spec", "schemas", "tools", "create_app.schema.json"))
+        validator = Draft202012Validator(schema)
+        self.assertEqual(list(validator.iter_errors({"mapId": "stable-id"})), [])
+        self.assertTrue(list(validator.iter_errors({"mapPackageId": "stable-id"})))
+
+    def test_guard_rejects_retired_identity_and_resource_literals(self):
+        for literal in ("mapPackageId", "appPackageId", "mapPackageUri", "appPackageUri",
+                        "honua://map-packages/{map_package_id}", "honua://app-packages/{app_package_id}"):
+            with self.subTest(literal=literal):
+                self.assertTrue(cv.scan_text("spec/resources.md", literal, {"exceptions": []}))
 
 
 if __name__ == "__main__":

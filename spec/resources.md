@@ -69,8 +69,8 @@ Families introduced by this document:
 | Result package | `honua://results/{result_package_id}` | `AnalysisResultPackage` (v1; owns `resultPackageId`). `PublishingResultPackage`, `BuilderResultPackage`, and `DeploymentResultPackage` URIs are **reserved**: they reuse the same grammar once upstream defines a shared stable identifier (see §Publishing Result, §Builder Result, §Deployment Result) |
 | Result artifact (outcome view) | `honua://results/{result_package_id}/artifacts/{artifact_id}` | `ArtifactRef` |
 | Result provenance | `honua://results/{result_package_id}/provenance` | `ProvenanceRecord` |
-| Map | `honua://map-packages/{map_package_id}` | `Map` |
-| App | `honua://app-packages/{app_package_id}` | `App` |
+| Map | `honua://maps/{mapId}` | `Map` |
+| App | `honua://apps/{appId}` | `App` |
 | Style | `honua://styles/{style_id}` | `StyleRef` (`geospatial.v1.StyleRef`, geospatial-grpc; resolved via the server OGC API – Styles surface) |
 | Theme | `honua://themes/{theme_id}` | `ThemeSpec` |
 | Map template | `honua://templates/maps/{map_template_id}` | `MapTemplate` |
@@ -174,8 +174,8 @@ The canonical shape is authoritative; MCP surfaces a read-only view.
 | `assumptions[]` | Assumptions recorded during planning or execution |
 | `artifacts[]` | `ArtifactRef` entries (see artifact resources) |
 | `workspaceRefs[]` | `WorkspaceRef` entries produced or consumed |
-| `mapPackageId?` | Deferred reference; concrete shape finalizes in the packaging lifecycle (see §Downstream Coordination) |
-| `appPackageId?` | Deferred reference; concrete shape finalizes in the packaging lifecycle (see §Downstream Coordination) |
+| `mapId?` | Deferred reference; concrete shape finalizes in the packaging lifecycle (see §Downstream Coordination) |
+| `appId?` | Deferred reference; concrete shape finalizes in the packaging lifecycle (see §Downstream Coordination) |
 | `provenance` | `ProvenanceRecord` (see provenance resource) |
 | `errors[]` | `GeoprocessingError` entries, canonical envelope |
 
@@ -311,7 +311,7 @@ defines a shared stable identifier and its canonical shape finalizes in
 
 ## Asset Resources
 
-### `honua://map-packages/{map_package_id}`
+### `honua://maps/{mapId}`
 
 Projection of
 [`Map`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#mappackage).
@@ -326,7 +326,7 @@ projection by responsibility and by the canonical objects it references
 rather than by concrete field names. Consumers read field names from
 the canonical shape when the packaging lifecycle ticket lands.
 
-**Stable identifier:** `mapPackageId` (prefix `map_…`).
+**Stable identifier:** `mapId` (prefix `map_…`).
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -347,7 +347,7 @@ these compositions by canonical object name; upstream field renames in
 the packaging lifecycle flow through by reference without invalidating
 this surface.
 
-### `honua://app-packages/{app_package_id}`
+### `honua://apps/{appId}`
 
 Projection of
 [`App`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/developer/AI_OPERATOR_CONTRACT.md#apppackage).
@@ -356,13 +356,13 @@ The canonical shape is finalizing in the packaging lifecycle; the
 and
 [`AI_OPERATOR_TECHNICAL_PLAN`](https://github.com/honua-io/honua-server/blob/1862dfcec975fab720665957c501ab97f41a3738/docs/archive/contributor/AI_OPERATOR_TECHNICAL_PLAN.md#apppackage)
 sections use different spellings in their final revisions for several properties
-(`bundleArtifactId` vs `bundleArtifactRef`, `mapPackageId` vs
-`mapPackageRef`, `deliveryHints` vs `deploymentHints`). To avoid
+(`bundleArtifactId` vs `bundleArtifactRef`, `mapId` vs
+`mapRef`, `deliveryHints` vs `deploymentHints`). To avoid
 freezing a draft variant, MCP describes the inspection projection by
 responsibility and by the canonical objects it references rather than
 by concrete field names.
 
-**Stable identifier:** `appPackageId` (prefix `app_…`).
+**Stable identifier:** `appId` (prefix `app_…`).
 
 **Inspection responsibilities surfaced read-only:**
 
@@ -700,17 +700,17 @@ reads come from workspace ownership and lifecycle context (see
 | `results/{result_package_id}` | `ArtifactRef` | composes (`AnalysisResultPackage.artifacts[]`) |
 | `results/{result_package_id}` | `WorkspaceRef` | references (`AnalysisResultPackage.workspaceRefs[]`) |
 | `results/{result_package_id}` | `results/{result_package_id}/provenance` | composes (`AnalysisResultPackage.provenance`) |
-| `results/{result_package_id}` | `Map` | references (`AnalysisResultPackage.mapPackageId?`) |
-| `results/{result_package_id}` | `App` | references (`AnalysisResultPackage.appPackageId?`) |
+| `results/{result_package_id}` | `Map` | references (`AnalysisResultPackage.mapId?`) |
+| `results/{result_package_id}` | `App` | references (`AnalysisResultPackage.appId?`) |
 | `results/{result_package_id}` | `GeoprocessingError` | composes (`AnalysisResultPackage.errors[]`) |
-| `map-packages/{id}` | `SourceBinding` | composes (binding list) |
-| `map-packages/{id}` | `StyleRef` | references (style composition) |
-| `map-packages/{id}` | `ThemeSpec` | references (theme selection) |
-| `map-packages/{id}` | `MapTemplate` | references (template composition) |
-| `map-packages/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
-| `app-packages/{id}` | `Map` | references (map binding) |
-| `app-packages/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
-| `app-packages/{id}` | app-template registry entry | references (template binding via `App.templateId`; standalone shape deferred) |
+| `maps/{id}` | `SourceBinding` | composes (binding list) |
+| `maps/{id}` | `StyleRef` | references (style composition) |
+| `maps/{id}` | `ThemeSpec` | references (theme selection) |
+| `maps/{id}` | `MapTemplate` | references (template composition) |
+| `maps/{id}` | `ArtifactRef` | references (preview and bound artifacts) |
+| `apps/{id}` | `Map` | references (map binding) |
+| `apps/{id}` | `ArtifactRef` | references (bundle and bound artifacts) |
+| `apps/{id}` | app-template registry entry | references (template binding via `App.templateId`; standalone shape deferred) |
 | `published-services/{id}` | `StyleRef` | references (styling bound to the service, shape deferred to `honua-server#730`) |
 | `deployments/{id}` | `App` \| `Map` \| `PublishedService` \| `ProcessDefinition` (opaque) \| `PipelineDefinition` (opaque) | references (`targetRef`); navigable for families with MCP resource contracts; `ProcessDefinition` and `PipelineDefinition` targets are opaque identifiers in this version |
 | `deployments/{id}` | `ArtifactRef` | references (delivery artifacts) |
@@ -823,8 +823,8 @@ cell is read from the taxonomy matrix.
 | Resource family | Workflow families consuming it |
 |---|---|
 | `results`, `results/{id}/artifacts`, `results/{id}/provenance` | Analyze, Publish Data, Build App, Automate / Deploy |
-| `map-packages`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
-| `app-packages`, `templates/apps` | Analyze, Build App, Automate / Deploy |
+| `maps`, `styles`, `themes`, `templates/maps` | Analyze, Publish Data, Build App, Automate / Deploy |
+| `apps`, `templates/apps` | Analyze, Build App, Automate / Deploy |
 | `published-services` | Analyze, Publish Data, Automate / Deploy |
 | `deployments` | Publish Data, Build App, Automate / Deploy |
 | `workspaces`, `workspaces/{id}/artifacts` | Analyze, Publish Data, Build App, Automate / Deploy |

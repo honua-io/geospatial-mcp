@@ -1,9 +1,9 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "b21266097cfd1038a8ee6240bbeaaeed0fca1854",
+  "sourceSha": "12739bcd9a54b51e0b4969bf224229ae7afb3a45",
   "requirementsRevision": "2026-10-26-complete.26",
   "sha256": {
-    "certification/protocol-certification-requirements.v1.json": "b81d10ce1d91fc5f4affa2c9bf0a674dc4e87c13a08636324ec905348562b43c",
+    "certification/protocol-certification-requirements.v1.json": "27915ac7249331525a8c6a9942348877b390eb6e46a688e0415d60a765f64539",
     "tools/check_protocol_certification.py": "87bdec8407af076e88fa0d619ba03400616b2222c0d76fd0a6851fad62216e46",
     "tools/digests.py": "2795b01cc4053acafd00a606a13d4f027230da340460ba6eb1a8bc25fc630d70"
   }

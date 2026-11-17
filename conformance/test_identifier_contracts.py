@@ -6,7 +6,7 @@ import unittest
 import check_manifest as cm
 
 
-class CompositionIdentifierContractTest(unittest.TestCase):
+class MapAppIdentifierContractTest(unittest.TestCase):
     def test_component_identifiers_match_handler_constraints(self):
         from jsonschema import Draft202012Validator
         for file_name, definition, property_name in (

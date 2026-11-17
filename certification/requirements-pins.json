@@ -1,6 +1,6 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "a398d99b0fbf12ee04ec45fe762facb2358b6702",
+  "sourceSha": "b21266097cfd1038a8ee6240bbeaaeed0fca1854",
   "requirementsRevision": "2026-10-26-complete.26",
   "sha256": {
     "certification/protocol-certification-requirements.v1.json": "b81d10ce1d91fc5f4affa2c9bf0a674dc4e87c13a08636324ec905348562b43c",

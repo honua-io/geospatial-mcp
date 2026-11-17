@@ -60,5 +60,5 @@ The direct analysis verbs and `edit_features` keep `layerId` in their
 is the same service-local index.
 
 Reference-implementation advertised names (for example
-`honua_create_map_package`), resource URIs and payload fields are wire literals
+`honua_create_map`), resource URIs and payload fields are wire literals
 the reference server owns; they change when the server migrates them.

@@ -33,7 +33,8 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 200,
-      "description": "Id of the control to remove."
+      "description": "Id of the control to remove.",
+      "pattern": "\\S"
     },
     "cascadeInteractions": {
       "type": "boolean",

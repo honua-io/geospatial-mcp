@@ -425,5 +425,7 @@ class MapAppIdentityContractTest(unittest.TestCase):
                 self.assertTrue(cv.scan_text("spec/resources.md", literal, {"exceptions": []}))
 
 
+
+
 if __name__ == "__main__":
     unittest.main()

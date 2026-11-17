@@ -37,7 +37,8 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 200,
-          "description": "Stable identifier, unique within the document's controls block. `control:{id}` references in the **interactions** block resolve against this value; add_control replaces an existing control with the same id. Controls are deliberately NOT layout grammar — ADR-0031 treats them as chrome the host positions, and `layoutItem.ref` is constrained to `map` and `widget:{id}` so a control can never claim a grid cell."
+          "description": "Stable identifier, unique within the document's controls block. `control:{id}` references in the **interactions** block resolve against this value; add_control replaces an existing control with the same id. Controls are deliberately NOT layout grammar — ADR-0031 treats them as chrome the host positions, and `layoutItem.ref` is constrained to `map` and `widget:{id}` so a control can never claim a grid cell.",
+          "pattern": "\\S"
         },
         "kind": {
           "$ref": "#/$defs/controlKind",
@@ -51,7 +52,9 @@
         "sourceId": {
           "type": "string",
           "minLength": 1,
-          "description": "Identifier of the layer or datasource the control reads its domain from (e.g. the layer whose field values populate a filterSelect, or the layer a timeSlider ranges over). Data-binding kinds normally set it; presentation-only kinds (navigation, scale, fullscreen, attribution) omit it. Resolution of the identifier within the document is a validation-gate responsibility, as for layer references."
+          "description": "Identifier of the layer or datasource the control reads its domain from (e.g. the layer whose field values populate a filterSelect, or the layer a timeSlider ranges over). Data-binding kinds normally set it; presentation-only kinds (navigation, scale, fullscreen, attribution) omit it. Resolution of the identifier within the document is a validation-gate responsibility, as for layer references.",
+          "maxLength": 200,
+          "pattern": "\\S"
         },
         "config": {
           "type": "object",

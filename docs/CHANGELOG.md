@@ -38,6 +38,12 @@ their schema files are removed.
 Each renamed tool's schema moves with it (for example
 `tools/create_map_package.schema.json` is now `tools/create_map.schema.json`).
 
+### Control and interaction identifiers
+
+Control and interaction identifiers must contain a non-whitespace character and
+remain within 200 characters, including control source references and removal
+inputs. The published schemas now enforce the same limits as the handlers.
+
 ### Service layer selector
 
 The service-scoped layer selector is named for what it holds, a service-local

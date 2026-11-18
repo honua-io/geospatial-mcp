@@ -88,8 +88,10 @@ await planScenarios(async (name, arguments_) => {
 let renderCall = 0;
 await renderScenarios(async (name, arguments_) => {
   const diagnostic = `diagnostic/render-${renderCall++}`;
-  const output = await invoke(diagnostic, "tools/call", ["--tool-name", name, "--tool-arg",
-    ...Object.entries(arguments_).map(([key, value]) => `${key}=${JSON.stringify(value)}`)], [0, 5]);
+  // The default view omits the render tool, and the CLI checks --tool-name
+  // against its own tools/list, so discover through the full view.
+  const output = await invoke(diagnostic, "tools/call", ["--metadata", 'honua.io/workflow-view="full"',
+    "--tool-name", name, "--tool-arg", ...Object.entries(arguments_).map(([key, value]) => `${key}=${JSON.stringify(value)}`)], [0, 5]);
   return requireInspectorSemanticResult(checks[diagnostic], output);
 }, async (name, run) => {
   const startedAt = new Date().toISOString();

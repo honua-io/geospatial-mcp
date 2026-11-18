@@ -41,3 +41,12 @@ test("omitting selection or any observer/fixture setting cannot satisfy the actu
     assert.throws(() => sameObserverAndFixture(missing), undefined, key);
   }
 });
+
+test("Inspector render calls discover the full workflow view so the pinned CLI can find the render tool", async () => {
+  const runner = await readFile(new URL("../run-inspector.mjs", import.meta.url), "utf8");
+  const render = runner.split("await renderScenarios(")[1]?.split("}, async (name, run)")[0];
+  assert.ok(render, "render scenario invocation is missing");
+  // The candidate's default view omits honua_render_map; the CLI refuses names
+  // absent from its own tools/list before sending tools/call.
+  assert.match(render, /"--metadata", 'honua\.io\/workflow-view="full"'/);
+});

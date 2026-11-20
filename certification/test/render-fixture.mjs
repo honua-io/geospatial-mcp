@@ -37,7 +37,7 @@ export function controlledDockerProgram(runtime) {
 
 export function controlledRenderResponse(arguments_) {
   const invalidBbox = arguments_.bbox[0] > arguments_.bbox[2];
-  const missing = arguments_.layers[0].layerId === 2147483647;
+  const missing = arguments_.layers[0].serviceLayerIndex === 2147483647;
   if (invalidBbox || missing) {
     const value = { status: "error", code: invalidBbox ? "invalid_argument" : "not_found", message: "Controlled authored refusal" };
     return { isError: true, structuredContent: value, content: [{ type: "text", text: JSON.stringify(value) }] };
@@ -59,7 +59,7 @@ export function controlledRenderResponse(arguments_) {
   const png = Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk("IHDR", header), chunk("IDAT", deflateSync(Buffer.concat(rows))), chunk("IEND", Buffer.alloc(0))]);
   const base64 = png.toString("base64");
   return { isError: false, structuredContent: { format: "image/png", width, height, byteLength: png.length,
-    bbox: [-100,-10,-35,70], bboxSrid: 4326, layers: [{ serviceId: "controlled-service-id", layerId: 3 }],
+    bbox: [-100,-10,-35,70], bboxSrid: 4326, layers: [{ serviceId: "controlled-service-id", serviceLayerIndex: 3 }],
     image: { format: "image/png", width, height, byteLength: png.length, base64, inlined: true } },
   content: [{ type: "text", text: "Controlled authored render" }, { type: "image", data: base64, mimeType: "image/png" }] };
 }

@@ -8,7 +8,7 @@ This repository defines the agent interaction plane for geospatial workflows. It
 - Publish Data workflows for dataset intake, validation, transform planning, publication handoff, and result inspection.
 - Build App workflows for requirements gathering, app planning, Map or App authoring, and deployment handoff.
 - Deferred Automate / Deploy workflows for operator automation beyond v1.
-- Explicitly excluded Edit Data workflows, matching the upstream Honua ADR stance that AI agents should not directly mutate geospatial records.
+- Edit Data workflows through the opt-in `mutation` profile only: governed, authenticated, transactional `edit_features` ([ADR-0028](../adr/0028-governed-feature-mutation.md)). Autonomous agent editing of geospatial records stays excluded and no profile sanctions it.
 
 ## Source Evidence
 

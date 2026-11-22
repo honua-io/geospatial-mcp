@@ -1,8 +1,8 @@
 {
   "repository": "honua-io/honua-release",
-  "sourceSha": "1f2e71fa2b86a06da2597a572f2ed64a5f1dd822",
+  "sourceSha": "ba67cb655a9d2fe67027642aa76bc6b6298b2d5d",
   "sha256": {
-    "certification/installed-clients/fixture.v1.json": "7b7ca6f23c3129f523870502e188ad1399f7d872bf75a53b1a92685c95c3b498",
+    "certification/installed-clients/fixture.v1.json": "cbdefc21e20315e46648339f1ec35cc1fa13565d7ff0dce7324317f225d6e6ff",
     "certification/installed-clients/mcp_candidate_wire.mjs": "5023ca42aae2eed7b16fb87df108f2ff1496f8225a3920d07d1b01879d1bae70",
     "certification/installed-clients/mcp_execute_plan_state.py": "2da71ab0d5934fee993823e3af14bb280396021b67d8defb6a4584b5462ac930",
     "certification/installed-clients/mcp_execute_plan_validation.mjs": "e344990aa77db3b065a851e6d4a81deb5cadef90e8a8ea2c03c94ad0f50192e6",

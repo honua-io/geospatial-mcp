@@ -74,12 +74,15 @@ function launchObserver(name, args) {
   return result.stdout;
 }
 
+const isNightlyCandidateAdvance = () => /^nightly-certification-[1-9][0-9]*-[1-9][0-9]*$/.test(process.env.HONUA_NIGHTLY_DISPATCH_ID ?? "");
+
 export function prepareOpsEventsConfiguration() {
   const context = verifiedOpsEventsSource();
+  const advanceArgs = isNightlyCandidateAdvance() ? ["--allow-candidate-advance"] : [];
   return JSON.parse(launchObserver("mcp_ops_events_config.py", ["--manifest", context.platformManifestPath,
     "--release-source-sha", context.manifestSourceSha,
     "--candidate-source-sha", process.env.HONUA_MCP_SERVER_SOURCE_SHA,
-    "--candidate-image", process.env.HONUA_MCP_SERVER_IMAGE]));
+    "--candidate-image", process.env.HONUA_MCP_SERVER_IMAGE, ...advanceArgs]));
 }
 
 export function provisionOpsEvents() {
@@ -92,7 +95,7 @@ export function provisionOpsEvents() {
 }
 
 export function opsEventsScenarios(record, canonicalClient, clientVersion, results) {
-  return owned.createOpsEventsValidation(verifiedOpsEventsSource()).opsEventsScenarios(record, {
+  return owned.createOpsEventsValidation({ ...verifiedOpsEventsSource(), allowCandidateAdvance: isNightlyCandidateAdvance() }).opsEventsScenarios(record, {
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA, candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     canonicalClient, clientVersion, installationRoot: fileURLToPath(new URL("./node_modules/", import.meta.url)),
     credential: process.env.HONUA_MCP_API_KEY,
@@ -103,7 +106,7 @@ export function opsEventsScenarios(record, canonicalClient, clientVersion, resul
 export function verifyOpsEventsProof(proof, sourceSha, imageDigest, operation, canonicalClient, clientVersion) {
   try {
     if (typeof proof?.candidateImage !== "string" || proof.candidateImage.split("@").at(-1) !== imageDigest) return false;
-    return owned.createOpsEventsValidation(verifiedOpsEventsSource()).verifyOpsEventsProof(proof, sourceSha,
+    return owned.createOpsEventsValidation({ ...verifiedOpsEventsSource(), allowCandidateAdvance: isNightlyCandidateAdvance() }).verifyOpsEventsProof(proof, sourceSha,
       proof.candidateImage, operation, canonicalClient, clientVersion);
   } catch { return false; }
 }

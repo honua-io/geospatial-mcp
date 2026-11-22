@@ -61,6 +61,15 @@ Conformance is scoped by **profile** ([details](CONFORMANCE.md#conformance-profi
   ([ADR-0028](docs/adr/0028-governed-feature-mutation.md)). *Autonomous* agent
   editing of geospatial records is excluded by design and never sanctioned by
   any profile.
+- **`interactivity`** — additive: presentation-only authoring of a Map or App
+  document's interactions (`bind_interaction`, `remove_interaction`), controls
+  (`add_control`, `remove_control`) and shared exploration contexts
+  (`create_exploration_context`, `remove_exploration_context`,
+  `bind_component_context`)
+  ([ADR-0030](docs/adr/0030-declarative-interactions-and-layout.md),
+  [ADR-0031](docs/adr/0031-composition-controls.md),
+  [ADR-0032](docs/adr/0032-shared-exploration-contexts.md)). It never mutates
+  source records.
 
 **`v1` means "specified in the v1 standard", not "shipped by the reference
 implementation".** The authoritative per-tool and per-resource status is the

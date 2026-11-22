@@ -187,7 +187,7 @@ jobs:
           npm run prepare:ops-events
           npm run prepare:grounding-status
           manifest_args=(--governance-binding ../.certification/source-binding.json --destination artifacts --candidate-source-sha "${HONUA_MCP_SERVER_SOURCE_SHA}" --candidate-image "${HONUA_MCP_SERVER_IMAGE}")
-          if [[ "${HONUA_NIGHTLY_DISPATCH_ID}" =~ ^nightly-certification-[0-9]+-[0-9]+$ ]]; then
+          if [[ "${HONUA_NIGHTLY_DISPATCH_ID}" =~ ^nightly-certification-[1-9][0-9]*-[1-9][0-9]*$ ]]; then
             manifest_args+=(--allow-candidate-advance)
           fi
           python3 fetch-ops-events-manifest.py "${manifest_args[@]}"

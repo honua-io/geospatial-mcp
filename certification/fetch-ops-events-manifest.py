@@ -11,6 +11,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import tempfile
 
 import yaml
 
@@ -87,20 +88,17 @@ def fetch(governance_binding, destination, *, get=SOURCE.api, candidate_source_s
 
 
 def fetch_nightly_advance(governance_binding, destination, candidate, *, get=SOURCE.api):
-    if (not isinstance(governance_binding, dict)
-            or governance_binding.get("repository") != SOURCE.REPOSITORY):
-        raise ValueError("original governance source binding missing")
     source_sha, image = candidate
-    source = governance_binding.get("sourceSha")
-    retained = SOURCE.immutable_files(SOURCE.REPOSITORY, source, (PATH,), get=get)
-    raw, digest, blob = retained[PATH]
-    check_nightly_advance_candidate(raw, source_sha, image)
-    binding = {"schema": "honua.mcp-ops-events-manifest/v1", "repository": SOURCE.REPOSITORY,
-               "sourceSha": source, "path": PATH, "sha256": digest, "gitBlob": blob}
-    destination.mkdir(parents=True, exist_ok=True)
-    (destination / "ops-events-platform-manifest.yaml").write_bytes(raw)
-    (destination / "ops-events-manifest-binding.json").write_text(json.dumps(binding, indent=2) + "\n")
-    return binding
+    with tempfile.TemporaryDirectory() as staging:
+        staged = Path(staging)
+        binding = fetch(governance_binding, staged, get=get)
+        raw = (staged / "ops-events-platform-manifest.yaml").read_bytes()
+        check_nightly_advance_candidate(raw, source_sha, image)
+        destination.mkdir(parents=True, exist_ok=True)
+        (destination / "ops-events-platform-manifest.yaml").write_bytes(raw)
+        (destination / "ops-events-manifest-binding.json").write_text(
+            (staged / "ops-events-manifest-binding.json").read_text())
+        return binding
 
 
 def main():

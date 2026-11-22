@@ -74,7 +74,7 @@ function launchObserver(name, args) {
   return result.stdout;
 }
 
-const isNightlyCandidateAdvance = () => /^nightly-certification-[0-9]+-[0-9]+$/.test(process.env.HONUA_NIGHTLY_DISPATCH_ID ?? "");
+const isNightlyCandidateAdvance = () => /^nightly-certification-[1-9][0-9]*-[1-9][0-9]*$/.test(process.env.HONUA_NIGHTLY_DISPATCH_ID ?? "");
 
 export function prepareOpsEventsConfiguration() {
   const context = verifiedOpsEventsSource();

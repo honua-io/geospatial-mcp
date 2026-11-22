@@ -69,15 +69,15 @@ def check_nightly_advance_candidate(raw, source, image):
         raise ValueError("protected ops manifest does not match selected candidate source/image; align requirements_ref with server_source_sha/server_image")
 
 
-def _retain_manifest(governance_binding, destination, get, validator):
+def fetch(governance_binding, destination, *, get=SOURCE.api, candidate_source_sha=None, candidate_image=None):
     if (not isinstance(governance_binding, dict)
             or governance_binding.get("repository") != SOURCE.REPOSITORY):
         raise ValueError("original governance source binding missing")
     source = governance_binding.get("sourceSha")
     retained = SOURCE.immutable_files(SOURCE.REPOSITORY, source, (PATH,), get=get)
     raw, digest, blob = retained[PATH]
-    if validator is not None:
-        validator(raw)
+    if candidate_source_sha is not None or candidate_image is not None:
+        check_candidate(raw, candidate_source_sha, candidate_image)
     binding = {"schema": "honua.mcp-ops-events-manifest/v1", "repository": SOURCE.REPOSITORY,
                "sourceSha": source, "path": PATH, "sha256": digest, "gitBlob": blob}
     destination.mkdir(parents=True, exist_ok=True)
@@ -86,16 +86,21 @@ def _retain_manifest(governance_binding, destination, get, validator):
     return binding
 
 
-def fetch(governance_binding, destination, *, get=SOURCE.api, candidate_source_sha=None, candidate_image=None):
-    validator = (lambda raw: check_candidate(raw, candidate_source_sha, candidate_image)) \
-        if (candidate_source_sha is not None or candidate_image is not None) else None
-    return _retain_manifest(governance_binding, destination, get, validator)
-
-
 def fetch_nightly_advance(governance_binding, destination, candidate, *, get=SOURCE.api):
+    if (not isinstance(governance_binding, dict)
+            or governance_binding.get("repository") != SOURCE.REPOSITORY):
+        raise ValueError("original governance source binding missing")
     source_sha, image = candidate
-    return _retain_manifest(governance_binding, destination, get,
-                            lambda raw: check_nightly_advance_candidate(raw, source_sha, image))
+    source = governance_binding.get("sourceSha")
+    retained = SOURCE.immutable_files(SOURCE.REPOSITORY, source, (PATH,), get=get)
+    raw, digest, blob = retained[PATH]
+    check_nightly_advance_candidate(raw, source_sha, image)
+    binding = {"schema": "honua.mcp-ops-events-manifest/v1", "repository": SOURCE.REPOSITORY,
+               "sourceSha": source, "path": PATH, "sha256": digest, "gitBlob": blob}
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "ops-events-platform-manifest.yaml").write_bytes(raw)
+    (destination / "ops-events-manifest-binding.json").write_text(json.dumps(binding, indent=2) + "\n")
+    return binding
 
 
 def main():

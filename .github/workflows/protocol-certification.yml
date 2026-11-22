@@ -175,6 +175,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
           HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
+          HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}
         working-directory: certification
         run: |
           npm run prepare:render
@@ -185,7 +186,11 @@ jobs:
           npm run prepare:ops-health
           npm run prepare:ops-events
           npm run prepare:grounding-status
-          python3 fetch-ops-events-manifest.py --governance-binding ../.certification/source-binding.json --destination artifacts --candidate-source-sha "${HONUA_MCP_SERVER_SOURCE_SHA}" --candidate-image "${HONUA_MCP_SERVER_IMAGE}"
+          manifest_args=(--governance-binding ../.certification/source-binding.json --destination artifacts --candidate-source-sha "${HONUA_MCP_SERVER_SOURCE_SHA}" --candidate-image "${HONUA_MCP_SERVER_IMAGE}")
+          if [[ "${HONUA_NIGHTLY_DISPATCH_ID}" =~ ^nightly-certification-[1-9][0-9]*-[1-9][0-9]*$ ]]; then
+            manifest_args+=(--allow-candidate-advance)
+          fi
+          python3 fetch-ops-events-manifest.py "${manifest_args[@]}"
 
       - name: Fetch immutable protected separate app workflow and oracle bundle
         env:
@@ -391,6 +396,7 @@ jobs:
           HONUA_MCP_SERVER_SOURCE_SHA: ${{ steps.identity.outputs.source-sha }}
           HONUA_MCP_SERVER_IMAGE: ${{ steps.identity.outputs.image }}
           HONUA_MCP_OPS_ENV_FILE: ${{ runner.temp }}/mcp-ops-declared-options.env
+          HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -593,6 +599,7 @@ jobs:
           HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
           HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}
         run: node run-grounding-status.mjs
 
       - name: Run canonical ingest publish and persisted restart readback
@@ -632,6 +639,7 @@ jobs:
           HONUA_MCP_OWNED_DISPOSABLE_CANDIDATE: "1"
           HONUA_MCP_API_KEY: Ci-Protocol-Api-Key-2026!
           HONUA_CERT_DB_PASSWORD: ${{ env.HONUA_CERT_DB_PASSWORD }}
+          HONUA_NIGHTLY_DISPATCH_ID: ${{ inputs.nightly_dispatch_id || '' }}
         run: node run-ops-events.mjs
 
       - name: Run canonical plan execution replay and durable result readback

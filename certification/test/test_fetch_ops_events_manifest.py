@@ -61,6 +61,49 @@ class OpsManifestSourceTests(unittest.TestCase):
                         MODULE.fetch(original, Path(work), get=changed.__getitem__, candidate_source_sha=source, candidate_image=image)
                     self.assertEqual(list(Path(work).iterdir()), [])
 
+    def test_nightly_candidate_advance_accepts_newer_candidate_against_valid_manifest(self):
+        original, responses, _, _ = fixtures()
+        pinned_source = "c" * 40
+        pinned_digest = "sha256:" + "d" * 64
+        lambda_digest = "sha256:" + "e" * 64
+        new_source = "a" * 40
+        new_image = "ghcr.io/honua-io/honua-server@sha256:" + "f" * 64
+        manifest = {"candidate": {"ref": pinned_source, "refSource": "trunk"},
+                    "components": {"honua-server": {"sha": pinned_source,
+                        "image": "ghcr.io/honua-io/honua-server:nightly-candidate", "digest": pinned_digest,
+                        "awsLambdaImage": "ghcr.io/honua-io/honua-server:nightly-lambda",
+                        "awsLambdaDigest": lambda_digest}}}
+        for mutation in (None, "lambda_collision", "missing_lambda", "manifest_mismatch", "origin"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as work:
+                value = deepcopy(manifest)
+                selected_image = new_image
+                if mutation == "lambda_collision":
+                    selected_image = "ghcr.io/honua-io/honua-server@" + lambda_digest
+                if mutation == "missing_lambda":
+                    del value["components"]["honua-server"]["awsLambdaDigest"]
+                if mutation == "manifest_mismatch":
+                    value["candidate"]["ref"] = "b" * 40
+                if mutation == "origin":
+                    value["candidate"]["refSource"] = "branch"
+                raw = yaml.safe_dump(value).encode()
+                blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+                changed = deepcopy(responses)
+                tree = changed[f'repos/{original["repository"]}/git/trees/{original["sourceSha"]}?recursive=1']
+                next(entry for entry in tree["tree"] if entry["path"] == MODULE.PATH)["sha"] = blob
+                changed[f'repos/{original["repository"]}/git/blobs/{blob}'] = {
+                    "sha": blob, "encoding": "base64", "size": len(raw), "content": base64.b64encode(raw).decode()}
+                if mutation is None:
+                    MODULE.fetch(original, Path(work), get=changed.__getitem__,
+                                 candidate_source_sha=new_source, candidate_image=selected_image,
+                                 allow_candidate_advance=True)
+                    self.assertEqual((Path(work) / "ops-events-platform-manifest.yaml").read_bytes(), raw)
+                else:
+                    with self.assertRaisesRegex(ValueError, "selected candidate"):
+                        MODULE.fetch(original, Path(work), get=changed.__getitem__,
+                                     candidate_source_sha=new_source, candidate_image=selected_image,
+                                     allow_candidate_advance=True)
+                    self.assertEqual(list(Path(work).iterdir()), [])
+
     def test_retains_original_bytes_and_complete_git_binding_without_qualification(self):
         original, responses, raw, blob = fixtures()
         with tempfile.TemporaryDirectory() as work:

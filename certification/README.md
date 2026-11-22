@@ -212,11 +212,11 @@ fixture. Harness controls never emit candidate certification rows and do not
 substitute for the SDK-to-Honua scenario. A positive candidate run requires an
 immutable attested server image containing honua-server#6325; the existing default
 image is the 2026.1 rc.2 candidate at source
-`532565bc7215d4b9ce9657bc110cbd0366076e31`, the attested multi-arch AOT index
-`sha256:d56e88152d3ca17f963542a3ecc6b0b28c355f3173a734bc69a8396331c6c9a9`, which
+`de512e8123bdfbfbe20f692b236e37853b4f8294`, the attested multi-arch AOT index
+`sha256:1eb5a482778bc8aeb349f4a32732580534e3b5b0067bbcc0060e9159bf07ed6b`, which
 contains that runtime change, this server-owned harness and the `serviceLayerIndex`
-layer selector. The previous default,
-`8628668794df9f0c22a490e59cedaee409cc1bdd`, predated that selector. Earlier defaults
+layer selector. Previous defaults `532565bc7215d4b9ce9657bc110cbd0366076e31` and
+`8628668794df9f0c22a490e59cedaee409cc1bdd` preceded this candidate. Earlier defaults
 `a4bde4b8c5ee8cc3dec05ad8b3d4f84470c1ea6e`,
 `8cb074f77d01c0a00617ebe426460aa24c7d890b` and
 `3ecd214c1ce20e96ad4911b6f8447055dee9089d` predated the runtime change and the harness. Pinning an image changes

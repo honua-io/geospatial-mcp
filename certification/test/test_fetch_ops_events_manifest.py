@@ -93,15 +93,13 @@ class OpsManifestSourceTests(unittest.TestCase):
                 changed[f'repos/{original["repository"]}/git/blobs/{blob}'] = {
                     "sha": blob, "encoding": "base64", "size": len(raw), "content": base64.b64encode(raw).decode()}
                 if mutation is None:
-                    MODULE.fetch(original, Path(work), get=changed.__getitem__,
-                                 candidate_source_sha=new_source, candidate_image=selected_image,
-                                 allow_candidate_advance=True)
+                    MODULE.fetch_nightly_advance(original, Path(work), (new_source, selected_image),
+                                                 get=changed.__getitem__)
                     self.assertEqual((Path(work) / "ops-events-platform-manifest.yaml").read_bytes(), raw)
                 else:
                     with self.assertRaisesRegex(ValueError, "selected candidate"):
-                        MODULE.fetch(original, Path(work), get=changed.__getitem__,
-                                     candidate_source_sha=new_source, candidate_image=selected_image,
-                                     allow_candidate_advance=True)
+                        MODULE.fetch_nightly_advance(original, Path(work), (new_source, selected_image),
+                                                     get=changed.__getitem__)
                     self.assertEqual(list(Path(work).iterdir()), [])
 
     def test_retains_original_bytes_and_complete_git_binding_without_qualification(self):

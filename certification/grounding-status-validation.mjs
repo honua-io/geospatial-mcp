@@ -70,8 +70,10 @@ export function verifiedGroundingStatusSource() {
 const initial = verifiedGroundingStatusSource();
 const owned = await import(pathToFileURL(join(initial.directory, "mcp_grounding_status_validation.mjs")).href);
 
+const isNightlyCandidateAdvance = () => /^nightly-certification-[0-9]+-[0-9]+$/.test(process.env.HONUA_NIGHTLY_DISPATCH_ID ?? "");
+
 export function groundingStatusScenarios(record, canonicalClient, clientVersion, results) {
-  return owned.createGroundingStatusValidation(verifiedGroundingStatusSource()).groundingStatusScenarios(record, {
+  return owned.createGroundingStatusValidation({ ...verifiedGroundingStatusSource(), allowCandidateAdvance: isNightlyCandidateAdvance() }).groundingStatusScenarios(record, {
     candidateSourceSha: process.env.HONUA_MCP_SERVER_SOURCE_SHA,
     candidateImage: process.env.HONUA_MCP_SERVER_IMAGE,
     canonicalClient, clientVersion,
@@ -86,7 +88,7 @@ export function verifyGroundingStatusProof(proof, sourceSha, imageDigest, operat
   try {
     if (typeof proof?.candidateImage !== "string" || proof.candidateImage.split("@").at(-1) !== imageDigest)
       return false;
-    return owned.createGroundingStatusValidation(verifiedGroundingStatusSource()).verifyGroundingStatusProof(
+    return owned.createGroundingStatusValidation({ ...verifiedGroundingStatusSource(), allowCandidateAdvance: isNightlyCandidateAdvance() }).verifyGroundingStatusProof(
       proof, sourceSha, proof.candidateImage, operation, canonicalClient, clientVersion);
   } catch { return false; }
 }

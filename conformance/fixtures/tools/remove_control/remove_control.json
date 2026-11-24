@@ -3,7 +3,7 @@
   "schemaRef": "tools/remove_control.schema.json",
   "validates": "inputs",
   "inputs": {
-    "mapPackageId": "map_maui_parcels",
+    "mapId": "map_maui_parcels",
     "controlId": "year-built-filter",
     "cascadeInteractions": true
   },

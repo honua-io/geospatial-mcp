@@ -199,10 +199,10 @@ current names. A manifest that maps a tool or resource onto a former name
 fails as unknown, and a former profile name claims no profile.
 The [CHANGELOG](../docs/CHANGELOG.md) lists each former name with its replacement.
 
-Reference-implementation advertised names (`honua_create_map_package`, …),
-resource URIs (`honua://map-packages/{map_package_id}`,
-`honua://app-packages/{app_package_id}`) and payload fields (`mapPackageId`,
-`appPackageId`, `packageFamily`, `packageId`, `packagePayload`) are wire
+Reference-implementation advertised names (`honua_create_map`, …),
+resource URIs (`honua://maps/{mapId}`,
+`honua://apps/{appId}`) and payload fields (`mapId`,
+`appId`, `packageFamily`, `packageId`, `packagePayload`) are wire
 literals the reference server owns; they keep their spelling until the server
 migrates them.
 

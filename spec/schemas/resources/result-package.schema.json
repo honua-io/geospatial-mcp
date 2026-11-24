@@ -47,11 +47,11 @@
       "type": "array",
       "items": { "$ref": "workspace.schema.json" }
     },
-    "mapPackageId": {
+    "mapId": {
       "type": "string",
       "description": "Deferred reference to a Map (map_…)."
     },
-    "appPackageId": {
+    "appId": {
       "type": "string",
       "description": "Deferred reference to an App (app_…)."
     },

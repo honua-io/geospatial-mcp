@@ -3,7 +3,7 @@
   "schemaRef": "tools/remove_interaction.schema.json",
   "validates": "inputs",
   "inputs": {
-    "mapPackageId": "map_maui_parcels",
+    "mapId": "map_maui_parcels",
     "interactionId": "select-parcel-filters-chart"
   },
   "expected": "tool_result",

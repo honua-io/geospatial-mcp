@@ -116,6 +116,36 @@
       "rule": "composition-profile-name",
       "line": "| `composition` | `interactivity` | conformance profile |",
       "reason": "CHANGELOG rename list: maps each former name to its replacement."
+    },
+    {
+      "path": "spec/schemas/resources/app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"appPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/resources/app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/resources/map.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "spec/schemas/tools/create_app.schema.json",
+      "rule": "map-app-identity",
+      "line": "\"mapPackageId\"",
+      "reason": "Negative schema assertion rejects the retired field; this is not an accepted alias."
+    },
+    {
+      "path": "conformance/test_project_reference_manifest.py",
+      "rule": "retired-tool-name",
+      "line": "mapping[\"standardName\"] = \"create_map_package\"",
+      "reason": "Negative regression input proves projection cannot hide missing canonical tool coverage."
     }
   ]
 }

@@ -43,7 +43,7 @@
     },
     {
       "standardName": "create_map",
-      "referenceToolName": "honua_create_map_package",
+      "referenceToolName": "honua_create_map",
       "family": "Map composition",
       "schema": "tools/create_map.schema.json",
       "implementationStatus": "implemented",
@@ -87,7 +87,7 @@
     },
     {
       "standardName": "create_app",
-      "referenceToolName": "honua_create_app_package",
+      "referenceToolName": "honua_create_app",
       "family": "App composition",
       "schema": "tools/create_app.schema.json",
       "implementationStatus": "implemented",
@@ -441,14 +441,14 @@
     },
     {
       "family": "Map",
-      "uriForm": "honua://map-packages/{map_package_id}",
+      "uriForm": "honua://maps/{mapId}",
       "schema": "resources/map.schema.json",
       "shapeFidelity": "responsibility-level",
       "implementationStatus": "implemented"
     },
     {
       "family": "App",
-      "uriForm": "honua://app-packages/{app_package_id}",
+      "uriForm": "honua://apps/{appId}",
       "schema": "resources/app.schema.json",
       "shapeFidelity": "responsibility-level",
       "implementationStatus": "implemented"

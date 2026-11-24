@@ -5,9 +5,9 @@
   "description": "Argument shape for preview_map (Analyze, Build App; returns a preview ArtifactRef). Produces a read-only preview artifact for an existing Map. Responsibility-level. See taxonomy.md §Map composition.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["mapPackageId"],
+  "required": ["mapId"],
   "properties": {
-    "mapPackageId": {
+    "mapId": {
       "type": "string",
       "description": "Identifier (map_…) of the Map to preview."
     },

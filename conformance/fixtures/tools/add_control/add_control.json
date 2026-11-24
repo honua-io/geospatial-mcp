@@ -3,7 +3,7 @@
   "schemaRef": "tools/add_control.schema.json",
   "validates": "inputs",
   "inputs": {
-    "mapPackageId": "map_maui_parcels",
+    "mapId": "map_maui_parcels",
     "control": {
       "id": "year-built-filter",
       "kind": "filterSelect",

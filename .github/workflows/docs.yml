@@ -52,6 +52,10 @@ jobs:
         run: python3 conformance/check_manifest.py --strict conformance/manifests/honua.manifest.json
       - name: Run conformance checker regression tests
         run: python3 conformance/test_check_manifest.py
+      - name: Check reference manifest generation
+        run: python3 conformance/test_project_reference_manifest.py
+      - name: Check Map and App identifier contracts
+        run: python3 conformance/test_identifier_contracts.py
       - name: Check service-scoped layer selector contracts
         run: python3 -m unittest conformance.test_service_layer_index
       - name: Validate portable agent skills

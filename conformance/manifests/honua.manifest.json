@@ -2,8 +2,7 @@
   "specDate": "2026-04-19",
   "implementation": {
     "name": "Honua /mcp",
-    "isReferenceImplementation": true,
-    "profiles": ["base"]
+    "isReferenceImplementation": true
   },
   "tools": [
     {
@@ -28,12 +27,12 @@
     },
     {
       "standardName": "create_app",
-      "advertisedName": "honua_create_app_package",
+      "advertisedName": "honua_create_app",
       "workflowFamily": "Execution"
     },
     {
       "standardName": "create_map",
-      "advertisedName": "honua_create_map_package",
+      "advertisedName": "honua_create_map",
       "workflowFamily": "Execution"
     },
     {
@@ -185,7 +184,7 @@
   "resources": [
     {
       "family": "App",
-      "uriForm": "honua://app-packages/{app_package_id}"
+      "uriForm": "honua://apps/{appId}"
     },
     {
       "family": "Deployment",
@@ -193,7 +192,7 @@
     },
     {
       "family": "Map",
-      "uriForm": "honua://map-packages/{map_package_id}"
+      "uriForm": "honua://maps/{mapId}"
     },
     {
       "family": "Ops findings",
